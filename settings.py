@@ -1,2 +1,2 @@
-DATA_DIR = 'data'
-OUTPUT_DIR = 'out'
+DATA_DIR = u'data'
+OUTPUT_DIR = u'out'

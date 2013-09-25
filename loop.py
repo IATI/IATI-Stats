@@ -3,6 +3,7 @@ from lxml import etree
 import inspect
 import json
 import sys
+import decimal
 
 from settings import *
 
@@ -12,6 +13,11 @@ else:
     debug = False
 
 import stats
+
+def decimal_default(obj):
+    if isinstance(obj, decimal.Decimal):
+        return float(obj)
+    raise TypeError
 
 def process_file(inputfile, outputfile):
     try:
@@ -29,18 +35,19 @@ def process_file(inputfile, outputfile):
                     print activity_out
                 out.append(activity_out)
             with open(outputfile, 'w') as outfp:
-                json.dump(out, outfp, sort_keys=True, indent=2)
+                json.dump(out, outfp, sort_keys=True, indent=2, default=decimal_default)
         else:
             print 'No support yet for {0} in {1}'.format(root.tag, inputfile)
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)
 
-for folder in os.listdir(DATA_DIR):
-    if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':
-        continue
-    for xmlfile in os.listdir(os.path.join(DATA_DIR, folder)):
-        try: os.makedirs(os.path.join(OUTPUT_DIR,folder))
-        except OSError: pass
-        process_file(os.path.join(DATA_DIR,folder,xmlfile),
-                     os.path.join(OUTPUT_DIR,folder,xmlfile))
+if __name__ == '__main__':
+    for folder in os.listdir(DATA_DIR):
+        if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':
+            continue
+        for xmlfile in os.listdir(os.path.join(DATA_DIR, folder)):
+            try: os.makedirs(os.path.join(OUTPUT_DIR,folder))
+            except OSError: pass
+            process_file(os.path.join(DATA_DIR,folder,xmlfile),
+                         os.path.join(OUTPUT_DIR,folder,xmlfile))
 

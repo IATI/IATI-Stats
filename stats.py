@@ -3,10 +3,11 @@ import datetime
 from collections import defaultdict
 from decimal import Decimal
 import decimal
+from exchange_rates import toUSD
 
 def returns_intdict(f):
     def wrapper(self, *args, **kwargs):
-        if self.activity == None:
+        if self.blank:
             return defaultdict(int)
         else:
             out = f(self, *args, **kwargs)
@@ -14,18 +15,30 @@ def returns_intdict(f):
             else: return out
     return wrapper
 
+def returns_int(f):
+    def wrapper(self, *args, **kwargs):
+        if self.blank:
+            return 0
+        else:
+            out = f(self, *args, **kwargs)
+            if out is None: return 0
+            else: return out
+    return wrapper
+
 def no_aggregation(f):
     def wrapper(self, *args, **kwargs):
-        if self.activity == None:
+        if self.blank:
             return None
         else: return f(self, *args, **kwargs)
     return wrapper
 
 class ActivityStats(object):
+    strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
 
-    def __init__(self, activity=None):
+    def __init__(self, activity=None, blank=False):
         self.activity = activity
+        self.blank = blank
 
     @no_aggregation
     def iati_identifier(self):
@@ -34,13 +47,14 @@ class ActivityStats(object):
         except AttributeError:
             return None
 
+    @returns_int
     def activities(self):
-        if self.activity is None: return 0
-        else: return 1
+        return 1
 
     @returns_intdict
     def currencies(self):
         currencies = [ x.find('value').get('currency') for x in self.activity.findall('transaction') if x.find('value') is not None ]
+        currencies = [ c if c else self.activity.get('default-currency') for c in currencies ]
         return dict( (c,1) for c in currencies )
         
 
@@ -57,18 +71,30 @@ class ActivityStats(object):
     def activities_per_year(self):
         return {self.__get_actual_start_year():1}
 
+    def __create_decimal(self, s):
+        if self.strict:
+            return Decimal(s)
+        else:
+            return Decimal(s.replace(',', '').replace(' ', ''))
+
     def __value_to_dollars(self, value):
-        # FIXME
         try:
-            return Decimal(value.text)
+            currency = value.get('currency') or self.activity.get('default-currency')
+            if currency == 'USD': return self.__create_decimal(value.text)
+
+            year = datetime.datetime.strptime(value.get('value-date').strip('Z'), "%Y-%m-%d").year
+            if year == 2013: year = 2012
+            return toUSD(value=self.__create_decimal(value.text),
+                         currency=currency,
+                         year=year)
         # Should we allow commas
-        except decimal.InvalidOperation, e:
+        except Exception, e:
             print unicode(e)+self.context
+            return Decimal(0.0)
         
     def __spend(self):
         values = [ x.find('value') for x in self.activity.findall('transaction') if x.find('transaction-type') is not None and x.find('transaction-type').get('code') in ['D','E'] ]
-        map(self.__value_to_dollars, values)
-        return 1
+        return sum(map(self.__value_to_dollars, values))
 
     @returns_intdict
     def spend_per_year(self):
@@ -76,19 +102,38 @@ class ActivityStats(object):
     
     @returns_intdict
     def activities_per_country(self):
-        countries = self.activity.findall('recipient-country')
-        regions = self.activity.findall('recipient-region')
-        if countries is not None:
-            return dict((country.get('code'),1) for country in countries)
-        elif regions is not None:
-            return dict((region.get('code'),1) for region in regions)
+        if self.__get_actual_start_year() >= 2010:
+            countries = self.activity.findall('recipient-country')
+            regions = self.activity.findall('recipient-region')
+            if countries is not None:
+                return dict((country.get('code'),1) for country in countries)
+            elif regions is not None:
+                return dict((region.get('code'),1) for region in regions)
+
+    @returns_int
+    def activities_no_country(self):
+        if len(self.activities_per_country()) == 0:
+            return 1
 
     @returns_intdict
     def spend_per_country(self):
-        country = self.activity.find('recipient-country')
-        region = self.activity.find('recipient-region')
-        if country is not None:
-            return {country.get('code'):self.__spend()}
-        elif region is not None:
-            return {region.get('code'):self.__spend()}
-    
+        if self.__get_actual_start_year() >= 2010:
+            country = self.activity.find('recipient-country')
+            region = self.activity.find('recipient-region')
+            if country is not None:
+                return {country.get('code'):self.__spend()}
+            elif region is not None:
+                return {region.get('code'):self.__spend()}
+
+class PublisherStats(object):
+    strict = False # (Setting this to true will ignore values that don't follow the schema)
+    context = ''
+
+    def __init__(self, aggregated_stats=None, blank=False):
+        self.aggregated_stats = aggregated_stats
+        self.blank = blank
+
+    @returns_intdict
+    def publishers_per_country(self):
+        countries = self.aggregated_stats['activities_per_country'].keys()
+        return dict((c,1) for c in countries)

@@ -11,6 +11,9 @@ with open('./exchange_rates.csv') as fp:
     for line in reader:
         exchange_dict[line['Country']] = line
 
+#class UnsupportedCurrency(Exception):
+#    pass
+
 def toUSD(value, currency, year):
     return value * Decimal(exchange_dict[root.find("*[@ISO='{0}']".format(currency)).get('name')][str(year)])
 

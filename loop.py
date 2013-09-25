@@ -4,13 +4,16 @@ import inspect
 import json
 import sys
 import decimal
+import argparse
 
 from settings import *
 
-if len(sys.argv) > 1:
-    debug = sys.argv[1] == '--debug'
-else:
-    debug = False
+parser = argparse.ArgumentParser()
+parser.add_argument("--debug", help="Output extra debugging information",
+                    action="store_true")
+parser.add_argument("--strict", help="Follow the schema strictly",
+                    action="store_true")
+args = parser.parse_args()
 
 import stats
 
@@ -27,11 +30,12 @@ def process_file(inputfile, outputfile):
             for activity in root:
                 activity_out = {}
                 activity_stats = stats.ActivityStats(activity)
+                activity_stats.strict = args.strict
                 activity_stats.context = 'in '+inputfile
                 for name, function in inspect.getmembers(activity_stats, predicate=inspect.ismethod):
                     if name.startswith('_'): continue
                     activity_out[name] = function()
-                if debug:
+                if args.debug:
                     print activity_out
                 out.append(activity_out)
             with open(outputfile, 'w') as outfp:

@@ -77,28 +77,36 @@ class ActivityStats(object):
         else:
             return Decimal(s.replace(',', '').replace(' ', ''))
 
-    def __value_to_dollars(self, value):
+    def __value_to_dollars(self, transaction):
         try:
+            value = transaction.find('value')
             currency = value.get('currency') or self.activity.get('default-currency')
             if currency == 'USD': return self.__create_decimal(value.text)
-
-            year = datetime.datetime.strptime(value.get('value-date').strip('Z'), "%Y-%m-%d").year
+            try:
+                year = datetime.datetime.strptime(value.get('value-date').strip('Z'), "%Y-%m-%d").year
+            except AttributeError:
+                try:
+                    if self.strict: raise AttributeError
+                    year = datetime.datetime.strptime(transaction.find('transaction-date').get('iso-date').strip('Z'), "%Y-%m-%d").year
+                except AttributeError:
+                    print 'Transaction without date information'+self.context 
+                    return Decimal(0.0)
             if year == 2013: year = 2012
             return toUSD(value=self.__create_decimal(value.text),
                          currency=currency,
                          year=year)
-        # Should we allow commas
         except Exception, e:
             print unicode(e)+self.context
             return Decimal(0.0)
-        
-    def __spend(self):
-        values = [ x.find('value') for x in self.activity.findall('transaction') if x.find('transaction-type') is not None and x.find('transaction-type').get('code') in ['D','E'] ]
-        return sum(map(self.__value_to_dollars, values))
+    
+    @returns_int
+    def spend(self):
+        transactions = [ x for x in self.activity.findall('transaction') if x.find('transaction-type') is not None and x.find('transaction-type').get('code') in ['D','E'] ]
+        return sum(map(self.__value_to_dollars, transactions))
 
     @returns_intdict
     def spend_per_year(self):
-        return {self.__get_actual_start_year():self.__spend()}
+        return {self.__get_actual_start_year():self.spend()}
     
     @returns_intdict
     def activities_per_country(self):
@@ -121,9 +129,9 @@ class ActivityStats(object):
             country = self.activity.find('recipient-country')
             region = self.activity.find('recipient-region')
             if country is not None:
-                return {country.get('code'):self.__spend()}
+                return {country.get('code'):self.spend()}
             elif region is not None:
-                return {region.get('code'):self.__spend()}
+                return {region.get('code'):self.spend()}
 
 class PublisherStats(object):
     strict = False # (Setting this to true will ignore values that don't follow the schema)

@@ -132,6 +132,12 @@ class ActivityStats(object):
                 return {country.get('code'):self.spend()}
             elif region is not None:
                 return {region.get('code'):self.spend()}
+    
+    @returns_intdict
+    def spend_per_organisation_type(self):
+        organisationType = self.activity.find('reporting-org')
+        if organisationType is not None:
+            return {organisationType.get('type'):self.spend()}
 
 class PublisherStats(object):
     strict = False # (Setting this to true will ignore values that don't follow the schema)

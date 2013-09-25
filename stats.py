@@ -129,11 +129,15 @@ class PublisherStats(object):
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
 
-    def __init__(self, aggregated_stats=None, blank=False):
-        self.aggregated_stats = aggregated_stats
+    def __init__(self, aggregated=None, blank=False):
+        self.aggregated = aggregated
         self.blank = blank
 
     @returns_intdict
     def publishers_per_country(self):
-        countries = self.aggregated_stats['activities_per_country'].keys()
+        countries = self.aggregated['activities_per_country'].keys()
         return dict((c,1) for c in countries)
+
+    @returns_int
+    def publishers(self):
+        return 1

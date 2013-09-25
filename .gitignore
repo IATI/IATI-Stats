@@ -1,5 +1,7 @@
 data
 out
+aggregated
+aggregated.json
 
 *.pyc
 *.swp

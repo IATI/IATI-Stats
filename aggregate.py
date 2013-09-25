@@ -7,6 +7,8 @@ def dict_sum_inplace(d1, d2):
     for k,v in d2.items():
         if type(v) == dict:
             dict_sum_inplace(d1[k], v)
+        elif d1[k] is None:
+            continue
         else:
             d1[k] += v
 
@@ -23,5 +25,5 @@ for folder in os.listdir(OUTPUT_DIR):
             for activity_json in json.load(jsonfp):
                 dict_sum_inplace(total, activity_json)
 
-print json.dumps(total)
+print json.dumps(total, sort_keys=True, indent=2)
 

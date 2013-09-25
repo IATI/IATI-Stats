@@ -2,8 +2,14 @@ import os
 from lxml import etree
 import inspect
 import json
+import sys
 
 from settings import *
+
+if len(sys.argv) > 1:
+    debug = sys.argv[1] == '--debug'
+else:
+    debug = False
 
 import stats
 
@@ -19,9 +25,11 @@ def process_file(inputfile, outputfile):
                 for name, function in inspect.getmembers(activity_stats, predicate=inspect.ismethod):
                     if name.startswith('_'): continue
                     activity_out[name] = function()
+                if debug:
+                    print activity_out
                 out.append(activity_out)
             with open(outputfile, 'w') as outfp:
-                json.dump(out, outfp)
+                json.dump(out, outfp, sort_keys=True, indent=2)
         else:
             print 'No support yet for {0} in {1}'.format(root.tag, inputfile)
     except etree.ParseError:

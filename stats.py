@@ -128,16 +128,26 @@ class ActivityStats(object):
         if self.__get_actual_start_year() >= 2010:
             country = self.activity.find('recipient-country')
             region = self.activity.find('recipient-region')
-            if country is not None:
+            if country is not None and country.get('code'):
                 return {country.get('code'):self.spend()}
-            elif region is not None:
+            elif region is not None and region.get('code'):
                 return {region.get('code'):self.spend()}
+            else:
+                return {None:self.spend()}
+        else:
+            return {'pre2010':self.spend()}
     
     @returns_intdict
     def spend_per_organisation_type(self):
+        transactions = [ x for x in self.activity.findall('transaction') if
+            x.find('transaction-type') is not None and
+            x.find('transaction-type').get('code') in ['D','E'] and
+            x.find('transaction-date') is not None and
+            datetime.datetime.strptime(x.find('transaction-date').get('iso-date').strip('Z'), "%Y-%m-%d") > datetime.datetime(2012, 6, 30) ]
+        spend = sum(map(self.__value_to_dollars, transactions))
         organisationType = self.activity.find('reporting-org')
         if organisationType is not None:
-            return {organisationType.get('type'):self.spend()}
+            return {organisationType.get('type'):spend}
 
 class PublisherStats(object):
     strict = False # (Setting this to true will ignore values that don't follow the schema)
@@ -151,6 +161,11 @@ class PublisherStats(object):
     def publishers_per_country(self):
         countries = self.aggregated['activities_per_country'].keys()
         return dict((c,1) for c in countries)
+
+    @returns_intdict
+    def publishers_per_organisation_type(self):
+        organisation_types = self.aggregated['spend_per_organisation_type'].keys()
+        return dict((o,1) for o in organisation_types)
 
     @returns_int
     def publishers(self):

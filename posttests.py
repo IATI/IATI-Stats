@@ -1,24 +1,30 @@
 from __future__ import unicode_literals
 import unittest
 import json
+import decimal
 
 class TestAggregatedValues(unittest.TestCase):
     def setUp(self):
         with open('aggregated.json') as fp:
-            self.aggregated = json.load(fp)
+            self.aggregated = json.load(fp, parse_float=decimal.Decimal)
 
     def test_activity_sum(self):
         a = self.aggregated
         for key in ['activities_per_year']:
             self.assertEqual(a['activities'], sum(a[key].values()), msg=key)
 
-    def test_publishers_upper_bound(self):
+    def test_spend_sum(self):
+        a = self.aggregated
+        for key in ['spend_per_year', 'spend_per_country']:
+            self.assertAlmostEqual(a['spend'], sum(a[key].values()), places=2)
+
+    def test_activities_upper_bound(self):
         a = self.aggregated
         for key in ['activities_per_country', 'activities_per_year']:
             for value in a[key].values():
                 self.assertLessEqual(value, a['activities'], msg='{0} {1}'.format(key,value))
 
-    def test_activities_upper_bound(self):
+    def test_publishers_upper_bound(self):
         a = self.aggregated
         for key in ['publishers_per_country']:
             for value in a[key].values():

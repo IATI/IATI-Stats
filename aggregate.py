@@ -4,6 +4,12 @@ import inspect
 import json
 import os
 import copy
+import decimal
+
+def decimal_default(obj):
+    if isinstance(obj, decimal.Decimal):
+        return float(obj)
+    raise TypeError
 
 def dict_sum_inplace(d1, d2):
     for k,v in d2.items():
@@ -28,7 +34,7 @@ for folder in os.listdir(OUTPUT_DIR):
 
     for jsonfile in os.listdir(os.path.join(OUTPUT_DIR, folder)):
         with open(os.path.join(OUTPUT_DIR, folder, jsonfile)) as jsonfp:
-            for activity_json in json.load(jsonfp):
+            for activity_json in json.load(jsonfp, parse_float=decimal.Decimal):
                 dict_sum_inplace(subtotal, activity_json)
 
     publisher_stats = stats.PublisherStats(subtotal)
@@ -38,8 +44,8 @@ for folder in os.listdir(OUTPUT_DIR):
 
     dict_sum_inplace(total, subtotal)
     with open(os.path.join('aggregated', folder+'.json'), 'w') as fp:
-        json.dump(subtotal, fp, sort_keys=True, indent=2)
+        json.dump(subtotal, fp, sort_keys=True, indent=2, default=decimal_default)
 
 with open('aggregated.json', 'w') as fp:
-    json.dump(total, fp, sort_keys=True, indent=2)
+    json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)
 

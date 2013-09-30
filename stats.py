@@ -58,8 +58,9 @@ class ActivityStats(object):
         return dict( (c,1) for c in currencies )
         
 
-    def __get_actual_start_year(self):
+    def __get_start_year(self):
         activity_date = self.activity.find("activity-date[@type='start-actual']")
+        if activity_date is None: activity_date = self.activity.find("activity-date[@type='start-planned']")
         if activity_date is not None and activity_date.get('iso-date'):
             try:
                 date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
@@ -69,7 +70,7 @@ class ActivityStats(object):
 
     @returns_intdict
     def activities_per_year(self):
-        return {self.__get_actual_start_year():1}
+        return {self.__get_start_year():1}
 
     def __create_decimal(self, s):
         if self.strict:
@@ -106,11 +107,11 @@ class ActivityStats(object):
 
     @returns_intdict
     def spend_per_year(self):
-        return {self.__get_actual_start_year():self.spend()}
+        return {self.__get_start_year():self.spend()}
     
     @returns_intdict
     def activities_per_country(self):
-        if self.__get_actual_start_year() >= 2010:
+        if self.__get_start_year() >= 2010:
             countries = self.activity.findall('recipient-country')
             regions = self.activity.findall('recipient-region')
             if countries is not None:
@@ -125,7 +126,7 @@ class ActivityStats(object):
 
     @returns_intdict
     def spend_per_country(self):
-        if self.__get_actual_start_year() >= 2010:
+        if self.__get_start_year() >= 2010:
             country = self.activity.find('recipient-country')
             region = self.activity.find('recipient-region')
             if country is not None and country.get('code'):
@@ -139,15 +140,18 @@ class ActivityStats(object):
     
     @returns_intdict
     def spend_per_organisation_type(self):
-        transactions = [ x for x in self.activity.findall('transaction') if
-            x.find('transaction-type') is not None and
-            x.find('transaction-type').get('code') in ['D','E'] and
-            x.find('transaction-date') is not None and
-            datetime.datetime.strptime(x.find('transaction-date').get('iso-date').strip('Z'), "%Y-%m-%d") > datetime.datetime(2012, 6, 30) ]
-        spend = sum(map(self.__value_to_dollars, transactions))
-        organisationType = self.activity.find('reporting-org')
-        if organisationType is not None:
-            return {organisationType.get('type'):spend}
+        try:
+            transactions = [ x for x in self.activity.findall('transaction') if
+                x.find('transaction-type') is not None and
+                x.find('transaction-type').get('code') in ['D','E'] and
+                x.find('transaction-date') is not None and
+                datetime.datetime.strptime(x.find('transaction-date').get('iso-date').strip('Z'), "%Y-%m-%d") > datetime.datetime(2012, 6, 30) ]
+            spend = sum(map(self.__value_to_dollars, transactions))
+            organisationType = self.activity.find('reporting-org')
+            if organisationType is not None:
+                return {organisationType.get('type'):spend}
+        except ValueError:
+            pass
 
 class PublisherStats(object):
     strict = False # (Setting this to true will ignore values that don't follow the schema)

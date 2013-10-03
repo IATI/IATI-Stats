@@ -13,6 +13,8 @@ parser.add_argument("--debug", help="Output extra debugging information",
                     action="store_true")
 parser.add_argument("--strict", help="Follow the schema strictly",
                     action="store_true")
+parser.add_argument("--stat", help="Name of stat to calculate")
+parser.add_argument("--folder", help="Limit to a specific folder in the data")
 args = parser.parse_args()
 
 import stats
@@ -32,9 +34,12 @@ def process_file(inputfile, outputfile):
                 activity_stats = stats.ActivityStats(activity)
                 activity_stats.strict = args.strict
                 activity_stats.context = 'in '+inputfile
-                for name, function in inspect.getmembers(activity_stats, predicate=inspect.ismethod):
-                    if name.startswith('_'): continue
-                    activity_out[name] = function()
+                if args.stat:
+                    activity_out[args.stat] = getattr(activity_stats, args.stat)()
+                else:
+                    for name, function in inspect.getmembers(activity_stats, predicate=inspect.ismethod):
+                        if name.startswith('_'): continue
+                        activity_out[name] = function()
                 if args.debug:
                     print activity_out
                 out.append(activity_out)
@@ -45,13 +50,19 @@ def process_file(inputfile, outputfile):
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)
 
+def loop_folder(folder):
+    if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':
+        return
+    for xmlfile in os.listdir(os.path.join(DATA_DIR, folder)):
+        try: os.makedirs(os.path.join(OUTPUT_DIR,folder))
+        except OSError: pass
+        process_file(os.path.join(DATA_DIR,folder,xmlfile),
+                     os.path.join(OUTPUT_DIR,folder,xmlfile))
+
 if __name__ == '__main__':
-    for folder in os.listdir(DATA_DIR):
-        if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':
-            continue
-        for xmlfile in os.listdir(os.path.join(DATA_DIR, folder)):
-            try: os.makedirs(os.path.join(OUTPUT_DIR,folder))
-            except OSError: pass
-            process_file(os.path.join(DATA_DIR,folder,xmlfile),
-                         os.path.join(OUTPUT_DIR,folder,xmlfile))
+    if args.folder:
+        loop_folder(args.folder)
+    else:
+        for folder in os.listdir(DATA_DIR):
+            loop_folder(folder)
 

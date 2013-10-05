@@ -11,5 +11,6 @@ for f in os.listdir('aggregated'):
                 for k,v in stats_values.items():
                     out[stats_name][k].append(f[:-5])
 
+with open('inverted.json', 'w') as fp:
+    json.dump(out, fp, sort_keys=True, indent=2)
 
-json.dump(out, sys.stdout, sort_keys=True, indent=2)

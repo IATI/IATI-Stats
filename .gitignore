@@ -1,7 +1,8 @@
 data
 out
+gitout
 aggregated
-aggregated.json
+*.json
 
 *.pyc
 *.swp

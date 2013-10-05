@@ -1,0 +1,23 @@
+<script src="jquery-1.10.2.min.js"></script>
+<script>
+    $.getJSON('/gitout/gitdate.json', function (dates) {
+        $.getJSON('/gitout/gitaggregate.json', function (data) {
+            create_key_element = function (key) {
+                $('#list').append(
+                    $('<li>').append($('<a href="#">'+key+'</a>').click(function() {
+                        console.log(key);
+                    }))
+                );
+            }
+            for (var key in data) {
+                create_key_element(key);
+            }
+            /*for (key in data.activities) {
+                console.log(dates[key]);
+                console.log(data.activities[key]);
+            };*/
+        });
+    });
+</script>
+<ul id="list">
+</ul>

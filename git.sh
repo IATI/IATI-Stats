@@ -21,7 +21,8 @@ for commit in `git log --format=format:%H`; do
     python2 invert.py
     #python2
     mkdir gitout/$commit
-    mv out aggregated* inverted* gitout/$commit || exit $?
+    mv aggregated* inverted* gitout/$commit || exit $?
+    rm -r out
     cd data || exit $?
 done
 

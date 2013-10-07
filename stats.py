@@ -153,6 +153,15 @@ class ActivityStats(object):
         except ValueError:
             pass
 
+class ActivityFileStats(object):
+    def __init__(self, root=None, blank=False):
+        self.root = root
+        self.blank = blank
+
+    @returns_intdict
+    def versions(self):
+        return { self.root.attrib.get('version'): 1 }
+
 class PublisherStats(object):
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''

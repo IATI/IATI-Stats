@@ -23,7 +23,7 @@ def dict_sum_inplace(d1, d2):
 
 def make_blank():
     blank = {}
-    for stats_object in [ stats.ActivityStats(blank=True), stats.PublisherStats(blank=True) ]:
+    for stats_object in [ stats.ActivityStats(blank=True), stats.ActivityFileStats(blank=True), stats.PublisherStats(blank=True) ]:
         for name, function in inspect.getmembers(stats_object, predicate=inspect.ismethod):
             if name.startswith('_'): continue
             blank[name] = function()
@@ -37,8 +37,10 @@ if __name__ == '__main__':
 
         for jsonfile in os.listdir(os.path.join(OUTPUT_DIR, folder)):
             with open(os.path.join(OUTPUT_DIR, folder, jsonfile)) as jsonfp:
-                for activity_json in json.load(jsonfp, parse_float=decimal.Decimal):
+                stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
+                for activity_json in stats_json['activities']:
                     dict_sum_inplace(subtotal, activity_json)
+                dict_sum_inplace(subtotal, stats_json['file'])
 
         publisher_stats = stats.PublisherStats(subtotal)
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):

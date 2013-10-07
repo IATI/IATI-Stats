@@ -24,27 +24,35 @@ def decimal_default(obj):
         return float(obj)
     raise TypeError
 
+def call_stats(this_stats):
+    this_out = {}
+    if args.stat:
+        this_out[args.stat] = getattr(this_stats, args.stat)()
+    else:
+        for name, function in inspect.getmembers(this_stats, predicate=inspect.ismethod):
+            if name.startswith('_'): continue
+            this_out[name] = function()
+    if args.debug:
+        print this_out
+    return this_out
+
 def process_file(inputfile, outputfile):
     try:
         root = etree.parse(inputfile).getroot()
         if root.tag == 'iati-activities':
+            activity_file_stats = stats.ActivityFileStats(root)
+            activity_file_stats.strict = args.strict
+            activity_file_stats.context = 'in '+inputfile
+            file_out = call_stats(activity_file_stats)
             out = []
             for activity in root:
-                activity_out = {}
                 activity_stats = stats.ActivityStats(activity)
                 activity_stats.strict = args.strict
                 activity_stats.context = 'in '+inputfile
-                if args.stat:
-                    activity_out[args.stat] = getattr(activity_stats, args.stat)()
-                else:
-                    for name, function in inspect.getmembers(activity_stats, predicate=inspect.ismethod):
-                        if name.startswith('_'): continue
-                        activity_out[name] = function()
-                if args.debug:
-                    print activity_out
+                activity_out = call_stats(activity_stats)
                 out.append(activity_out)
             with open(outputfile, 'w') as outfp:
-                json.dump(out, outfp, sort_keys=True, indent=2, default=decimal_default)
+                json.dump({'file':file_out, 'activities':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
         else:
             print 'No support yet for {0} in {1}'.format(root.tag, inputfile)
     except etree.ParseError:

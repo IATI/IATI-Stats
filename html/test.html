@@ -1,23 +1,34 @@
 <script src="jquery-1.10.2.min.js"></script>
+<script src="Chart.min.js"></script>
 <script>
-    $.getJSON('/gitout/gitdate.json', function (dates) {
-        $.getJSON('/gitout/gitaggregate.json', function (data) {
-            create_key_element = function (key) {
-                $('#list').append(
-                    $('<li>').append($('<a href="#">'+key+'</a>').click(function() {
-                        console.log(key);
-                    }))
-                );
+$(document).ready(function() {
+    var dates, data;
+    create_stat_element = function (stat) {
+        click_stat = function() {
+            var chartdata = { labels: [], datasets: [{
+                data: [],
+		strokeColor : "rgba(220,220,220,1)",
+            }] }
+            for (commit in data[stat]) {
+                chartdata.labels.push(dates[commit]);
+                chartdata.datasets[0].data.push(data[stat][commit]);
             }
-            for (var key in data) {
-                create_key_element(key);
-            }
-            /*for (key in data.activities) {
-                console.log(dates[key]);
-                console.log(data.activities[key]);
-            };*/
-        });
+            console.log(chartdata);
+            new Chart(ctx).Line(chartdata,{});
+        }
+        $('#list').append(
+            $('<li>').append($('<a href="#">'+stat+'</a>').click(click_stat))
+        );
+    }
+    var ctx = $("#myChart").get(0).getContext("2d");
+    $.when( $.getJSON('/gitout/gitdate.json'), $.getJSON('/gitout/gitaggregate.json') ).done(function (d1, d2) {
+        dates = d1[0]; data = d2[0];
+        for (var key in data) {
+            create_stat_element(key);
+        }
     });
+});
 </script>
 <ul id="list">
 </ul>
+<canvas id="myChart" width="400" height="400"></canvas>

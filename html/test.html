@@ -1,26 +1,58 @@
+<link rel="stylesheet" href="rickshaw.min.css">
 <script src="jquery-1.10.2.min.js"></script>
-<script src="Chart.min.js"></script>
+<script src="d3.v2.min.js"></script>
+<script src="rickshaw.min.js"></script>
 <script>
 $(document).ready(function() {
     var dates, data;
     create_stat_element = function (stat) {
         click_stat = function() {
-            var chartdata = { labels: [], datasets: [{
-                data: [],
-		strokeColor : "rgba(220,220,220,1)",
-            }] }
+            var chartdata = [];
+            var formatDate = d3.time.format.iso;
+            var cdata = [];
             for (commit in data[stat]) {
-                chartdata.labels.push(dates[commit]);
-                chartdata.datasets[0].data.push(data[stat][commit]);
+                cdata.push([
+                    formatDate.parse(dates[commit]).getTime() / 1000,
+                    data[stat][commit]
+                ]);
+            }
+            cdata.sort();
+            for (var i=0; i<cdata.length; i++) {
+                chartdata.push({x:cdata[i][0], y:cdata[i][1]});
             }
             console.log(chartdata);
-            new Chart(ctx).Line(chartdata,{});
+
+var min = Number.MAX_VALUE;
+var max = Number.MIN_VALUE;
+for (i = 0; i < chartdata.length; i++) {
+  min = Math.min(min, chartdata[i].y);
+  max = Math.max(max, chartdata[i].y);
+}
+var linearScale = d3.scale.linear().domain([min, max]);
+
+var graph = new Rickshaw.Graph( {
+    element: document.querySelector("#chart"), 
+    width: 600, 
+    height: 400, 
+    renderer: 'line',
+    series: [{
+        color: 'steelblue',
+        data: chartdata,
+        scale: linearScale
+    }]
+});
+var xAxis = new Rickshaw.Graph.Axis.Time( { graph: graph } );
+var yAxis = new Rickshaw.Graph.Axis.Y.Scaled( {
+    graph: graph,
+    tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
+    scale: linearScale } );
+graph.render();
+
         }
         $('#list').append(
             $('<li>').append($('<a href="#">'+stat+'</a>').click(click_stat))
         );
     }
-    var ctx = $("#myChart").get(0).getContext("2d");
     $.when( $.getJSON('/gitout/gitdate.json'), $.getJSON('/gitout/gitaggregate.json') ).done(function (d1, d2) {
         dates = d1[0]; data = d2[0];
         for (var key in data) {
@@ -31,4 +63,4 @@ $(document).ready(function() {
 </script>
 <ul id="list">
 </ul>
-<canvas id="myChart" width="400" height="400"></canvas>
+<div id="chart"></div>

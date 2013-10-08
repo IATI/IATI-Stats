@@ -67,6 +67,8 @@ class ActivityStats(object):
                 return int(date.year)
             except ValueError, e:
                 print unicode(e)+self.context
+            except AttributeError, e:
+                print unicode(e)+self.context
 
     @returns_intdict
     def activities_per_year(self):
@@ -151,6 +153,8 @@ class ActivityStats(object):
             if organisationType is not None:
                 return {organisationType.get('type'):spend}
         except ValueError:
+            pass
+        except AttributeError, e:
             pass
 
 class ActivityFileStats(object):

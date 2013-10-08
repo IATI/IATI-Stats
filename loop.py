@@ -3,6 +3,7 @@ from lxml import etree
 import inspect
 import json
 import sys
+import traceback
 import decimal
 import argparse
 
@@ -27,11 +28,17 @@ def decimal_default(obj):
 def call_stats(this_stats):
     this_out = {}
     if args.stat:
-        this_out[args.stat] = getattr(this_stats, args.stat)()
+        try:
+            this_out[args.stat] = getattr(this_stats, args.stat)()
+        except:
+            traceback.print_exc(file=sys.stdout)
     else:
         for name, function in inspect.getmembers(this_stats, predicate=inspect.ismethod):
             if name.startswith('_'): continue
-            this_out[name] = function()
+            try:
+                this_out[name] = function()
+            except:
+                traceback.print_exc(file=sys.stdout)
     if args.debug:
         print this_out
     return this_out

@@ -53,7 +53,7 @@ graph.render();
             $('<li>').append($('<a href="#">'+stat+'</a>').click(click_stat))
         );
     }
-    $.when( $.getJSON('/gitdate.json'), $.getJSON('/gitaggregate.json') ).done(function (d1, d2) {
+    $.when( $.getJSON('../gitdate.json'), $.getJSON('../gitaggregate.json') ).done(function (d1, d2) {
         dates = d1[0]; data = d2[0];
         for (var key in data) {
             create_stat_element(key);

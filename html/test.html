@@ -28,24 +28,30 @@ for (i = 0; i < chartdata.length; i++) {
   min = Math.min(min, chartdata[i].y);
   max = Math.max(max, chartdata[i].y);
 }
-var linearScale = d3.scale.linear().domain([min, max]);
+//var linearScale = d3.scale.linear().domain([min, max]);
 
 var graph = new Rickshaw.Graph( {
     element: document.querySelector("#chart"), 
     width: 600, 
     height: 400, 
     renderer: 'line',
+    interpolation: 'linear',
     series: [{
         color: 'steelblue',
         data: chartdata,
-        scale: linearScale
+        //scale: linearScale
     }]
 });
 var xAxis = new Rickshaw.Graph.Axis.Time( { graph: graph } );
-var yAxis = new Rickshaw.Graph.Axis.Y.Scaled( {
+var yAxis = new Rickshaw.Graph.Axis.Y({//.Scaled( {
     graph: graph,
     tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
-    scale: linearScale } );
+    //scale: linearScale
+    } );
+new Rickshaw.Graph.HoverDetail(
+{
+  graph: graph
+});
 graph.render();
 
         }
@@ -60,6 +66,7 @@ graph.render();
         }
     });
 });
+
 </script>
 <ul id="list">
 </ul>

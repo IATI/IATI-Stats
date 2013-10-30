@@ -6,6 +6,7 @@ import sys
 import traceback
 import decimal
 import argparse
+import statsfunctions
 
 from settings import *
 
@@ -14,11 +15,12 @@ parser.add_argument("--debug", help="Output extra debugging information",
                     action="store_true")
 parser.add_argument("--strict", help="Follow the schema strictly",
                     action="store_true")
-parser.add_argument("--stat", help="Name of stat to calculate")
+parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
 parser.add_argument("--folder", help="Limit to a specific folder in the data")
 args = parser.parse_args()
 
-import stats
+import importlib
+stats = importlib.import_module(args.stats_module)
 
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
@@ -27,18 +29,14 @@ def decimal_default(obj):
 
 def call_stats(this_stats):
     this_out = {}
-    if args.stat:
+    for name, function in inspect.getmembers(this_stats, predicate=inspect.ismethod):
+        if not statsfunctions.use_stat(this_stats, name): continue
         try:
-            this_out[args.stat] = getattr(this_stats, args.stat)()
+            this_out[name] = function()
+        except KeyboardInterrupt:
+            exit()
         except:
             traceback.print_exc(file=sys.stdout)
-    else:
-        for name, function in inspect.getmembers(this_stats, predicate=inspect.ismethod):
-            if name.startswith('_'): continue
-            try:
-                this_out[name] = function()
-            except:
-                traceback.print_exc(file=sys.stdout)
     if args.debug:
         print this_out
     return this_out
@@ -47,13 +45,15 @@ def process_file(inputfile, outputfile):
     try:
         root = etree.parse(inputfile).getroot()
         if root.tag == 'iati-activities':
-            activity_file_stats = stats.ActivityFileStats(root)
+            activity_file_stats = stats.ActivityFileStats()
+            activity_file_stats.root = root
             activity_file_stats.strict = args.strict
             activity_file_stats.context = 'in '+inputfile
             file_out = call_stats(activity_file_stats)
             out = []
             for activity in root:
-                activity_stats = stats.ActivityStats(activity)
+                activity_stats = stats.ActivityStats()
+                activity_stats.activity = activity
                 activity_stats.strict = args.strict
                 activity_stats.context = 'in '+inputfile
                 activity_out = call_stats(activity_stats)

@@ -4,6 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
+import statsbase
 
 def debug(stats, e):
     print unicode(e)+stats.context 
@@ -36,12 +37,10 @@ def no_aggregation(f):
     return wrapper
 
 class ActivityStats(object):
+    activity = None
+    blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
-
-    def __init__(self, activity=None, blank=False):
-        self.activity = activity
-        self.blank = blank
 
     @no_aggregation
     def iati_identifier(self):
@@ -160,22 +159,19 @@ class ActivityStats(object):
         except AttributeError, e:
             pass
 
-class ActivityFileStats(object):
-    def __init__(self, root=None, blank=False):
-        self.root = root
-        self.blank = blank
+class ActivityFileStats():
+    root = None
+    blank = False
 
     @returns_intdict
     def versions(self):
         return { self.root.attrib.get('version'): 1 }
 
 class PublisherStats(object):
+    aggregated = None
+    blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
-
-    def __init__(self, aggregated=None, blank=False):
-        self.aggregated = aggregated
-        self.blank = blank
 
     @returns_intdict
     def publishers_per_country(self):

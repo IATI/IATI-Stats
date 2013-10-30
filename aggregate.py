@@ -5,7 +5,16 @@ import json
 import os
 import copy
 import decimal
-import stats
+import argparse
+import statsfunctions
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
+args = parser.parse_args()
+
+import importlib
+stats = importlib.import_module(args.stats_module)
+
 
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
@@ -23,9 +32,10 @@ def dict_sum_inplace(d1, d2):
 
 def make_blank():
     blank = {}
-    for stats_object in [ stats.ActivityStats(blank=True), stats.ActivityFileStats(blank=True), stats.PublisherStats(blank=True) ]:
+    for stats_object in [ stats.ActivityStats(), stats.ActivityFileStats(), stats.PublisherStats() ]:
+        stats_object.blank = True
         for name, function in inspect.getmembers(stats_object, predicate=inspect.ismethod):
-            if name.startswith('_'): continue
+            if not statsfunctions.use_stat(stats_object, name): continue
             blank[name] = function()
     return blank
 
@@ -42,9 +52,10 @@ if __name__ == '__main__':
                     dict_sum_inplace(subtotal, activity_json)
                 dict_sum_inplace(subtotal, stats_json['file'])
 
-        publisher_stats = stats.PublisherStats(subtotal)
+        publisher_stats = stats.PublisherStats()
+        publisher_stats.aggregated = subtotal
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
-            if name.startswith('_'): continue
+            if statsfunction.use_stats(publisher_stats, name): continue
             subtotal[name] = function()
 
         dict_sum_inplace(total, subtotal)

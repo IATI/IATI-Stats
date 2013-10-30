@@ -5,6 +5,9 @@ from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
 
+def debug(stats, e):
+    print unicode(e)+stats.context 
+
 def returns_intdict(f):
     def wrapper(self, *args, **kwargs):
         if self.blank:
@@ -66,9 +69,9 @@ class ActivityStats(object):
                 date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
                 return int(date.year)
             except ValueError, e:
-                print unicode(e)+self.context
+                debug(self, e)
             except AttributeError, e:
-                print unicode(e)+self.context
+                debug(self, e)
 
     @returns_intdict
     def activities_per_year(self):
@@ -92,14 +95,14 @@ class ActivityStats(object):
                     if self.strict: raise AttributeError
                     year = datetime.datetime.strptime(transaction.find('transaction-date').get('iso-date').strip('Z'), "%Y-%m-%d").year
                 except AttributeError:
-                    print 'Transaction without date information'+self.context 
+                    debug(self, 'Transaction without date information')
                     return Decimal(0.0)
             if year == 2013: year = 2012
             return toUSD(value=self.__create_decimal(value.text),
                          currency=currency,
                          year=year)
         except Exception, e:
-            print unicode(e)+self.context
+            debug(self, e)
             return Decimal(0.0)
     
     @returns_int

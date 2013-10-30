@@ -71,8 +71,11 @@ def loop_folder(folder):
     for xmlfile in os.listdir(os.path.join(DATA_DIR, folder)):
         try: os.makedirs(os.path.join(OUTPUT_DIR,folder))
         except OSError: pass
-        process_file(os.path.join(DATA_DIR,folder,xmlfile),
-                     os.path.join(OUTPUT_DIR,folder,xmlfile))
+        try:
+            process_file(os.path.join(DATA_DIR,folder,xmlfile),
+                         os.path.join(OUTPUT_DIR,folder,xmlfile))
+        except UnicodeDecodeError:
+            traceback.print_exc(file=sys.stdout)
 
 if __name__ == '__main__':
     if args.folder:

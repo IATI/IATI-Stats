@@ -1,6 +1,24 @@
+# IATI Stats
+
 ## Getting started
 
     git clone git@github.com:Bjwebb/IATI-Data-Snapshot.git data
+    
+    virtualenv pyenv
+    pip install -r requirements.txt
+
+    # Square brackets indicate optional argument
+    python loop.py [--folder publishername]
+    mkdir aggreagated
+    python aggreagate.py
+    python invert.py
+
+    # Test it worked correctly
+    python posttests.py
+
+    # Do the above for every commit in the data git repository
+    ./git.sh
+
 
 ## License
 ```

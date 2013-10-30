@@ -4,5 +4,6 @@ gitout
 aggregated
 *.json
 
+pyenv
 *.pyc
 *.swp

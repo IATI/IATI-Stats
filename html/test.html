@@ -8,6 +8,7 @@ $(document).ready(function() {
     var dates, data, most_recent_commit;
     create_stat_element = function (stat) {
         click_stat = function() {
+            $('#chart').html('')
             var chartdata = [];
             var formatDate = d3.time.format.iso;
             var cdata = [];
@@ -58,7 +59,17 @@ $(document).ready(function() {
         };
         var list_item = $('<li>');
         list_item.append($('<a href="#">'+stat+'</a>').click(click_stat));
-        list_item.append(' '+data[stat][most_recent_commit]);
+        var recent_data = data[stat][most_recent_commit]
+        if (typeof recent_data === "number") {
+            list_item.append(' '+recent_data);
+        }
+        else if (typeof recent_data === "object") {
+            var sublist = $('<ul/>')
+            list_item.append(sublist);
+            for (var key in recent_data) {
+                sublist.append($('<li>'+key+'</li>'));
+            }
+        }
         $('#list').append(list_item);
     }
 

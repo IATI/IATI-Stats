@@ -8,6 +8,7 @@ $(document).ready(function() {
             var cdata = [];
             for (commit in data[stat]) {
                 var cdatavalue;
+                console.log(key, data[stat][commit])
                 if (key === undefined)
                     cdatavalue = data[stat][commit]
                 else
@@ -46,7 +47,7 @@ $(document).ready(function() {
                 }]
             });
             var xAxis = new Rickshaw.Graph.Axis.Time( { graph: graph } );
-            var yAxis = new Rickshaw.Graph.Axis.Y({//.Scaled( {
+            var yAxis = new Rickshaw.Graph.Axis.Y({//.Scaled( 
                 graph: graph,
                 tickFormat: Rickshaw.Fixtures.Number.formatKMBT,
                 //scale: linearScale
@@ -72,12 +73,12 @@ $(document).ready(function() {
             var tbody = $('<tbody/>');
             table.append(tbody)
             list_item.append(table);
-            create_table_row = function (key) {
+            create_table_row = function (key, click_stat) {
                 var key_link = $('<a href="#">'+key+'</a>').click(function (e) { click_stat(e,key); });
                 tbody.append($('<tr>').append($('<td>').append(key_link)).append($('<td>'+recent_data[key]+'</td></tr>')));
             }
             for (var key in recent_data) {
-                create_table_row(key);
+                create_table_row(key, click_stat);
             }
         }
         $('#list').append(list_item);

@@ -43,9 +43,11 @@ def call_stats(this_stats):
 
 def process_file(inputfile, outputfile):
     try:
-        root = etree.parse(inputfile).getroot()
+        doc = etree.parse(inputfile)
+        root = doc.getroot()
         if root.tag == 'iati-activities':
             activity_file_stats = stats.ActivityFileStats()
+            activity_file_stats.doc = doc
             activity_file_stats.root = root
             activity_file_stats.strict = args.strict
             activity_file_stats.context = 'in '+inputfile

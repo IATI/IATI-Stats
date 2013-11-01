@@ -163,6 +163,7 @@ class ActivityStats(object):
 
 
 class ActivityFileStats():
+    doc = None
     root = None
     blank = False
 
@@ -180,6 +181,23 @@ class ActivityFileStats():
     @returns_int
     def activity_files(self):
         return 1
+
+    @returns_int
+    def fail_validation(self):
+        version = self.root.attrib.get('version')
+        if version in [None, '1', '1.0', '1.00']: version = '1.01' 
+        try:
+            with open('schemas/{0}/iati-activities-schema.xsd'.format(version)) as f:
+                xmlschema_doc = etree.parse(f)
+                xmlschema = etree.XMLSchema(xmlschema_doc)
+                if xmlschema.validate(self.doc):
+                    return 0
+                else:
+                    return 1
+        except IOError:
+            debug(self, 'Unsupported version \'{0}\''.format(version))
+            return 1
+
 
 
 
@@ -206,3 +224,12 @@ class PublisherStats(object):
     @returns_int
     def publishers(self):
         return 1
+
+    @returns_int
+    def publishers_fail_validation(self):
+        if self.aggregated['fail_validation'] > 0:
+            return 1
+        else:
+            return 0
+
+

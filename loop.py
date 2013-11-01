@@ -60,10 +60,15 @@ def process_file(inputfile, outputfile):
                 out.append(activity_out)
             with open(outputfile, 'w') as outfp:
                 json.dump({'file':file_out, 'activities':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
-        else:
+        elif root.tag == 'iati-organisations':
             print 'No support yet for {0} in {1}'.format(root.tag, inputfile)
+        else:
+            with open(outputfile, 'w') as outfp:
+                json.dump({'file':{'nonstandardroots':1}, 'activities':[]}, outfp, sort_keys=True, indent=2)
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)
+        with open(outputfile, 'w') as outfp:
+            json.dump({'file':{'invalidxml':1}, 'activities':[]}, outfp, sort_keys=True, indent=2)
 
 def loop_folder(folder):
     if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':

@@ -25,7 +25,7 @@ def dict_sum_inplace(d1, d2):
     for k,v in d2.items():
         if type(v) == dict or type(v) == defaultdict:
             dict_sum_inplace(d1[k], v)
-        elif d1[k] is None:
+        elif (type(d1) != defaultdict and not k in d1) or d1[k] is None:
             continue
         else:
             d1[k] += v
@@ -55,7 +55,7 @@ if __name__ == '__main__':
         publisher_stats = stats.PublisherStats()
         publisher_stats.aggregated = subtotal
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
-            if statsfunctions.use_stat(publisher_stats, name): continue
+            if not statsfunctions.use_stat(publisher_stats, name): continue
             subtotal[name] = function()
 
         dict_sum_inplace(total, subtotal)

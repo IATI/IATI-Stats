@@ -158,6 +158,10 @@ class ActivityStats(object):
         except AttributeError, e:
             pass
 
+
+
+
+
 class ActivityFileStats():
     root = None
     blank = False
@@ -165,6 +169,23 @@ class ActivityFileStats():
     @returns_intdict
     def versions(self):
         return { self.root.attrib.get('version'): 1 }
+
+    def invalidxml(self):
+        # Must be valid XML to have loaded this function
+        return 0
+
+    def nonstandardroots(self):
+        return 0
+
+    @returns_int
+    def activity_files(self):
+        return 1
+
+
+
+
+
+
 
 class PublisherStats(object):
     aggregated = None

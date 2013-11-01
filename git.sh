@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Clear gitout
-cd gitout || exit $?
-git rm -r *
-rm -rf *
-cd .. || exit $?
+##cd gitout || exit $?
+##git rm -r *
+##rm -rf *
+##cd .. || exit $?
 
 # Clear other output directories
 rm -r aggregated* inverted* out*
@@ -28,27 +28,34 @@ cd .. || exit $?
 mv data/gitdate.json .
 cd data || exit $?
 
+current_hash=`git rev-parse HEAD`
 
 for commit in `git log --format=format:%H`; do
-    git checkout $commit
-    git clean -df
-    echo $commit;
-    cd .. || exit $?
-    mkdir aggregated
-    python2 loop.py $@
-    python2 aggregate.py
-    python2 invert.py
-    mkdir gitout/$commit
-    mv aggregated* inverted* gitout/$commit || exit $?
-    rm -r out
-    cd data || exit $?
+    if [ ! -e ../gitout/$commit ]; then
+        git checkout $commit
+        git clean -df
+        echo $commit;
+        cd .. || exit $?
+        mkdir aggregated
+        python2 loop.py $@
+        python2 aggregate.py
+        python2 invert.py
+        mkdir gitout/$commit
+        mv aggregated* inverted* gitout/$commit || exit $?
+        rm -r out
+        cd data || exit $?
+    fi
 done
 
 cd ..
 python2 gitaggregate.py > gitout/gitaggregate.json
 mv gitdate.json gitout
+rm -r gitout/html
 cp -r html gitout
 
-cd gitout
+cd gitout || exit $?
+rm -r current
+cp -r $current_hash current
 git add .
 git commit -a -m 'Auto'
+git push

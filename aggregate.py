@@ -55,7 +55,7 @@ if __name__ == '__main__':
         publisher_stats = stats.PublisherStats()
         publisher_stats.aggregated = subtotal
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
-            if statsfunction.use_stats(publisher_stats, name): continue
+            if statsfunctions.use_stat(publisher_stats, name): continue
             subtotal[name] = function()
 
         dict_sum_inplace(total, subtotal)

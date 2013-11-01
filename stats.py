@@ -4,7 +4,6 @@ from collections import defaultdict
 from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
-import statsbase
 
 def debug(stats, e):
     print unicode(e)+stats.context 

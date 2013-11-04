@@ -39,7 +39,7 @@ $(document).ready(function() {
                 width: 600, 
                 height: 400, 
                 renderer: 'line',
-                interpolvalueation: 'linear',
+                interpolation: 'linear',
                 series: [{
                     color: 'steelblue',
                     data: chartdata,

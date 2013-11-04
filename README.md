@@ -3,9 +3,11 @@
 ## Getting started
 
     git clone git@github.com:Bjwebb/IATI-Data-Snapshot.git data
+    # (Do not use a symlink for this, as it will end badly!)
     
     virtualenv pyenv
     pip install -r requirements.txt
+    ./get_schemas.sh
 
     # Square brackets indicate optional argument
     python loop.py [--folder publishername]

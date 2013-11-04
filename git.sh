@@ -49,6 +49,7 @@ done
 
 cd ..
 python2 gitaggregate.py > gitout/gitaggregate.json
+python2 gitaggregate.py dated > gitout/gitaggregate-dated.json
 mv gitdate.json gitout
 rm -r gitout/html
 cp -r html gitout

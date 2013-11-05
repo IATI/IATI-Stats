@@ -44,7 +44,7 @@ class ActivityStats(object):
     @no_aggregation
     def iati_identifier(self):
         try:
-            return self.activity.find('iati-identifier').text
+            return self.element.find('iati-identifier').text
         except AttributeError:
             return None
 
@@ -54,14 +54,14 @@ class ActivityStats(object):
 
     @returns_intdict
     def currencies(self):
-        currencies = [ x.find('value').get('currency') for x in self.activity.findall('transaction') if x.find('value') is not None ]
-        currencies = [ c if c else self.activity.get('default-currency') for c in currencies ]
+        currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
+        currencies = [ c if c else self.element.get('default-currency') for c in currencies ]
         return dict( (c,1) for c in currencies )
         
 
     def __get_start_year(self):
-        activity_date = self.activity.find("activity-date[@type='start-actual']")
-        if activity_date is None: activity_date = self.activity.find("activity-date[@type='start-planned']")
+        activity_date = self.element.find("activity-date[@type='start-actual']")
+        if activity_date is None: activity_date = self.element.find("activity-date[@type='start-planned']")
         if activity_date is not None and activity_date.get('iso-date'):
             try:
                 date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
@@ -84,7 +84,7 @@ class ActivityStats(object):
     def __value_to_dollars(self, transaction):
         try:
             value = transaction.find('value')
-            currency = value.get('currency') or self.activity.get('default-currency')
+            currency = value.get('currency') or self.element.get('default-currency')
             if currency == 'USD': return self.__create_decimal(value.text)
             try:
                 year = datetime.datetime.strptime(value.get('value-date').strip('Z'), "%Y-%m-%d").year
@@ -105,7 +105,7 @@ class ActivityStats(object):
     
     @returns_int
     def spend(self):
-        transactions = [ x for x in self.activity.findall('transaction') if x.find('transaction-type') is not None and x.find('transaction-type').get('code') in ['D','E'] ]
+        transactions = [ x for x in self.element.findall('transaction') if x.find('transaction-type') is not None and x.find('transaction-type').get('code') in ['D','E'] ]
         return sum(map(self.__value_to_dollars, transactions))
 
     @returns_intdict
@@ -115,8 +115,8 @@ class ActivityStats(object):
     @returns_intdict
     def activities_per_country(self):
         if self.__get_start_year() >= 2010:
-            countries = self.activity.findall('recipient-country')
-            regions = self.activity.findall('recipient-region')
+            countries = self.element.findall('recipient-country')
+            regions = self.element.findall('recipient-region')
             if countries is not None:
                 return dict((country.get('code'),1) for country in countries)
             elif regions is not None:
@@ -130,8 +130,8 @@ class ActivityStats(object):
     @returns_intdict
     def spend_per_country(self):
         if self.__get_start_year() >= 2010:
-            country = self.activity.find('recipient-country')
-            region = self.activity.find('recipient-region')
+            country = self.element.find('recipient-country')
+            region = self.element.find('recipient-region')
             if country is not None and country.get('code'):
                 return {country.get('code'):self.spend()}
             elif region is not None and region.get('code'):
@@ -144,13 +144,13 @@ class ActivityStats(object):
     @returns_intdict
     def spend_per_organisation_type(self):
         try:
-            transactions = [ x for x in self.activity.findall('transaction') if
+            transactions = [ x for x in self.element.findall('transaction') if
                 x.find('transaction-type') is not None and
                 x.find('transaction-type').get('code') in ['D','E'] and
                 x.find('transaction-date') is not None and
                 datetime.datetime.strptime(x.find('transaction-date').get('iso-date').strip('Z'), "%Y-%m-%d") > datetime.datetime(2012, 6, 30) ]
             spend = sum(map(self.__value_to_dollars, transactions))
-            organisationType = self.activity.find('reporting-org')
+            organisationType = self.element.find('reporting-org')
             if organisationType is not None:
                 return {organisationType.get('type'):spend}
         except ValueError:
@@ -232,4 +232,9 @@ class PublisherStats(object):
         else:
             return 0
 
+class OrganisationFileStats(object):
+    pass
+
+class OrganisationStats(object):
+    pass
 

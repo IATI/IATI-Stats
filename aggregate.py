@@ -48,7 +48,7 @@ if __name__ == '__main__':
         for jsonfile in os.listdir(os.path.join(OUTPUT_DIR, folder)):
             with open(os.path.join(OUTPUT_DIR, folder, jsonfile)) as jsonfp:
                 stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
-                for activity_json in stats_json['activities']:
+                for activity_json in stats_json['elements']:
                     dict_sum_inplace(subtotal, activity_json)
                 dict_sum_inplace(subtotal, stats_json['file'])
 
@@ -59,6 +59,9 @@ if __name__ == '__main__':
             subtotal[name] = function()
 
         dict_sum_inplace(total, subtotal)
+        try:
+            os.mkdir('aggregated')
+        except OSError: pass
         with open(os.path.join('aggregated', folder+'.json'), 'w') as fp:
             json.dump(subtotal, fp, sort_keys=True, indent=2, default=decimal_default)
 

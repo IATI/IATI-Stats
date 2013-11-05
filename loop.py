@@ -41,36 +41,40 @@ def call_stats(this_stats):
         print this_out
     return this_out
 
+
 def process_file(inputfile, outputfile):
     try:
         doc = etree.parse(inputfile)
         root = doc.getroot()
-        if root.tag == 'iati-activities':
-            activity_file_stats = stats.ActivityFileStats()
-            activity_file_stats.doc = doc
-            activity_file_stats.root = root
-            activity_file_stats.strict = args.strict
-            activity_file_stats.context = 'in '+inputfile
-            file_out = call_stats(activity_file_stats)
+        def process_stats(FileStats, ElementStats):
+            file_stats = FileStats()
+            file_stats.doc = doc
+            file_stats.root = root
+            file_stats.strict = args.strict
+            file_stats.context = 'in '+inputfile
+            file_out = call_stats(file_stats)
             out = []
-            for activity in root:
-                activity_stats = stats.ActivityStats()
-                activity_stats.activity = activity
-                activity_stats.strict = args.strict
-                activity_stats.context = 'in '+inputfile
-                activity_out = call_stats(activity_stats)
-                out.append(activity_out)
+            for element in root:
+                element_stats = ElementStats()
+                element_stats.element = element
+                element_stats.strict = args.strict
+                element_stats.context = 'in '+inputfile
+                element_out = call_stats(element_stats)
+                out.append(element_out)
             with open(outputfile, 'w') as outfp:
-                json.dump({'file':file_out, 'activities':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
+                json.dump({'file':file_out, 'elements':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
+
+        if root.tag == 'iati-activities':
+            process_stats(stats.ActivityFileStats, stats.ActivityStats)
         elif root.tag == 'iati-organisations':
-            print 'No support yet for {0} in {1}'.format(root.tag, inputfile)
+            process_stats(stats.OrganisationFileStats, stats.OrganisationStats)
         else:
             with open(outputfile, 'w') as outfp:
-                json.dump({'file':{'nonstandardroots':1}, 'activities':[]}, outfp, sort_keys=True, indent=2)
+                json.dump({'file':{'nonstandardroots':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)
         with open(outputfile, 'w') as outfp:
-            json.dump({'file':{'invalidxml':1}, 'activities':[]}, outfp, sort_keys=True, indent=2)
+            json.dump({'file':{'invalidxml':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
 
 def loop_folder(folder):
     if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':

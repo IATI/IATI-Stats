@@ -8,6 +8,15 @@ from exchange_rates import toUSD
 def debug(stats, e):
     print unicode(e)+stats.context 
 
+def element_to_count_dict(e, path, d):
+    d[path] = 1
+    for child in e:
+        element_to_count_dict(child, path+'/'+child.tag, d)
+    return d
+
+
+## Decorators that modify return when self.blank = True etc.
+
 def returns_intdict(f):
     def wrapper(self, *args, **kwargs):
         if self.blank:
@@ -34,6 +43,7 @@ def no_aggregation(f):
             return None
         else: return f(self, *args, **kwargs)
     return wrapper
+
 
 class ActivityStats(object):
     activity = None
@@ -158,6 +168,10 @@ class ActivityStats(object):
         except AttributeError, e:
             pass
 
+    @returns_intdict
+    def elements(self):
+        return element_to_count_dict(self.element, 'iati-activity', {})
+
 
 
 
@@ -235,6 +249,10 @@ class PublisherStats(object):
 class OrganisationFileStats(object):
     pass
 
-class OrganisationStats(object):
-    pass
 
+class OrganisationStats(object):
+    blank = False
+
+    @returns_intdict
+    def elements(self):
+        return element_to_count_dict(self.element, 'iati-organisation', {})

@@ -1,11 +1,20 @@
 # IATI Stats
 
+## Requirements
+
+* Git
+* Python 2.7
+* python-virtualenv
+* gcc
+* Development files for libxml and libxslt e.g. libxml2-dev, libxslt-dev
+
 ## Getting started
 
     git clone git@github.com:Bjwebb/IATI-Data-Snapshot.git data
     # (Do not use a symlink for this, as it will end badly!)
     
     virtualenv pyenv
+    source pyenv/bin/activate
     pip install -r requirements.txt
     ./get_schemas.sh
 
@@ -18,9 +27,37 @@
     # Test it worked correctly
     python posttests.py
 
-    # Do the above for every commit in the data git repository
+    # Do the above for every new commit in the data git repository
+    git clone git@github.com:Bjwebb/IATI-Stats-Calculated.git gitout
     ./git.sh
 
+
+## Commandline options
+
+Run `python loop.py --help` and `python aggregate.py --help` for a summary of
+commandline options.
+
+## Structure of stats
+
+Tests are located in a python module, by default `stats.py` (although this can
+be changed with the `--stats-module` flag to loop.py and aggregate.py). This
+module must contain the following classes:
+
+* PublisherStats
+* ActivityStats
+* ActivityFileStats
+* OrganisationStats
+* OrganisationFileStats
+
+Each function within these clases is considered to be a stats function, unless
+it begins with an underscore (`_`). In the appropriate context, an object is
+created for each of these classes, and each of the stats functions are called.
+
+The functions will also be called with `self.blank = True`, and should return an
+empty version of their normal output, for aggregation purposes. The
+`returns_intdict` and `returns_int` decorators are provided for this purpose.
+
+To calculate a new stat, add a function to the appropriate class in `stats.py`.
 
 ## License
 ```

@@ -5,19 +5,25 @@ from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
 
-def debug(stats, e):
-    print unicode(e)+stats.context 
+def debug(stats, error):
+    """ prints debuggin information for a given stats object and error """
+    print unicode(error)+stats.context 
 
-def element_to_count_dict(e, path, d):
-    d[path] = 1
-    for child in e:
-        element_to_count_dict(child, path+'/'+child.tag, d)
-    return d
+def element_to_count_dict(element, path, count_dict):
+    """
+    Converts an element and it's children to a dictionary containing the
+    count for each xpath.
+    
+    """
+    count_dict[path] = 1
+    for child in element:
+        element_to_count_dict(child, path+'/'+child.tag, count_dict)
+    return count_dict
 
 
 ## Decorators that modify return when self.blank = True etc.
-
 def returns_intdict(f):
+    """ Dectorator for dictionaries of integers. """
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return defaultdict(int)
@@ -26,8 +32,8 @@ def returns_intdict(f):
             if out is None: return {}
             else: return out
     return wrapper
-
 def returns_int(f):
+    """ Decorator for integers. """
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return 0
@@ -38,6 +44,7 @@ def returns_int(f):
     return wrapper
 
 def no_aggregation(f):
+    """ Decorator that perevents aggreagation. """
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return None
@@ -46,6 +53,7 @@ def no_aggregation(f):
 
 
 class ActivityStats(object):
+    """ Stats calculated on a single iati-activity. """
     activity = None
     blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
@@ -177,6 +185,7 @@ class ActivityStats(object):
 
 
 class ActivityFileStats():
+    """ Stats calculated for an IATI Activity XML file. """
     doc = None
     root = None
     blank = False
@@ -220,6 +229,7 @@ class ActivityFileStats():
 
 
 class PublisherStats(object):
+    """ Stats calculated for an IATI Publisher (directory in the data directory). """
     aggregated = None
     blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
@@ -247,10 +257,12 @@ class PublisherStats(object):
             return 0
 
 class OrganisationFileStats(object):
+    """ Stats calculated for an IATI Organisation XML file. """
     pass
 
 
 class OrganisationStats(object):
+    """ Stats calculated on a single iati-organisation. """
     blank = False
 
     @returns_intdict

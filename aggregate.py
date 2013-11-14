@@ -39,7 +39,7 @@ def make_blank():
             blank[name] = function()
     return blank
 
-if __name__ == '__main__':
+def aggregate():
     blank = make_blank()
     total = copy.deepcopy(blank)
     for folder in os.listdir(OUTPUT_DIR):
@@ -68,3 +68,5 @@ if __name__ == '__main__':
     with open('aggregated.json', 'w') as fp:
         json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)
 
+if __name__ == '__main__':
+    aggregate()

@@ -20,7 +20,6 @@
 
     # Square brackets indicate optional argument
     python loop.py [--folder publishername]
-    mkdir aggreagated
     python aggreagate.py
     python invert.py
 
@@ -58,6 +57,19 @@ empty version of their normal output, for aggregation purposes. The
 `returns_intdict` and `returns_int` decorators are provided for this purpose.
 
 To calculate a new stat, add a function to the appropriate class in `stats.py`.
+
+### Outputted JSON
+
+`loop.py` produces json for each file, in the `out` directory. This contains the
+stats calculated for each individual Activity and Organisation, as well as
+by file.
+
+`aggregated.py` produces json aggregated at the publisher level, in the
+`aggregated` directory. It also produces `aggregated.json`, which is the same,
+but for the entire dataset.
+
+`invert.py` produces `inverted.json`, which has a list of publishers for each
+stat.
 
 ## License
 ```

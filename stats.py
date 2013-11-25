@@ -5,6 +5,9 @@ from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
 
+codelist_mapping_xml = etree.parse('mapping.xml')
+codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
+
 def debug(stats, error):
     """ prints debugging information for a given stats object and error """
     print unicode(error)+stats.context 
@@ -22,6 +25,17 @@ def element_to_count_dict(element, path, count_dict):
 
 
 ## Decorators that modify return when self.blank = True etc.
+def returns_intdictdict(f):
+    """ Dectorator for dictionaries of integers. """
+    def wrapper(self, *args, **kwargs):
+        if self.blank:
+            return defaultdict(lambda: defaultdict(int))
+        else:
+            out = f(self, *args, **kwargs)
+            if out is None: return {}
+            else: return out
+    return wrapper
+
 def returns_intdict(f):
     """ Dectorator for dictionaries of integers. """
     def wrapper(self, *args, **kwargs):
@@ -32,6 +46,7 @@ def returns_intdict(f):
             if out is None: return {}
             else: return out
     return wrapper
+
 def returns_int(f):
     """ Decorator for integers. """
     def wrapper(self, *args, **kwargs):
@@ -54,7 +69,7 @@ def no_aggregation(f):
 
 class ActivityStats(object):
     """ Stats calculated on a single iati-activity. """
-    activity = None
+    element = None
     blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
@@ -179,6 +194,14 @@ class ActivityStats(object):
     @returns_intdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-activity', {})
+
+    @returns_intdictdict
+    def codelist_values(self):
+        out = defaultdict(lambda: defaultdict(int))
+        for path in codelist_mappings:
+            for value in self.element.xpath(path):
+                out[path][value] += 1
+        return out 
 
 
 

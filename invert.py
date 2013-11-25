@@ -16,7 +16,13 @@ def invert():
             for stats_name,stats_values in json.load(fp).items():
                 if type(stats_values) == dict:
                     for k,v in stats_values.items():
-                        out[stats_name][k].append(f[:-5])
+                        if type(v) == dict:
+                            if not k in out[stats_name]:
+                                out[stats_name][k] = defaultdict(list)
+                            for k2,v2 in v.items():
+                                out[stats_name][k][k2].append(f[:-5])
+                        else:
+                            out[stats_name][k].append(f[:-5])
 
     with open('inverted.json', 'w') as fp:
         json.dump(out, fp, sort_keys=True, indent=2)

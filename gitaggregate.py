@@ -9,9 +9,13 @@ if dated:
 total = defaultdict(dict)
 for commit in os.listdir('gitout'):
     if len(commit) == 40: # all git commits should be this length
-        for k,v in json.load(open(os.path.join('gitout', commit, 'aggregated.json'))).items():
-            if dated:
-                total[k][gitdates[commit]] = v
-            else:
-                total[k][commit] = v
+        try:
+            for k,v in json.load(open(os.path.join('gitout', commit, 'aggregated.json'))).items():
+                if dated:
+                    if commit in gitdates:
+                        total[k][gitdates[commit]] = v
+                else:
+                    total[k][commit] = v
+        except IOError:
+            pass
 json.dump(total, sys.stdout, sort_keys=True, indent=2)

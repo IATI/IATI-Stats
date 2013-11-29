@@ -4,9 +4,12 @@ from collections import defaultdict
 from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
+import re
 
 codelist_mapping_xml = etree.parse('mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
+codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
+codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
 
 def debug(stats, error):
     """ prints debugging information for a given stats object and error """

@@ -205,8 +205,8 @@ class ActivityFileStats():
     def activity_files(self):
         return 1
 
-    @returns_int
-    def fail_validation(self):
+    @returns_intdict
+    def validation(self):
         version = self.root.attrib.get('version')
         if version in [None, '1', '1.0', '1.00']: version = '1.01' 
         try:
@@ -214,14 +214,12 @@ class ActivityFileStats():
                 xmlschema_doc = etree.parse(f)
                 xmlschema = etree.XMLSchema(xmlschema_doc)
                 if xmlschema.validate(self.doc):
-                    return 0
+                    return {'pass':1}
                 else:
-                    return 1
+                    return {'fail':1}
         except IOError:
             debug(self, 'Unsupported version \'{0}\''.format(version))
-            return 1
-
-
+            return {'fail':1} 
 
 
 
@@ -249,12 +247,12 @@ class PublisherStats(object):
     def publishers(self):
         return 1
 
-    @returns_int
-    def publishers_fail_validation(self):
-        if self.aggregated['fail_validation'] > 0:
-            return 1
+    @returns_intdict
+    def publishers_validation(self):
+        if 'fail' in self.aggregated['validation'] > 0:
+            return {'fail':1}
         else:
-            return 0
+            return {'pass':1}
 
 class OrganisationFileStats(object):
     """ Stats calculated for an IATI Organisation XML file. """

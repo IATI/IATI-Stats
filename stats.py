@@ -6,7 +6,7 @@ import decimal
 from exchange_rates import toUSD
 
 def debug(stats, error):
-    """ prints debuggin information for a given stats object and error """
+    """ prints debugging information for a given stats object and error """
     print unicode(error)+stats.context 
 
 def element_to_count_dict(element, path, count_dict):
@@ -182,13 +182,30 @@ class ActivityStats(object):
 
 
 
+class GenericFileStats(object):
+    @returns_intdict
+    def validation(self):
+        version = self.root.attrib.get('version')
+        if version in [None, '1', '1.0', '1.00']: version = '1.01' 
+        try:
+            with open('schemas/{0}/{1}'.format(version, self.schema_name)) as f:
+                xmlschema_doc = etree.parse(f)
+                xmlschema = etree.XMLSchema(xmlschema_doc)
+                if xmlschema.validate(self.doc):
+                    return {'pass':1}
+                else:
+                    return {'fail':1}
+        except IOError:
+            debug(self, 'Unsupported version \'{0}\''.format(version))
+            return {'fail':1} 
 
 
-class ActivityFileStats():
+class ActivityFileStats(GenericFileStats):
     """ Stats calculated for an IATI Activity XML file. """
     doc = None
     root = None
     blank = False
+    schema_name = 'iati-activities-schema.xsd'
 
     @returns_intdict
     def versions(self):
@@ -204,22 +221,6 @@ class ActivityFileStats():
     @returns_int
     def activity_files(self):
         return 1
-
-    @returns_intdict
-    def validation(self):
-        version = self.root.attrib.get('version')
-        if version in [None, '1', '1.0', '1.00']: version = '1.01' 
-        try:
-            with open('schemas/{0}/iati-activities-schema.xsd'.format(version)) as f:
-                xmlschema_doc = etree.parse(f)
-                xmlschema = etree.XMLSchema(xmlschema_doc)
-                if xmlschema.validate(self.doc):
-                    return {'pass':1}
-                else:
-                    return {'fail':1}
-        except IOError:
-            debug(self, 'Unsupported version \'{0}\''.format(version))
-            return {'fail':1} 
 
 
 
@@ -254,9 +255,12 @@ class PublisherStats(object):
         else:
             return {'pass':1}
 
-class OrganisationFileStats(object):
+class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """
-    pass
+    doc = None
+    root = None
+    blank = False
+    schema_name = 'iati-organisations-schema.xsd'
 
 
 class OrganisationStats(object):

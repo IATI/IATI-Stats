@@ -36,7 +36,7 @@ def invert_file():
                 for stats_name,stats_values in json.load(fp)['file'].items():
                     if type(stats_values) == dict:
                         for k,v in stats_values.items():
-                            out[stats_name][k][d].append(f[:-5])
+                            out[stats_name][k][d].append(f)
 
     with open('inverted-file.json', 'w') as fp:
         json.dump(out, fp, sort_keys=True, indent=2)

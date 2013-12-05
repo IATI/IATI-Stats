@@ -10,24 +10,13 @@ import statsfunctions
 
 from settings import *
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--debug", help="Output extra debugging information",
-                    action="store_true")
-parser.add_argument("--strict", help="Follow the schema strictly",
-                    action="store_true")
-parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
-parser.add_argument("--folder", help="Limit to a specific folder in the data")
-args = parser.parse_args()
-
-import importlib
-stats = importlib.import_module(args.stats_module)
 
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
         return float(obj)
     raise TypeError
 
-def call_stats(this_stats):
+def call_stats(this_stats, args):
     this_out = {}
     for name, function in inspect.getmembers(this_stats, predicate=inspect.ismethod):
         if not statsfunctions.use_stat(this_stats, name): continue
@@ -42,7 +31,10 @@ def call_stats(this_stats):
     return this_out
 
 
-def process_file(inputfile, outputfile):
+def process_file((inputfile, outputfile, args)):
+    import importlib
+    stats = importlib.import_module(args.stats_module)
+
     try:
         doc = etree.parse(inputfile)
         root = doc.getroot()
@@ -52,14 +44,14 @@ def process_file(inputfile, outputfile):
             file_stats.root = root
             file_stats.strict = args.strict
             file_stats.context = 'in '+inputfile
-            file_out = call_stats(file_stats)
+            file_out = call_stats(file_stats, args)
             out = []
             for element in root:
                 element_stats = ElementStats()
                 element_stats.element = element
                 element_stats.strict = args.strict
                 element_stats.context = 'in '+inputfile
-                element_out = call_stats(element_stats)
+                element_out = call_stats(element_stats, args)
                 out.append(element_out)
             with open(outputfile, 'w') as outfp:
                 json.dump({'file':file_out, 'elements':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
@@ -76,22 +68,44 @@ def process_file(inputfile, outputfile):
         with open(outputfile, 'w') as outfp:
             json.dump({'file':{'invalidxml':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
 
-def loop_folder(folder):
+
+def loop_folder(folder, args):
     if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':
-        return
+        return []
+    files = []
     for xmlfile in os.listdir(os.path.join(DATA_DIR, folder)):
         try: os.makedirs(os.path.join(OUTPUT_DIR,folder))
         except OSError: pass
         try:
-            process_file(os.path.join(DATA_DIR,folder,xmlfile),
-                         os.path.join(OUTPUT_DIR,folder,xmlfile))
+            files.append((os.path.join(DATA_DIR,folder,xmlfile),
+                         os.path.join(OUTPUT_DIR,folder,xmlfile), args))
         except UnicodeDecodeError:
             traceback.print_exc(file=sys.stdout)
+            continue
+    return files
 
 if __name__ == '__main__':
-    if args.folder:
-        loop_folder(args.folder)
-    else:
-        for folder in os.listdir(DATA_DIR):
-            loop_folder(folder)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--debug", help="Output extra debugging information",
+                        action="store_true")
+    parser.add_argument("--strict", help="Follow the schema strictly",
+                        action="store_true")
+    parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
+    parser.add_argument("--folder", help="Limit to a specific folder in the data")
+    parser.add_argument("--multi", help="Number of processes", default=1, type=int)
 
+    args = parser.parse_args()
+
+    if args.folder:
+        files = loop_folder(args.folder, args)
+    else:
+        files = []
+        for folder in os.listdir(DATA_DIR):
+            files += loop_folder(folder, args)
+
+    if args.multi > 1:
+        from multiprocessing import Pool
+        pool = Pool(args.multi)
+        pool.map(process_file, files)
+    else:
+        map(process_file, files)

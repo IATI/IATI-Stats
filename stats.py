@@ -208,7 +208,12 @@ class ActivityStats(object):
 
 
 
+import json
+ckan = json.load(open('ckan.json'))
+
 class GenericFileStats(object):
+    blank = False
+
     @returns_intdict
     def validation(self):
         version = self.root.attrib.get('version')
@@ -225,12 +230,21 @@ class GenericFileStats(object):
             debug(self, 'Unsupported version \'{0}\''.format(version))
             return {'fail':1} 
 
+    @returns_intdict
+    def wrong_roots(self):
+        tag = self.root.tag
+        try:
+            ckan_type = ckan[self.fname.split('-')[0]][self.fname]['extras']['filetype']
+            if not ((tag == 'iati-organisations' and ckan_type == '"organisation"') or (tag == 'iati-activities' and ckan_type == '"activity"')):
+                return {tag:1}
+        except KeyError:
+            pass
+
 
 class ActivityFileStats(GenericFileStats):
     """ Stats calculated for an IATI Activity XML file. """
     doc = None
     root = None
-    blank = False
     schema_name = 'iati-activities-schema.xsd'
 
     @returns_intdict
@@ -285,7 +299,6 @@ class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """
     doc = None
     root = None
-    blank = False
     schema_name = 'iati-organisations-schema.xsd'
 
 

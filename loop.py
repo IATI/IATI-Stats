@@ -45,6 +45,7 @@ def process_file((inputfile, outputfile, args)):
             file_stats.strict = args.strict
             file_stats.context = 'in '+inputfile
             file_stats.fname = os.path.basename(inputfile)
+            file_stats.inputfile = inputfile
             file_out = call_stats(file_stats, args)
             out = []
             for element in root:

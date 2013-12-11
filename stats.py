@@ -4,7 +4,7 @@ from collections import defaultdict
 from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
-import re
+import os, re
 
 codelist_mapping_xml = etree.parse('mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
@@ -210,6 +210,7 @@ class ActivityStats(object):
 
 import json
 ckan = json.load(open('ckan.json'))
+publisher_re = re.compile('(.*)\-[^\-]')
 
 class GenericFileStats(object):
     blank = False
@@ -238,11 +239,15 @@ class GenericFileStats(object):
     def wrong_roots(self):
         tag = self.root.tag
         try:
-            ckan_type = ckan[self.fname.split('-')[0]][self.fname]['extras']['filetype']
+            ckan_type = ckan[publisher_re.match(self.fname).group(1)][self.fname]['extras']['filetype']
             if not ((tag == 'iati-organisations' and ckan_type == '"organisation"') or (tag == 'iati-activities' and ckan_type == '"activity"')):
                 return {tag:1}
         except KeyError:
             pass
+
+    @returns_int
+    def file_size(self):
+        return os.stat(self.inputfile).st_size
 
 
 class ActivityFileStats(GenericFileStats):

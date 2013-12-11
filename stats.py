@@ -215,6 +215,10 @@ class GenericFileStats(object):
     blank = False
 
     @returns_intdict
+    def versions(self):
+        return { self.root.attrib.get('version'): 1 }
+
+    @returns_intdict
     def validation(self):
         version = self.root.attrib.get('version')
         if version in [None, '1', '1.0', '1.00']: version = '1.01' 
@@ -246,10 +250,6 @@ class ActivityFileStats(GenericFileStats):
     doc = None
     root = None
     schema_name = 'iati-activities-schema.xsd'
-
-    @returns_intdict
-    def versions(self):
-        return { self.root.attrib.get('version'): 1 }
 
     def invalidxml(self):
         # Must be valid XML to have loaded this function
@@ -283,6 +283,11 @@ class PublisherStats(object):
     def publishers_per_organisation_type(self):
         organisation_types = self.aggregated['spend_per_organisation_type'].keys()
         return dict((o,1) for o in organisation_types)
+
+    @returns_intdict
+    def publishers_per_version(self):
+        versions = self.aggregated['versions'].keys()
+        return dict((v,1) for v in versions)
 
     @returns_int
     def publishers(self):

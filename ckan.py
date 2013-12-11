@@ -13,6 +13,7 @@ for publisher in os.listdir('ckan'):
                 out[publisher][package['name']] = {
                     'title': package['title'],
                     'extras': extras,
+                    'license_id': package['license_id'],
                     'resource': package['resources'][0],
                 }
 

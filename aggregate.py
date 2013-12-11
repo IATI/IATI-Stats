@@ -32,7 +32,7 @@ def dict_sum_inplace(d1, d2):
 
 def make_blank():
     blank = {}
-    for stats_object in [ stats.ActivityStats(), stats.ActivityFileStats(), stats.PublisherStats() ]:
+    for stats_object in [ stats.ActivityStats(), stats.ActivityFileStats(), stats.OrganisationStats(), stats.OrganisationFileStats(), stats.PublisherStats() ]:
         stats_object.blank = True
         for name, function in inspect.getmembers(stats_object, predicate=inspect.ismethod):
             if not statsfunctions.use_stat(stats_object, name): continue

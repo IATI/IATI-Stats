@@ -290,16 +290,27 @@ class PublisherStats(object):
 
     @returns_intdict
     def publishers_validation(self):
-        if 'fail' in self.aggregated['validation'] > 0:
+        if 'fail' in self.aggregated['validation']:
             return {'fail':1}
         else:
             return {'pass':1}
+
+    @returns_intdict
+    def publisher_has_org_file(self):
+        if 'organisation_files' in self.aggregated and self.aggregated['organisation_files'] > 0:
+            return {'yes':1}
+        else:
+            return {'no':1}
 
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """
     doc = None
     root = None
     schema_name = 'iati-organisations-schema.xsd'
+
+    @returns_int
+    def organisation_files(self):
+        return 1
 
 
 class OrganisationStats(object):

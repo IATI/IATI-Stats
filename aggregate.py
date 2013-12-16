@@ -19,6 +19,8 @@ stats = importlib.import_module(args.stats_module)
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
         return float(obj)
+    if hasattr(obj, 'value'):
+        return obj.value
     raise TypeError
 
 def dict_sum_inplace(d1, d2):

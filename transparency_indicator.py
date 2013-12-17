@@ -206,7 +206,7 @@ class ActivityStats(GenericStats):
         return dict((str(n).zfill(2), test_exists(e)) for n,e in elements.items())
         
 
-    def _cpa(self, transaction):
+    def _cpa(self, transaction=None):
         sectors = set() # FIXME
         aid_types = set()
         flow_types = set()
@@ -216,12 +216,13 @@ class ActivityStats(GenericStats):
         return not(
             len(sectors.intersection(e.xpath('sector/@code'))) > 0 or
             len(aid_types.intersection(e.xpath('default-aid-type/@code'))) > 0 or
-            len(aid_types.intersection(transaction.xpath('aid-type/@code'))) > 0 or
             len(flow_types.intersection(e.xpath('default-flow-type/@code'))) > 0 or
-            len(flow_types.intersection(transaction.xpath('flow-type/@code'))) > 0 or
             len(finance_types.intersection(e.xpath('default-finance-type/@code'))) > 0 or
-            len(finance_types.intersection(transaction.xpath('finance-type/@code'))) > 0 or
-            len(finance_types.intersection(transaction.xpath('recipient-region/@code'))) > 0)
+            len(finance_types.intersection(e.xpath('recipient-region/@code'))) > 0 or
+            (transaction is not None and
+                (len(aid_types.intersection(transaction.xpath('aid-type/@code'))) > 0 or
+                len(flow_types.intersection(transaction.xpath('flow-type/@code'))) > 0 or
+                len(finance_types.intersection(transaction.xpath('finance-type/@code'))) > 0)))
 
 
     @returns_int
@@ -233,6 +234,8 @@ class ActivityStats(GenericStats):
 
     @returns_intdict
     def forward_looking_activity(self):
+        if not self._cpa:
+            return {}
         budget = self.element.find('budget')
         if budget is not None:
             return {budget_year(budget):self._transaction_to_dollars(budget, datetime.date.today())}

@@ -2,12 +2,33 @@ from stats import returns_int, returns_intdict
 from decimal import Decimal
 from collections import defaultdict
 import re, datetime
+import csv 
+
+"""
+Errors
+InvalidOperation: Invalid literal for Decimal: '5 948.54'
+ValueError: day is out of range for month
+KeyError: ''
+KeyError: 'INR'
+
+"""
+
+reader = csv.reader(open('country_lang_map.csv'), delimiter=';')
+country_lang_map = dict((row[0], row[2]) for row in reader)
 
 xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')
 def iso_date(element):
-    if element.attrib.get('iso-date'):
-        m1 = xsDateRegex.match(element.attrib.get('iso-date'))
-        return datetime.date(*map(int, m1.groups()))
+    if element is None:
+        return None
+    raw_date = element.attrib.get('iso-date')
+    if not raw_date:
+        raw_date = element.text
+    if raw_date:
+        m1 = xsDateRegex.match(raw_date)
+        if m1:
+            return datetime.date(*map(int, m1.groups()))
+        else:
+            return None
     else:
         return None
 
@@ -24,7 +45,10 @@ def aggregate_largest(f):
     class LargestAggregator(object):
         value = 0
         def __add__(self, x):
-            x = int(x)
+            try:
+                x = int(x)
+            except TypeError: x = 0
+            except ValueError: x = 0
             if x > self.value:
                 self.value = x
             return self
@@ -62,6 +86,7 @@ class ActivityFileStats(object):
 class GenericStats(object):
     def _transaction_to_dollars(self, transaction, start_date):
         conversion_lookup = {
+            'USD': (1,1),
             'AUD':	('0.966',	'1.092'),
             'CAD':	('0.999',	'1.039'),
             'CLP':	('485.984',	'506.922'),
@@ -81,10 +106,18 @@ class GenericStats(object):
 class ActivityStats(GenericStats):
     blank = False
 
+    @aggregate_largest
+    def hiearchy(self):
+        return self.element.attrib.get('hierarchy')
+
+    @returns_intdict
+    def hiearchies(self):
+        return {1:self.element.attrib.get('hierarchy')}
+
     def _oda_test(self, transaction):
         default_flow_type = self.element.xpath('default-flow-type/@code')
         flow_type = transaction.xpath('flow-type/@code')
-        return '10' in default_flow_type or '10' in flow_type or len(default_flow_type) == 0 or len(flow_type) == 0
+        return '10' in default_flow_type or '10' in flow_type or (len(default_flow_type) == 0 and len(flow_type) == 0)
 
     @memoize
     def _oda_transactions(self):
@@ -95,7 +128,9 @@ class ActivityStats(GenericStats):
         return 1
 
     def _coverage(self, start_date, end_date):
-        return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and iso_date(x.find('transaction-date')) >= start_date and iso_date(x.find('transaction-date')) < end_date ])
+        def date_conditions(date):
+            return date and date >= start_date and date < end_date
+        return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(iso_date(x.find('transaction-date'))) ])
     
     @returns_int
     def coverage_A(self):
@@ -124,13 +159,13 @@ class ActivityStats(GenericStats):
             three_months_ago = datetime.date(2013, 9, 1)
             six_months_ago = datetime.date(2013, 6, 1)
             twelve_months_ago = datetime.date(2012, 12, 1)
-            if len(filter(lambda x: x>three_months_ago, dates)) >= 2:
+            if len(filter(lambda x: x and x>three_months_ago, dates)) >= 2:
                 return 4
-            elif len(filter(lambda x: x>three_months_ago, dates)) >= 1:
+            elif len(filter(lambda x: x and x>three_months_ago, dates)) >= 1:
                 return 3
-            elif len(filter(lambda x: x>six_months_ago, dates)) >= 1:
+            elif len(filter(lambda x: x and x>six_months_ago, dates)) >= 1:
                 return 2
-            elif len(filter(lambda x: x>twelve_months_ago, dates)) >= 1:
+            elif len(filter(lambda x: x and x>twelve_months_ago, dates)) >= 1:
                 return 1
             else:
                 return 0
@@ -164,12 +199,20 @@ class ActivityStats(GenericStats):
 
     @returns_intdict
     def current_activity_elements(self):
+        try:
+            lang = country_lang_map[self.element.find('recipient-country').attrib.get('code')]
+        except AttributeError: lang = None
+        except KeyError: lang = None
+        if lang == 'other': lang = None
+
         elements = {
             1:  'reporting-org',
             2:  'iati-identifier',
             3:  'other-identifier',
             4:  'title',
+            5:  'title[@xml:lang="en" or ../@xml:lang="en"]'.format(lang) if lang else 'title',
             6:  'description',
+            7:  'description[@xml:lang="en" or ../@xml:lang="en"]'.format(lang) if lang else 'description',
             8:  'activity-status',
             9:  self._start_date,
             10: self._end_date,
@@ -180,7 +223,8 @@ class ActivityStats(GenericStats):
             15: 'participating-org[@role="Accountable"]',
             16: 'recipient-country|recipient-region',
             17: 'location',
-            18: lambda: None,
+            18: 'sector[@vocabulary="DAC" or @vocabulary="DAC-3" or @vocabulary="" or not(@vocabulary)]',
+            19: 'sector[@vocabulary!="DAC" and @vocabulary!="DAC-3" and @vocabulary!=""]',
             20: 'policy-marker',
             21: 'collaboration-type',
             22: 'default-flow-type|transaction/flow-type',
@@ -194,7 +238,13 @@ class ActivityStats(GenericStats):
             30: 'transaction/transaction-type[@code="C"]',
             31: 'transaction/transaction-type[@code="D" or @code="E"]',
             32: 'transaction/transaction-type[@code="IF"]',
-            33: 'transaction[starts-with(finance-type, "4") and string-length(finance-type) = 3]' #lambda: self.element.xpath('transaction/finance-type')self.element.xpath('transaction/transaction-type[@code="IR" or @code="LR"]'),
+            33: lambda: self.element.xpath('transaction/transaction-type[@code="IR" or @code="LR"]') if len(self.element.xpath('transaction[starts-with(finance-type/@code, "4") and string-length(finance-type/@code) = 3]')) or self.element.xpath('starts-with(default-finance-type/@code, "4") and string-length(default-finance-type/@code) = 3') else True,
+            34: 'document-link',
+            35: 'activity-website',
+            36: 'related-activity',
+            37: 'conditions/@attached',
+            38: 'conditions/condition',
+            39: 'result'
             }
         def test_exists(element):
             if callable(element):
@@ -226,11 +276,13 @@ class ActivityStats(GenericStats):
 
 
     @returns_int
-    def coverage_numberator(self):
+    def coverage_numerator(self):
         start_date = datetime.date(2012,1,1)
         end_date = datetime.date(2013,1,1)
         transactions = filter(self._cpa, self.element.findall('transaction'))
-        return sum([ Decimal(x.find('value').text) for x in transactions if x.find('transaction-type').attrib.get('code') in ['D','E']  and iso_date(x.find('transaction-date')) >= start_date and iso_date(x.find('transaction-date')) < end_date ])
+        def date_conditions(date):
+            return date and date >= start_date and date < end_date
+        return sum([ Decimal(x.find('value').text) for x in transactions if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(iso_date(x.find('transaction-date'))) ])
 
     @returns_intdict
     def forward_looking_activity(self):

@@ -1,5 +1,6 @@
 from stats import returns_int, returns_intdict
 from decimal import Decimal
+from collections import defaultdict
 import re, datetime
 
 xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')
@@ -36,6 +37,21 @@ def aggregate_largest(f):
             return f(self, *args, **kwargs)
     return wrapper
 
+def budget_year(budget):
+    start = iso_date(budget.find('period-start'))
+    end = iso_date(budget.find('period-end'))
+
+    if start and end:
+        if (end-start).days < 370:
+            if end.month > 7:
+                return end.year
+            else:
+                return end.year - 1
+        else:
+            return None
+    else:
+        return None
+
 
 class PublisherStats(object):
     pass
@@ -43,22 +59,7 @@ class PublisherStats(object):
 class ActivityFileStats(object):
     pass
 
-class ActivityStats(object):
-    blank = False
-
-    def _oda_test(self, transaction):
-        default_flow_type = self.element.xpath('default-flow-type/@code')
-        flow_type = transaction.xpath('flow-type/@code')
-        return '10' in default_flow_type or '10' in flow_type or len(default_flow_type) == 0 or len(flow_type) == 0
-
-    @memoize
-    def _oda_transactions(self):
-        return filter(self._oda_test, self.element.findall('transaction'))
-
-    @returns_int
-    def activities(self):
-        return 1
-
+class GenericStats(object):
     def _transaction_to_dollars(self, transaction, start_date):
         conversion_lookup = {
             'AUD':	('0.966',	'1.092'),
@@ -76,6 +77,22 @@ class ActivityStats(object):
         currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
         conversion = conversion_lookup[currency][0 if start_date == datetime.date(2012,1,1) else 1]
         return Decimal(value.text) * Decimal(conversion)
+
+class ActivityStats(GenericStats):
+    blank = False
+
+    def _oda_test(self, transaction):
+        default_flow_type = self.element.xpath('default-flow-type/@code')
+        flow_type = transaction.xpath('flow-type/@code')
+        return '10' in default_flow_type or '10' in flow_type or len(default_flow_type) == 0 or len(flow_type) == 0
+
+    @memoize
+    def _oda_transactions(self):
+        return filter(self._oda_test, self.element.findall('transaction'))
+
+    @returns_int
+    def activities(self):
+        return 1
 
     def _coverage(self, start_date, end_date):
         return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and iso_date(x.find('transaction-date')) >= start_date and iso_date(x.find('transaction-date')) < end_date ])
@@ -147,8 +164,46 @@ class ActivityStats(object):
 
     @returns_intdict
     def current_activity_elements(self):
-        elements = ['reporting-org','iati-identifier','other-identifier','title','description', 'activity-status']
-        return dict((xpath, 1 if len(self.element.xpath(xpath)) >=1 else 0) for xpath in elements)
+        elements = {
+            1:  'reporting-org',
+            2:  'iati-identifier',
+            3:  'other-identifier',
+            4:  'title',
+            6:  'description',
+            8:  'activity-status',
+            9:  self._start_date,
+            10: self._end_date,
+            11: 'contact-info',
+            12: 'participating-org[@role="Funding"]',
+            13: 'participating-org[@role="Extending"]',
+            14: 'participating-org[@role="Implementing"]',
+            15: 'participating-org[@role="Accountable"]',
+            16: 'recipient-country|recipient-region',
+            17: 'location',
+            18: lambda: None,
+            20: 'policy-marker',
+            21: 'collaboration-type',
+            22: 'default-flow-type|transaction/flow-type',
+            23: 'default-finance-type|transaction/finance-type',
+            24: 'default-aid-type|transaction/aid-type',
+            25: 'default-tied-status|transaction/tied-status',
+            26: 'budget',
+            27: 'planned-disbursement',
+            28: 'capital-spend',
+            29: 'country-budget-items',
+            30: 'transaction/transaction-type[@code="C"]',
+            31: 'transaction/transaction-type[@code="D" or @code="E"]',
+            32: 'transaction/transaction-type[@code="IF"]',
+            33: 'transaction[starts-with(finance-type, "4") and string-length(finance-type) = 3]' #lambda: self.element.xpath('transaction/finance-type')self.element.xpath('transaction/transaction-type[@code="IR" or @code="LR"]'),
+            }
+        def test_exists(element):
+            if callable(element):
+                if element() is None: return 0
+                else: return 1
+            else:
+                if len(self.element.xpath(element)) >=1: return 1
+                else: return 0
+        return dict((str(n).zfill(2), test_exists(e)) for n,e in elements.items())
         
 
     def _cpa(self, transaction):
@@ -168,17 +223,35 @@ class ActivityStats(object):
             len(finance_types.intersection(transaction.xpath('finance-type/@code'))) > 0 or
             len(finance_types.intersection(transaction.xpath('recipient-region/@code'))) > 0)
 
-        #return not (e.xpath('sector/@code'))
 
     @returns_int
-    def forward_looking(self):
+    def coverage_numberator(self):
         start_date = datetime.date(2012,1,1)
         end_date = datetime.date(2013,1,1)
         transactions = filter(self._cpa, self.element.findall('transaction'))
         return sum([ Decimal(x.find('value').text) for x in transactions if x.find('transaction-type').attrib.get('code') in ['D','E']  and iso_date(x.find('transaction-date')) >= start_date and iso_date(x.find('transaction-date')) < end_date ])
 
+    @returns_intdict
+    def forward_looking_activity(self):
+        budget = self.element.find('budget')
+        if budget is not None:
+            return {budget_year(budget):self._transaction_to_dollars(budget, datetime.date.today())}
+        planned_disbursement = self.element.find('planned-disbursement')
+        if planned_disbursement is not None:
+            return {budget_year(planned_disbursement):self._transaction_to_dollars(planned_disbursement, datetime.date.today())}
+
+
 class OrganisationFileStats(object):
     pass
 
-class OrganisationStats(object):
-    pass
+class OrganisationStats(GenericStats):
+    blank = False
+
+    @returns_intdict
+    def forward_looking_aggregate(self):
+        out = defaultdict(Decimal)
+        budgets = self.element.findall('recipient-country-budget')
+        for budget in budgets:
+            out[budget_year(budget)] = self._transaction_to_dollars(budget, datetime.date.today())
+        return out
+

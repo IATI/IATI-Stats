@@ -59,15 +59,33 @@ class ActivityStats(object):
     def activities(self):
         return 1
 
+    def _transaction_to_dollars(self, transaction, start_date):
+        conversion_lookup = {
+            'AUD':	('0.966',	'1.092'),
+            'CAD':	('0.999',	'1.039'),
+            'CLP':	('485.984',	'506.922'),
+            'CZK':	('19.538',	'19.519'),
+            'DKK':	('5.79',	'5.631'),
+            'JPY':	('79.814',	'98.923'),
+            'CHF':	('0.938',	'0.932'),
+            'GBP':	('0.631',	'0.645'),
+            'EUR':	('0.778',	'0.755'),
+            'XDR':	('0.632',	'0.66'),
+            'ZAR':	('8.21',	'9.991') }
+        value = transaction.find('value')
+        currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+        conversion = conversion_lookup[currency][0 if start_date == datetime.date(2012,1,1) else 1]
+        return Decimal(value.text) * Decimal(conversion)
+
     def _coverage(self, start_date, end_date):
-        return sum([ Decimal(x.find('value').text) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and iso_date(x.find('transaction-date')) >= start_date and iso_date(x.find('transaction-date')) < end_date ])
+        return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and iso_date(x.find('transaction-date')) >= start_date and iso_date(x.find('transaction-date')) < end_date ])
     
     @returns_int
     def coverage_A(self):
         return self._coverage(datetime.date(2012,1,1), datetime.date(2013,1,1))
 
     @returns_int
-    def coverage_B(self): # FIXME USD
+    def coverage_B(self):
         return self._coverage(datetime.date(2012,10,1), datetime.date(2013,10,1))
 
     def timelag(self):

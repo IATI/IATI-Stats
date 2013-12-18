@@ -15,6 +15,8 @@ KeyError: 'INR'
 
 reader = csv.reader(open('country_lang_map.csv'), delimiter=';')
 country_lang_map = dict((row[0], row[2]) for row in reader)
+reader = csv.reader(open('Timeliness_Files_1.2.csv'))
+frequency_map = dict((row[0], row[13]) for row in reader)
 
 xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')
 def iso_date(element):
@@ -83,12 +85,43 @@ class PublisherStats(object):
     @returns_dict
     def bottom_hierarchy(self):
         h = int(self.aggregated['hierarchy'])
-        out = self.aggregated['by_hierarchy'][None if h==0 else str(h)]
+        out = self.aggregated['by_hierarchy']['' if h==0 else str(h)]
         if '(iati-organisation)' in self.aggregated['by_hierarchy']:
             for k,v in self.aggregated['by_hierarchy']['(iati-organisation)'].items():
                 if not k in out:
                     out[k] = v
         return out
+
+    @aggregate_largest
+    def timelag(self):
+        if (
+            (1 if self.aggregated['timelag_months']['2-3'] > 0 else 0) +
+            (1 if self.aggregated['timelag_months']['1-2'] > 0 else 0) +
+            (1 if self.aggregated['timelag_months']['1'] > 0 else 0)
+            ) >= 2:
+            return 4
+        elif self.aggregated['timelag_months']['3'] > 0:
+                return 3
+        elif self.aggregated['timelag_months']['6'] > 0:
+            return 2
+        elif self.aggregated['timelag_months']['12'] > 0:
+            return 1
+        else:
+            return 0
+
+    @aggregate_largest
+    def frequency(self):
+        frenquency_weightings = {
+            'Monthly': 4,
+            'Quarterly': 3,
+            'Six-monthly': 2,
+            'Annually': 1,
+            'Beyond one year': 0
+        }
+        return frenquency_weightings[frequency_map[self.folder]]
+
+
+
 
 class ActivityFileStats(object):
     pass
@@ -118,7 +151,7 @@ class ActivityStats(GenericStats):
 
     @aggregate_largest
     def hierarchy(self):
-        return self.element.attrib.get('hierarchy')
+        return self.element.attrib.get('hierarchy') or ''
 
     @returns_intdict
     def hierarchies(self):
@@ -150,35 +183,21 @@ class ActivityStats(GenericStats):
     def coverage_B(self):
         return self._coverage(datetime.date(2012,10,1), datetime.date(2013,10,1))
 
-    def timelag(self):
-        if self.blank:
-            class Aggregator(object):
-                value = 0
-                def __add__(self, x):
-                    x = int(x)
-                    if x==3 and self.value==3:
-                        self.value = 4
-                    elif x > self.value:
-                        self.value = x
-                    return self
-                def __int__(self):
-                    return self.value
-            return Aggregator()
-        else:
-            dates = [ iso_date(x.find('transaction-date')) for x in self.element.findall('transaction') ]
-            three_months_ago = datetime.date(2013, 9, 1)
-            six_months_ago = datetime.date(2013, 6, 1)
-            twelve_months_ago = datetime.date(2012, 12, 1)
-            if len(filter(lambda x: x and x>three_months_ago, dates)) >= 2:
-                return 4
-            elif len(filter(lambda x: x and x>three_months_ago, dates)) >= 1:
-                return 3
-            elif len(filter(lambda x: x and x>six_months_ago, dates)) >= 1:
-                return 2
-            elif len(filter(lambda x: x and x>twelve_months_ago, dates)) >= 1:
-                return 1
-            else:
-                return 0
+    @returns_intdict
+    def timelag_months(self):
+        one_month_ago = datetime.date(2013, 11, 1)
+        two_months_ago = datetime.date(2013, 11, 1)
+        three_months_ago = datetime.date(2013, 9, 1)
+        six_months_ago = datetime.date(2013, 6, 1)
+        twelve_months_ago = datetime.date(2012, 12, 1)
+        dates = [ iso_date(x.find('transaction-date')) for x in self.element.findall('transaction') ]
+        return {
+            '1':   len(filter(lambda x: x and x>one_month_ago, dates)),
+            '1-2': len(filter(lambda x: x and x>two_months_ago and x<one_month_ago, dates)),
+            '2-3': len(filter(lambda x: x and x>three_months_ago and x<two_months_ago, dates)),
+            '6':   len(filter(lambda x: x and x>six_months_ago, dates)),
+            '12':  len(filter(lambda x: x and x>twelve_months_ago, dates))
+        }
 
     @memoize
     def _start_date(self):

@@ -77,6 +77,7 @@ def aggregate():
 
         publisher_stats = stats.PublisherStats()
         publisher_stats.aggregated = publisher_total
+        publisher_stats.folder = folder
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
             if not statsfunctions.use_stat(publisher_stats, name): continue
             publisher_total[name] = function()

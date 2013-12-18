@@ -1,8 +1,11 @@
-data
-out
+data*/
+out*/
 gitout
 aggregated
+ckan
 *.json
+
+mapping.xml
 
 pyenv
 *.pyc

@@ -83,7 +83,12 @@ class PublisherStats(object):
     @returns_dict
     def bottom_hierarchy(self):
         h = int(self.aggregated['hierarchy'])
-        return self.aggregated['by_hierarchy'][None if h==0 else str(h)]
+        out = self.aggregated['by_hierarchy'][None if h==0 else str(h)]
+        if '(iati-organisation)' in self.aggregated['by_hierarchy']:
+            for k,v in self.aggregated['by_hierarchy']['(iati-organisation)'].items():
+                if not k in out:
+                    out[k] = v
+        return out
 
 class ActivityFileStats(object):
     pass
@@ -306,6 +311,10 @@ class OrganisationFileStats(object):
 
 class OrganisationStats(GenericStats):
     blank = False
+
+    @aggregate_largest
+    def hierarchy(self):
+        return '(iati-organisation)'
 
     @returns_intdict
     def forward_looking_aggregate(self):

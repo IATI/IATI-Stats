@@ -38,7 +38,7 @@ def process_file((inputfile, outputfile, args)):
     try:
         doc = etree.parse(inputfile)
         root = doc.getroot()
-        def process_stats(FileStats, ElementStats):
+        def process_stats(FileStats, ElementStats, tagname=None):
             file_stats = FileStats()
             file_stats.doc = doc
             file_stats.root = root
@@ -49,6 +49,7 @@ def process_file((inputfile, outputfile, args)):
             file_out = call_stats(file_stats, args)
             out = []
             for element in root:
+                if tagname and tagname != element.tag: continue
                 element_stats = ElementStats()
                 element_stats.element = element
                 element_stats.strict = args.strict
@@ -59,9 +60,9 @@ def process_file((inputfile, outputfile, args)):
                 json.dump({'file':file_out, 'elements':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
 
         if root.tag == 'iati-activities':
-            process_stats(stats.ActivityFileStats, stats.ActivityStats)
+            process_stats(stats.ActivityFileStats, stats.ActivityStats, 'iati-activity')
         elif root.tag == 'iati-organisations':
-            process_stats(stats.OrganisationFileStats, stats.OrganisationStats)
+            process_stats(stats.OrganisationFileStats, stats.OrganisationStats, 'iati-organisation')
         else:
             with open(outputfile, 'w') as outfp:
                 json.dump({'file':{'nonstandardroots':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)

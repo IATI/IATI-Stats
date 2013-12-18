@@ -42,7 +42,7 @@ for endorser, publishers in endorsers.items():
     try:
         os.makedirs(os.path.join('data-ti',endorser))
         for publisher in publishers:
-            for f in os.listdir(os.path.join('data-full',publisher)):
-                os.symlink(os.path.join('..','..','data-full',publisher,f), os.path.join('data-ti',endorser,f))
+            #for f in os.listdir(os.path.join('data-full',publisher)):
+            os.symlink(os.path.join('..','..','data-full',publisher), os.path.join('data-ti',endorser,publisher))
     except OSError:
         pass

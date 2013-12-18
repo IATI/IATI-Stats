@@ -50,6 +50,18 @@ def returns_intdict(f):
             else: return out
     return wrapper
 
+def returns_dict(f):
+    """ Dectorator for dictionaries. """
+    def wrapper(self, *args, **kwargs):
+        if self.blank:
+            return {}
+        else:
+            out = f(self, *args, **kwargs)
+            if out is None: return {}
+            else: return out
+    return wrapper
+
+
 def returns_int(f):
     """ Decorator for integers. """
     def wrapper(self, *args, **kwargs):

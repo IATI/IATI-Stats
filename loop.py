@@ -72,16 +72,16 @@ def process_file((inputfile, outputfile, args)):
             json.dump({'file':{'invalidxml':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
 
 
-def loop_folder(folder, args):
-    if not os.path.isdir(os.path.join(DATA_DIR, folder)) or folder == '.git':
+def loop_folder(folder, args, data_dir=DATA_DIR, output_dir=OUTPUT_DIR):
+    if not os.path.isdir(os.path.join(data_dir, folder)) or folder == '.git':
         return []
     files = []
-    for xmlfile in os.listdir(os.path.join(DATA_DIR, folder)):
-        try: os.makedirs(os.path.join(OUTPUT_DIR,folder))
+    for xmlfile in os.listdir(os.path.join(data_dir, folder)):
+        try: os.makedirs(os.path.join(output_dir,folder))
         except OSError: pass
         try:
-            files.append((os.path.join(DATA_DIR,folder,xmlfile),
-                         os.path.join(OUTPUT_DIR,folder,xmlfile), args))
+            files.append((os.path.join(data_dir,folder,xmlfile),
+                         os.path.join(output_dir,folder,xmlfile), args))
         except UnicodeDecodeError:
             traceback.print_exc(file=sys.stdout)
             continue
@@ -95,16 +95,18 @@ if __name__ == '__main__':
                         action="store_true")
     parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
     parser.add_argument("--folder", help="Limit to a specific folder in the data")
+    parser.add_argument("--data", help="Data directory", default=DATA_DIR)
+    parser.add_argument("--output", help="Output directory", default=OUTPUT_DIR)
     parser.add_argument("--multi", help="Number of processes", default=1, type=int)
 
     args = parser.parse_args()
 
     if args.folder:
-        files = loop_folder(args.folder, args)
+        files = loop_folder(args.folder, args, data_dir=args.data, output_dir=args.output)
     else:
         files = []
-        for folder in os.listdir(DATA_DIR):
-            files += loop_folder(folder, args)
+        for folder in os.listdir(args.data):
+            files += loop_folder(folder, args, data_dir=args.data, output_dir=args.output)
 
     if args.multi > 1:
         from multiprocessing import Pool

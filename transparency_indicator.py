@@ -1,4 +1,4 @@
-from stats import returns_int, returns_intdict
+from stats import returns_int, returns_intdict, returns_dict
 from decimal import Decimal
 from collections import defaultdict
 import re, datetime
@@ -78,7 +78,12 @@ def budget_year(budget):
 
 
 class PublisherStats(object):
-    pass
+    blank = False
+
+    @returns_dict
+    def bottom_hierarchy(self):
+        h = int(self.aggregated['hierarchy'])
+        return self.aggregated['by_hierarchy'][None if h==0 else str(h)]
 
 class ActivityFileStats(object):
     pass

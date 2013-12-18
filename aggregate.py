@@ -30,7 +30,9 @@ def dict_sum_inplace(d1, d2):
                 dict_sum_inplace(d1[k], v)
             else:
                 d1[k] = v
-        elif (type(d1) != defaultdict and not k in d1) or d1[k] is None:
+        elif (type(d1) != defaultdict and not k in d1):
+            d1[k] = v
+        elif d1[k] is None:
             continue
         else:
             d1[k] += v

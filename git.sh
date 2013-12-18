@@ -9,7 +9,9 @@
 python2 ckan.py
 
 # Clear other output directories
-rm -r aggregated* inverted* out*
+rm -r aggregated*
+rm -r inverted*
+rm -r out*
 
 cd data || exit $?
 # Checkout master, and make sure it is clean and up to date

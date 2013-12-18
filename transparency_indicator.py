@@ -107,12 +107,12 @@ class ActivityStats(GenericStats):
     blank = False
 
     @aggregate_largest
-    def hiearchy(self):
+    def hierarchy(self):
         return self.element.attrib.get('hierarchy')
 
     @returns_intdict
-    def hiearchies(self):
-        return {1:self.element.attrib.get('hierarchy')}
+    def hierarchies(self):
+        return {self.element.attrib.get('hierarchy'):1}
 
     def _oda_test(self, transaction):
         default_flow_type = self.element.xpath('default-flow-type/@code')

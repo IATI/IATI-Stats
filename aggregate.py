@@ -26,7 +26,10 @@ def decimal_default(obj):
 def dict_sum_inplace(d1, d2):
     for k,v in d2.items():
         if type(v) == dict or type(v) == defaultdict:
-            dict_sum_inplace(d1[k], v)
+            if k in d1:
+                dict_sum_inplace(d1[k], v)
+            else:
+                d1[k] = v
         elif (type(d1) != defaultdict and not k in d1) or d1[k] is None:
             continue
         else:
@@ -54,9 +57,15 @@ def aggregate():
 
         for jsonfile in os.listdir(os.path.join(OUTPUT_DIR, folder)):
             subtotal = copy.deepcopy(blank)
+            subtotal['by_hierarchy'] = {}
             with open(os.path.join(OUTPUT_DIR, folder, jsonfile)) as jsonfp:
                 stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
                 for activity_json in stats_json['elements']:
+                    h = activity_json.get('hierarchy')
+                    if not h in subtotal['by_hierarchy']:
+                        subtotal['by_hierarchy'][h] = copy.deepcopy(blank)
+
+                    dict_sum_inplace(subtotal['by_hierarchy'][h], activity_json)
                     dict_sum_inplace(subtotal, activity_json)
                 dict_sum_inplace(subtotal, stats_json['file'])
 

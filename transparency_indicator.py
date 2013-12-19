@@ -19,20 +19,27 @@ reader = csv.reader(open('Timeliness_Files_1.2.csv'))
 frequency_map = dict((row[0], row[13]) for row in reader)
 
 xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')
-def iso_date(element):
-    if element is None:
-        return None
-    raw_date = element.attrib.get('iso-date')
-    if not raw_date:
-        raw_date = element.text
+def iso_date_match(raw_date):
     if raw_date:
         m1 = xsDateRegex.match(raw_date)
         if m1:
             return datetime.date(*map(int, m1.groups()))
         else:
             return None
-    else:
+
+def iso_date(element):
+    if element is None:
         return None
+    raw_date = element.attrib.get('iso-date')
+    if not raw_date:
+        raw_date = element.text
+    return iso_date_match(raw_date)
+
+def transaction_date(transaction):
+    if transaction.find('transaction-date') is not None:
+        return iso_date(transaction.find('transaction-date'))
+    elif transaction.find('value') is not None:
+        return iso_date_match(transaction.find('value').attrib.get('value-date'))
 
 def memoize(f):
     def wrapper(self):
@@ -85,7 +92,10 @@ class PublisherStats(object):
     @returns_dict
     def bottom_hierarchy(self):
         h = int(self.aggregated['hierarchy'])
-        out = self.aggregated['by_hierarchy']['' if h==0 else str(h)]
+        try:
+            out = self.aggregated['by_hierarchy']['' if h==0 else str(h)]
+        except KeyError:
+            out = {}
         if '(iati-organisation)' in self.aggregated['by_hierarchy']:
             for k,v in self.aggregated['by_hierarchy']['(iati-organisation)'].items():
                 if not k in out:
@@ -144,7 +154,7 @@ class GenericStats(object):
         value = transaction.find('value')
         currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
         conversion = conversion_lookup[currency][0 if start_date == datetime.date(2012,1,1) else 1]
-        return Decimal(value.text) * Decimal(conversion)
+        return Decimal(value.text) / Decimal(conversion)
 
 class ActivityStats(GenericStats):
     blank = False
@@ -170,18 +180,31 @@ class ActivityStats(GenericStats):
     def activities(self):
         return 1
 
-    def _coverage(self, start_date, end_date):
+    def _coverage_oda(self, start_date, end_date):
         def date_conditions(date):
             return date and date >= start_date and date < end_date
-        return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(iso_date(x.find('transaction-date'))) ])
+        return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(transaction_date(x)) ])
     
+    def _coverage_all(self, start_date, end_date):
+        def date_conditions(date):
+            return date and date >= start_date and date < end_date
+        return sum([ self._transaction_to_dollars(x, start_date) for x in self.element.findall('transaction') if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(transaction_date(x)) ])
+
     @returns_int
     def coverage_A(self):
-        return self._coverage(datetime.date(2012,1,1), datetime.date(2013,1,1))
+        return self._coverage_oda(datetime.date(2012,1,1), datetime.date(2013,1,1))
 
     @returns_int
     def coverage_B(self):
-        return self._coverage(datetime.date(2012,10,1), datetime.date(2013,10,1))
+        return self._coverage_oda(datetime.date(2012,10,1), datetime.date(2013,10,1))
+
+    @returns_int
+    def coverage_C(self):
+        return self._coverage_all(datetime.date(2012,1,1), datetime.date(2013,1,1))
+
+    @returns_int
+    def coverage_D(self):
+        return self._coverage_all(datetime.date(2012,10,1), datetime.date(2013,10,1))
 
     @returns_intdict
     def timelag_months(self):
@@ -190,7 +213,7 @@ class ActivityStats(GenericStats):
         three_months_ago = datetime.date(2013, 9, 1)
         six_months_ago = datetime.date(2013, 6, 1)
         twelve_months_ago = datetime.date(2012, 12, 1)
-        dates = [ iso_date(x.find('transaction-date')) for x in self.element.findall('transaction') ]
+        dates = [ transaction_date(x) for x in self.element.findall('transaction') ]
         return {
             '1':   len(filter(lambda x: x and x>one_month_ago, dates)),
             '1-2': len(filter(lambda x: x and x>two_months_ago and x<one_month_ago, dates)),
@@ -311,7 +334,7 @@ class ActivityStats(GenericStats):
         transactions = filter(self._cpa, self.element.findall('transaction'))
         def date_conditions(date):
             return date and date >= start_date and date < end_date
-        return sum([ Decimal(x.find('value').text) for x in transactions if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(iso_date(x.find('transaction-date'))) ])
+        return sum([ Decimal(x.find('value').text) for x in transactions if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(transaction_date(x)) ])
 
     @returns_intdict
     def forward_looking_activity(self):

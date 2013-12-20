@@ -1,4 +1,4 @@
-from stats import returns_int, returns_intdict, returns_dict
+from stats import returns_int, returns_intdict, returns_dict, no_aggregation
 from decimal import Decimal
 from collections import defaultdict
 import re, datetime
@@ -159,6 +159,13 @@ class GenericStats(object):
 class ActivityStats(GenericStats):
     blank = False
 
+    @no_aggregation
+    def iati_identifier(self):
+        try:
+            return self.element.find('iati-identifier').text
+        except AttributeError:
+            return None
+
     @aggregate_largest
     def hierarchy(self):
         return self.element.attrib.get('hierarchy') or ''
@@ -262,9 +269,9 @@ class ActivityStats(GenericStats):
             2:  'iati-identifier',
             3:  'other-identifier',
             4:  'title',
-            5:  'title[@xml:lang="en" or ../@xml:lang="en"]'.format(lang) if lang else 'title',
+            5:  'title[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) if lang else 'title',
             6:  'description',
-            7:  'description[@xml:lang="en" or ../@xml:lang="en"]'.format(lang) if lang else 'description',
+            7:  'description[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) if lang else 'description',
             8:  'activity-status',
             9:  self._start_date,
             10: self._end_date,

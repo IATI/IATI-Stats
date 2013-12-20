@@ -102,6 +102,20 @@ class PublisherStats(object):
                     out[k] = v
         return out
 
+    @returns_dict
+    def top_hierarchy(self):
+        h = int(self.aggregated['hierarchy'])
+        bottom = '' if h==0 else str(h)
+        out = {}
+        try:
+            for hierarchy, data in self.aggregated['by_hierarchy'].items():
+                if hierarchy != bottom and hierarchy != '(iati-organisation)':
+                    if out != {}: 'Warning, this code does not support >2 hierarchies'
+                    out = data
+        except KeyError: pass
+        return out
+            
+
     @aggregate_largest
     def timelag(self):
         if (

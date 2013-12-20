@@ -3,6 +3,7 @@ from decimal import Decimal
 from collections import defaultdict
 import re, datetime
 import csv 
+import copy
 
 """
 Errors
@@ -93,13 +94,13 @@ class PublisherStats(object):
     def bottom_hierarchy(self):
         h = int(self.aggregated['hierarchy'])
         try:
-            out = self.aggregated['by_hierarchy']['' if h==0 else str(h)]
+            out = copy.deepcopy(self.aggregated['by_hierarchy']['' if h==0 else str(h)])
+            if '(iati-organisation)' in self.aggregated['by_hierarchy']:
+                for k,v in self.aggregated['by_hierarchy']['(iati-organisation)'].items():
+                    if not k in out:
+                        out[k] = copy.deepcopy(v)
         except KeyError:
             out = {}
-        if '(iati-organisation)' in self.aggregated['by_hierarchy']:
-            for k,v in self.aggregated['by_hierarchy']['(iati-organisation)'].items():
-                if not k in out:
-                    out[k] = v
         return out
 
     @returns_dict
@@ -111,7 +112,7 @@ class PublisherStats(object):
             for hierarchy, data in self.aggregated['by_hierarchy'].items():
                 if hierarchy != bottom and hierarchy != '(iati-organisation)':
                     if out != {}: 'Warning, this code does not support >2 hierarchies'
-                    out = data
+                    out = copy.deepcopy(data)
         except KeyError: pass
         return out
             
@@ -197,10 +198,6 @@ class ActivityStats(GenericStats):
     def _oda_transactions(self):
         return filter(self._oda_test, self.element.findall('transaction'))
 
-    @returns_int
-    def activities(self):
-        return 1
-
     def _coverage_oda(self, start_date, end_date):
         def date_conditions(date):
             return date and date >= start_date and date < end_date
@@ -272,6 +269,9 @@ class ActivityStats(GenericStats):
 
     @returns_intdict
     def current_activity_elements(self):
+        if not self._current_activity():
+            return
+
         try:
             lang = country_lang_map[self.element.find('recipient-country').attrib.get('code')]
         except AttributeError: lang = None
@@ -361,13 +361,15 @@ class ActivityStats(GenericStats):
     def forward_looking_activity(self):
         if not self._cpa:
             return {}
-        budget = self.element.find('budget')
-        if budget is not None:
-            return {budget_year(budget):self._transaction_to_dollars(budget, datetime.date.today())}
-        planned_disbursement = self.element.find('planned-disbursement')
-        if planned_disbursement is not None:
-            return {budget_year(planned_disbursement):self._transaction_to_dollars(planned_disbursement, datetime.date.today())}
-
+        out = defaultdict(int)
+        budgets = self.element.findall('budget')
+        if len(budgets):
+            for budget in budgets:
+                out[budget_year(budget)] += self._transaction_to_dollars(budget, datetime.date.today())
+        else:
+            for planned_disbursement in self.element.findall('planned-disbursement'):
+                out[budget_year(planned_disbursement)] += self._transaction_to_dollars(planned_disbursement, datetime.date.today())
+        return out
 
 class OrganisationFileStats(object):
     pass
@@ -384,6 +386,5 @@ class OrganisationStats(GenericStats):
         out = defaultdict(Decimal)
         budgets = self.element.findall('recipient-country-budget')
         for budget in budgets:
-            out[budget_year(budget)] = self._transaction_to_dollars(budget, datetime.date.today())
+            out[budget_year(budget)] += self._transaction_to_dollars(budget, datetime.date.today())
         return out
-

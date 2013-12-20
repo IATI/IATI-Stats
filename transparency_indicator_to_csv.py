@@ -16,15 +16,16 @@ for endorser in sorted(os.listdir('out-ti')):
     if not endorser.endswith('.json'): continue
     endorser_name = endorser[:-5]
     aggregated = json.load(open(os.path.join('out-ti', endorser)))
+    if endorser_name == 'irishaid': continue
     coverage.writerow([endorser_name,
         aggregated['bottom_hierarchy']['coverage_A'],
         aggregated['bottom_hierarchy']['coverage_B'],
         aggregated['bottom_hierarchy']['coverage_C'],
         aggregated['bottom_hierarchy']['coverage_D']])
     timelag.writerow([endorser_name,aggregated['frequency'],aggregated['timelag']])
-    detail.writerow([endorser_name,aggregated['bottom_hierarchy']['activities']]+[aggregated['bottom_hierarchy']['current_activity_elements'].get(x) for x in detail_columns])
+    detail.writerow([endorser_name,aggregated['bottom_hierarchy']['current_activities']]+[aggregated['bottom_hierarchy']['current_activity_elements'].get(x) for x in detail_columns])
     if 'top_hierarchy' in aggregated and aggregated['top_hierarchy'] != {}:
-        detail_top.writerow([endorser_name,aggregated['top_hierarchy']['activities']]+[aggregated['top_hierarchy']['current_activity_elements'].get(x) for x in detail_columns])
+        detail_top.writerow([endorser_name,aggregated['top_hierarchy']['current_activities']]+[aggregated['top_hierarchy']['current_activity_elements'].get(x) for x in detail_columns])
     forward.writerow([endorser_name,
         aggregated['bottom_hierarchy']['coverage_numerator'],
         aggregated['forward_looking_aggregate'].get('2014') or 0,

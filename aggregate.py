@@ -29,9 +29,9 @@ def dict_sum_inplace(d1, d2):
             if k in d1:
                 dict_sum_inplace(d1[k], v)
             else:
-                d1[k] = v
+                d1[k] = copy.deepcopy(v)
         elif (type(d1) != defaultdict and not k in d1):
-            d1[k] = v
+            d1[k] = copy.deepcopy(v)
         elif d1[k] is None:
             continue
         else:

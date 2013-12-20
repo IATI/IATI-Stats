@@ -218,6 +218,20 @@ class ActivityStats(object):
                 out[path][value] += 1
         return out 
 
+    @returns_intdictdict
+    def boolean_values(self):
+        out = defaultdict(lambda: defaultdict(int))
+        for path in [
+                'result/indicator/@ascending',
+                'result/@aggregation-status',
+                'conditions/@attached',
+                'crs-add/aidtype-flag/@significance',
+                'fss/@priority'
+                ]:
+            for value in self.element.xpath(path):
+                out[path][value] += 1
+        return out 
+
 
 
 import json

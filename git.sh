@@ -14,8 +14,8 @@ rm -r inverted*
 rm -r out*
 
 cd data || exit $?
-# Checkout master, and make sure it is clean and up to date
-git checkout master
+# Checkout automatic, and make sure it is clean and up to date
+git checkout automatic
 git reset --hard
 git clean -df
 git pull --ff-only
@@ -62,6 +62,5 @@ cp -r html gitout
 cd gitout || exit $?
 rm -r current
 cp -r $current_hash current
-git add .
-git commit -a -m 'Auto'
-git push
+tar -czf current.tar.gz current
+

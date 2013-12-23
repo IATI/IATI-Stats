@@ -135,6 +135,10 @@ class ActivityStats(object):
         return 1
 
     @returns_intdict
+    def reporting_orgs(self):
+        return {self.element.find('reporting-org').attrib.get('ref'):1}
+
+    @returns_intdict
     def currencies(self):
         currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
         currencies = [ c if c else self.element.get('default-currency') for c in currencies ]

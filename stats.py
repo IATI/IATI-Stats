@@ -275,6 +275,21 @@ class GenericFileStats(object):
     def file_size(self):
         return os.stat(self.inputfile).st_size
 
+    @returns_intdict
+    def file_size_bins(self):
+        file_size = os.stat(self.inputfile).st_size
+        if file_size < 1*1024*1024:
+            return {'<1MB': 1}
+        elif file_size < 5*1024*1024:
+            return {'1-5MB': 1}
+        elif file_size < 10*1024*1024:
+            return {'5-10MB': 1}
+        elif file_size < 20*1024*1024:
+            return {'10-20MB': 1}
+        else:
+            return {'>20MB': 1}
+        
+
 
 class ActivityFileStats(GenericFileStats):
     """ Stats calculated for an IATI Activity XML file. """
@@ -337,6 +352,7 @@ class PublisherStats(object):
             return {'yes':1}
         else:
             return {'no':1}
+
 
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """

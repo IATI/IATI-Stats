@@ -12,6 +12,15 @@ codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path')
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
 
+def memoize(f):
+    def wrapper(self):
+        if not hasattr(self, 'cache'):
+            self.cache = {}
+        if not f.__name__ in self.cache:
+            self.cache[f.__name__] = f(self)
+        return self.cache[f.__name__]
+    return wrapper
+
 def debug(stats, error):
     """ prints debugging information for a given stats object and error """
     print unicode(error)+stats.context 
@@ -315,12 +324,17 @@ class GenericFileStats(object):
             return {'>20MB': 1}
 
     @returns_date
+    @memoize
     def updated(self):
         if self.inputfile.startswith('data/'):
             os.chdir('data')
             out = subprocess.check_output(['git', 'log', '-1', '--format="%ai"', '--', self.inputfile[5:]]).strip('"\n')
             os.chdir('..')
             return out
+
+    @returns_intdict
+    def updated_dates(self):
+        return {self.updated().split(' ')[0]:1}
         
 
 

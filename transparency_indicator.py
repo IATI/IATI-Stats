@@ -1,4 +1,4 @@
-from stats import returns_int, returns_intdict, returns_dict, no_aggregation
+from stats import returns_int, returns_intdict, returns_dict, no_aggregation, memoize
 from decimal import Decimal
 from collections import defaultdict
 import re, datetime
@@ -41,15 +41,6 @@ def transaction_date(transaction):
         return iso_date(transaction.find('transaction-date'))
     elif transaction.find('value') is not None:
         return iso_date_match(transaction.find('value').attrib.get('value-date'))
-
-def memoize(f):
-    def wrapper(self):
-        if not hasattr(self, 'cache'):
-            self.cache = {}
-        if not f.__name__ in self.cache:
-            self.cache[f.__name__] = f(self)
-        return self.cache[f.__name__]
-    return wrapper
 
 def aggregate_largest(f):
     class LargestAggregator(object):

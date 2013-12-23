@@ -297,6 +297,11 @@ class ActivityFileStats(GenericFileStats):
     root = None
     schema_name = 'iati-activities-schema.xsd'
 
+    @returns_int
+    def empty(self):
+        return 0
+
+    @returns_int
     def invalidxml(self):
         # Must be valid XML to have loaded this function
         return 0

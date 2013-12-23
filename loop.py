@@ -68,8 +68,13 @@ def process_file((inputfile, outputfile, args)):
                 json.dump({'file':{'nonstandardroots':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)
-        with open(outputfile, 'w') as outfp:
-            json.dump({'file':{'invalidxml':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
+        if os.path.getsize(inputfile) == 0:
+            # Assume empty files are download errors, not invalid XML
+            with open(outputfile, 'w') as outfp:
+                json.dump({'file':{'emptyfile':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
+        else:
+            with open(outputfile, 'w') as outfp:
+                json.dump({'file':{'invalidxml':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
 
 
 def loop_folder(folder, args, data_dir=DATA_DIR, output_dir=OUTPUT_DIR):

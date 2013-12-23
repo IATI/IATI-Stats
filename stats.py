@@ -34,6 +34,8 @@ def element_to_count_dict(element, path, count_dict):
     count_dict[path] = 1
     for child in element:
         element_to_count_dict(child, path+'/'+child.tag, count_dict)
+    for attribute in element.attrib:
+        count_dict[path+'/@'+attribute] = 1
     return count_dict
 
 

@@ -353,6 +353,10 @@ class OrganisationStats(object):
     """ Stats calculated on a single iati-organisation. """
     blank = False
 
+    @returns_int
+    def organisations(self):
+        return 1
+
     @returns_intdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-organisation', {})

@@ -7,6 +7,7 @@ import copy
 import decimal
 import argparse
 import statsfunctions
+import datetime
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
@@ -20,7 +21,10 @@ def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
         return float(obj)
     if hasattr(obj, 'value'):
-        return obj.value
+        if type(obj.value) == datetime.datetime:
+            return obj.value.strftime('%Y-%m-%d %H:%M:%S %z')
+        else:
+            return obj.value
     raise TypeError
 
 def dict_sum_inplace(d1, d2):

@@ -1,10 +1,11 @@
 from lxml import etree
-import datetime
+import datetime, dateutil.parser, dateutil.tz
 from collections import defaultdict
 from decimal import Decimal
 import decimal
 from exchange_rates import toUSD
 import os, re
+import subprocess
 
 codelist_mapping_xml = etree.parse('mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
@@ -80,6 +81,30 @@ def no_aggregation(f):
             return None
         else: return f(self, *args, **kwargs)
     return wrapper
+
+
+def returns_date(f):
+    class LargestDateAggregator(object):
+        value = datetime.datetime(1900,1,1, tzinfo=dateutil.tz.tzutc())
+        def __add__(self, x):
+            if type(x) == datetime.datetime:
+                pass
+            elif type(x) == LargestDateAggregator:
+                x = x.value
+            else:
+                x = dateutil.parser.parse(x)
+            if x > self.value:
+                self.value = x
+            return self
+    def __int__(self):
+        return self.value
+    def wrapper(self, *args, **kwargs):
+        if self.blank:
+            return LargestDateAggregator()
+        else:
+            return f(self, *args, **kwargs)
+    return wrapper
+
 
 
 class ActivityStats(object):
@@ -288,6 +313,14 @@ class GenericFileStats(object):
             return {'10-20MB': 1}
         else:
             return {'>20MB': 1}
+
+    @returns_date
+    def updated(self):
+        if self.inputfile.startswith('data/'):
+            os.chdir('data')
+            out = subprocess.check_output(['git', 'log', '-1', '--format="%ai"', '--', self.inputfile[5:]]).strip('"\n')
+            os.chdir('..')
+            return out
         
 
 

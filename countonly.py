@@ -1,4 +1,4 @@
-from stats import returns_int
+from stats import returns_number
 
 class PublisherStats(object):
     pass
@@ -9,7 +9,7 @@ class ActivityFileStats(object):
 class ActivityStats(object):
     blank = False
 
-    @returns_int
+    @returns_number
     def activities(self):
         return 1
     pass

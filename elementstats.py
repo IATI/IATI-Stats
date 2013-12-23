@@ -1,4 +1,4 @@
-from stats import returns_intdict, element_to_count_dict
+from stats import returns_numberdict, element_to_count_dict
 
 class PublisherStats(object):
     pass
@@ -9,7 +9,7 @@ class ActivityFileStats(object):
 class ActivityStats(object):
     blank = False
 
-    @returns_intdict
+    @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-activity', {})
 
@@ -19,6 +19,6 @@ class OrganisationFileStats(object):
 class OrganisationStats(object):
     blank = False
 
-    @returns_intdict
+    @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-organisation', {})

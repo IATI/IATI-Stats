@@ -1,4 +1,4 @@
-from stats import returns_int, returns_intdict, returns_dict, no_aggregation, memoize
+from stats import returns_number, returns_numberdict, returns_dict, no_aggregation, memoize
 from decimal import Decimal
 from collections import defaultdict
 import re, datetime
@@ -176,7 +176,7 @@ class ActivityStats(GenericStats):
     def hierarchy(self):
         return self.element.attrib.get('hierarchy') or ''
 
-    @returns_intdict
+    @returns_numberdict
     def hierarchies(self):
         return {self.element.attrib.get('hierarchy'):1}
 
@@ -199,23 +199,23 @@ class ActivityStats(GenericStats):
             return date and date >= start_date and date < end_date
         return sum([ self._transaction_to_dollars(x, start_date) for x in self.element.findall('transaction') if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(transaction_date(x)) ])
 
-    @returns_int
+    @returns_number
     def coverage_A(self):
         return self._coverage_oda(datetime.date(2012,1,1), datetime.date(2013,1,1))
 
-    @returns_int
+    @returns_number
     def coverage_B(self):
         return self._coverage_oda(datetime.date(2012,10,1), datetime.date(2013,10,1))
 
-    @returns_int
+    @returns_number
     def coverage_C(self):
         return self._coverage_all(datetime.date(2012,1,1), datetime.date(2013,1,1))
 
-    @returns_int
+    @returns_number
     def coverage_D(self):
         return self._coverage_all(datetime.date(2012,10,1), datetime.date(2013,10,1))
 
-    @returns_intdict
+    @returns_numberdict
     def timelag_months(self):
         one_month_ago = datetime.date(2013, 11, 1)
         two_months_ago = datetime.date(2013, 11, 1)
@@ -254,11 +254,11 @@ class ActivityStats(GenericStats):
     def _current_activity(self):
         return (self.element.find('activity-status') is None or self.element.find('activity-status').text != '5') and (not self._end_date() or self._end_date() > datetime.date(2011,12,31))
 
-    @returns_int
+    @returns_number
     def current_activities(self):
         return 1 if self._current_activity() else 0
 
-    @returns_intdict
+    @returns_numberdict
     def current_activity_elements(self):
         if not self._current_activity():
             return
@@ -339,7 +339,7 @@ class ActivityStats(GenericStats):
                 len(finance_types.intersection(transaction.xpath('finance-type/@code'))) > 0)))
 
 
-    @returns_int
+    @returns_number
     def coverage_numerator(self):
         start_date = datetime.date(2012,1,1)
         end_date = datetime.date(2013,1,1)
@@ -348,7 +348,7 @@ class ActivityStats(GenericStats):
             return date and date >= start_date and date < end_date
         return sum([ Decimal(x.find('value').text) for x in transactions if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(transaction_date(x)) ])
 
-    @returns_intdict
+    @returns_numberdict
     def forward_looking_activity(self):
         if not self._cpa:
             return {}
@@ -372,7 +372,7 @@ class OrganisationStats(GenericStats):
     def hierarchy(self):
         return '(iati-organisation)'
 
-    @returns_intdict
+    @returns_numberdict
     def forward_looking_aggregate(self):
         out = defaultdict(Decimal)
         budgets = self.element.findall('recipient-country-budget')

@@ -38,7 +38,7 @@ def element_to_count_dict(element, path, count_dict):
 
 
 ## Decorators that modify return when self.blank = True etc.
-def returns_intdictdict(f):
+def returns_numberdictdict(f):
     """ Dectorator for dictionaries of integers. """
     def wrapper(self, *args, **kwargs):
         if self.blank:
@@ -49,7 +49,7 @@ def returns_intdictdict(f):
             else: return out
     return wrapper
 
-def returns_intdict(f):
+def returns_numberdict(f):
     """ Dectorator for dictionaries of integers. """
     def wrapper(self, *args, **kwargs):
         if self.blank:
@@ -72,7 +72,7 @@ def returns_dict(f):
     return wrapper
 
 
-def returns_int(f):
+def returns_number(f):
     """ Decorator for integers. """
     def wrapper(self, *args, **kwargs):
         if self.blank:
@@ -130,15 +130,15 @@ class ActivityStats(object):
         except AttributeError:
             return None
 
-    @returns_int
+    @returns_number
     def activities(self):
         return 1
 
-    @returns_intdict
+    @returns_numberdict
     def reporting_orgs(self):
         return {self.element.find('reporting-org').attrib.get('ref'):1}
 
-    @returns_intdict
+    @returns_numberdict
     def currencies(self):
         currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
         currencies = [ c if c else self.element.get('default-currency') for c in currencies ]
@@ -157,7 +157,7 @@ class ActivityStats(object):
             except AttributeError, e:
                 debug(self, e)
 
-    @returns_intdict
+    @returns_numberdict
     def activities_per_year(self):
         return {self.__get_start_year():1}
 
@@ -189,16 +189,16 @@ class ActivityStats(object):
             debug(self, e)
             return Decimal(0.0)
     
-    @returns_int
+    @returns_number
     def spend(self):
         transactions = [ x for x in self.element.findall('transaction') if x.find('transaction-type') is not None and x.find('transaction-type').get('code') in ['D','E'] ]
         return sum(map(self.__value_to_dollars, transactions))
 
-    @returns_intdict
+    @returns_numberdict
     def spend_per_year(self):
         return {self.__get_start_year():self.spend()}
     
-    @returns_intdict
+    @returns_numberdict
     def activities_per_country(self):
         if self.__get_start_year() >= 2010:
             countries = self.element.findall('recipient-country')
@@ -208,12 +208,12 @@ class ActivityStats(object):
             elif regions is not None:
                 return dict((region.get('code'),1) for region in regions)
 
-    @returns_int
+    @returns_number
     def activities_no_country(self):
         if len(self.activities_per_country()) == 0:
             return 1
 
-    @returns_intdict
+    @returns_numberdict
     def spend_per_country(self):
         if self.__get_start_year() >= 2010:
             country = self.element.find('recipient-country')
@@ -227,7 +227,7 @@ class ActivityStats(object):
         else:
             return {'pre2010':self.spend()}
     
-    @returns_intdict
+    @returns_numberdict
     def spend_per_organisation_type(self):
         try:
             transactions = [ x for x in self.element.findall('transaction') if
@@ -244,11 +244,11 @@ class ActivityStats(object):
         except AttributeError, e:
             pass
 
-    @returns_intdict
+    @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-activity', {})
 
-    @returns_intdictdict
+    @returns_numberdictdict
     def codelist_values(self):
         out = defaultdict(lambda: defaultdict(int))
         for path in codelist_mappings:
@@ -256,7 +256,7 @@ class ActivityStats(object):
                 out[path][value] += 1
         return out 
 
-    @returns_intdictdict
+    @returns_numberdictdict
     def boolean_values(self):
         out = defaultdict(lambda: defaultdict(int))
         for path in [
@@ -279,11 +279,11 @@ publisher_re = re.compile('(.*)\-[^\-]')
 class GenericFileStats(object):
     blank = False
 
-    @returns_intdict
+    @returns_numberdict
     def versions(self):
         return { self.root.attrib.get('version'): 1 }
 
-    @returns_intdict
+    @returns_numberdict
     def validation(self):
         version = self.root.attrib.get('version')
         if version in [None, '1', '1.0', '1.00']: version = '1.01' 
@@ -299,7 +299,7 @@ class GenericFileStats(object):
             debug(self, 'Unsupported version \'{0}\''.format(version))
             return {'fail':1} 
 
-    @returns_intdict
+    @returns_numberdict
     def wrong_roots(self):
         tag = self.root.tag
         try:
@@ -309,11 +309,11 @@ class GenericFileStats(object):
         except KeyError:
             pass
 
-    @returns_int
+    @returns_number
     def file_size(self):
         return os.stat(self.inputfile).st_size
 
-    @returns_intdict
+    @returns_numberdict
     def file_size_bins(self):
         file_size = os.stat(self.inputfile).st_size
         if file_size < 1*1024*1024:
@@ -336,7 +336,7 @@ class GenericFileStats(object):
             os.chdir('..')
             return out
 
-    @returns_intdict
+    @returns_numberdict
     def updated_dates(self):
         return {self.updated().split(' ')[0]:1}
         
@@ -348,11 +348,11 @@ class ActivityFileStats(GenericFileStats):
     root = None
     schema_name = 'iati-activities-schema.xsd'
 
-    @returns_int
+    @returns_number
     def empty(self):
         return 0
 
-    @returns_int
+    @returns_number
     def invalidxml(self):
         # Must be valid XML to have loaded this function
         return 0
@@ -360,7 +360,7 @@ class ActivityFileStats(GenericFileStats):
     def nonstandardroots(self):
         return 0
 
-    @returns_int
+    @returns_number
     def activity_files(self):
         return 1
 
@@ -376,33 +376,33 @@ class PublisherStats(object):
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
 
-    @returns_intdict
+    @returns_numberdict
     def publishers_per_country(self):
         countries = self.aggregated['activities_per_country'].keys()
         return dict((c,1) for c in countries)
 
-    @returns_intdict
+    @returns_numberdict
     def publishers_per_organisation_type(self):
         organisation_types = self.aggregated['spend_per_organisation_type'].keys()
         return dict((o,1) for o in organisation_types)
 
-    @returns_intdict
+    @returns_numberdict
     def publishers_per_version(self):
         versions = self.aggregated['versions'].keys()
         return dict((v,1) for v in versions)
 
-    @returns_int
+    @returns_number
     def publishers(self):
         return 1
 
-    @returns_intdict
+    @returns_numberdict
     def publishers_validation(self):
         if 'fail' in self.aggregated['validation']:
             return {'fail':1}
         else:
             return {'pass':1}
 
-    @returns_intdict
+    @returns_numberdict
     def publisher_has_org_file(self):
         if 'organisation_files' in self.aggregated and self.aggregated['organisation_files'] > 0:
             return {'yes':1}
@@ -416,7 +416,7 @@ class OrganisationFileStats(GenericFileStats):
     root = None
     schema_name = 'iati-organisations-schema.xsd'
 
-    @returns_int
+    @returns_number
     def organisation_files(self):
         return 1
 
@@ -425,10 +425,10 @@ class OrganisationStats(object):
     """ Stats calculated on a single iati-organisation. """
     blank = False
 
-    @returns_int
+    @returns_number
     def organisations(self):
         return 1
 
-    @returns_intdict
+    @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-organisation', {})

@@ -1,7 +1,7 @@
 import csv, os, json
 
 coverage = csv.writer(open('out-ti-csv/1-coverage.csv','w'))
-coverage.writerow(['endorser','A','B','C','D'])
+coverage.writerow(['endorser','A','B','C','D','all A','all B','all C','all D'])
 timelag = csv.writer(open('out-ti-csv/2-timelag.csv','w'))
 timelag.writerow(['endorser','frequency','timelag'])
 detail = csv.writer(open('out-ti-csv/3-detail.csv','w'))
@@ -21,7 +21,12 @@ for endorser in sorted(os.listdir('out-ti')):
         aggregated['bottom_hierarchy']['coverage_A'],
         aggregated['bottom_hierarchy']['coverage_B'],
         aggregated['bottom_hierarchy']['coverage_C'],
-        aggregated['bottom_hierarchy']['coverage_D']])
+        aggregated['bottom_hierarchy']['coverage_D'],
+        aggregated['bottom_hierarchy']['coverage_A_all_transaction_types'],
+        aggregated['bottom_hierarchy']['coverage_B_all_transaction_types'],
+        aggregated['bottom_hierarchy']['coverage_C_all_transaction_types'],
+        aggregated['bottom_hierarchy']['coverage_D_all_transaction_types'],
+        ])
     timelag.writerow([endorser_name,aggregated['frequency'],aggregated['timelag']])
     detail.writerow([endorser_name,aggregated['bottom_hierarchy']['current_activities']]+[aggregated['bottom_hierarchy']['current_activity_elements'].get(x) for x in detail_columns])
     if 'top_hierarchy' in aggregated and aggregated['top_hierarchy'] != {}:

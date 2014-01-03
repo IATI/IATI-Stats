@@ -189,15 +189,15 @@ class ActivityStats(GenericStats):
     def _oda_transactions(self):
         return filter(self._oda_test, self.element.findall('transaction'))
 
-    def _coverage_oda(self, start_date, end_date):
+    def _coverage_oda(self, start_date, end_date, code_condition=lambda x: x  in ['D','E']):
         def date_conditions(date):
             return date and date >= start_date and date < end_date
-        return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(transaction_date(x)) ])
+        return sum([ self._transaction_to_dollars(x, start_date) for x in self._oda_transactions() if code_condition(x.find('transaction-type').attrib.get('code'))  and date_conditions(transaction_date(x)) ])
     
-    def _coverage_all(self, start_date, end_date):
+    def _coverage_all(self, start_date, end_date, code_condition=lambda x: x  in ['D','E']):
         def date_conditions(date):
             return date and date >= start_date and date < end_date
-        return sum([ self._transaction_to_dollars(x, start_date) for x in self.element.findall('transaction') if x.find('transaction-type').attrib.get('code') in ['D','E']  and date_conditions(transaction_date(x)) ])
+        return sum([ self._transaction_to_dollars(x, start_date) for x in self.element.findall('transaction') if code_condition(x.find('transaction-type').attrib.get('code'))  and date_conditions(transaction_date(x)) ])
 
     @returns_number
     def coverage_A(self):
@@ -214,6 +214,22 @@ class ActivityStats(GenericStats):
     @returns_number
     def coverage_D(self):
         return self._coverage_all(datetime.date(2012,10,1), datetime.date(2013,10,1))
+
+    @returns_number
+    def coverage_A_all_transaction_types(self):
+        return self._coverage_oda(datetime.date(2012,1,1), datetime.date(2013,1,1), lambda x: True)
+
+    @returns_number
+    def coverage_B_all_transaction_types(self):
+        return self._coverage_oda(datetime.date(2012,10,1), datetime.date(2013,10,1), lambda x: True)
+
+    @returns_number
+    def coverage_C_all_transaction_types(self):
+        return self._coverage_all(datetime.date(2012,1,1), datetime.date(2013,1,1), lambda x: True)
+
+    @returns_number
+    def coverage_D_all_transaction_types(self):
+        return self._coverage_all(datetime.date(2012,10,1), datetime.date(2013,10,1), lambda x: True)
 
     @returns_numberdict
     def timelag_months(self):
@@ -264,19 +280,18 @@ class ActivityStats(GenericStats):
             return
 
         try:
-            lang = country_lang_map[self.element.find('recipient-country').attrib.get('code')]
-        except AttributeError: lang = None
-        except KeyError: lang = None
-        if lang == 'other': lang = None
+            langs = [ country_lang_map.get(x.attrib.get('code')) for x in self.element.findall('recipient-country') ]
+            langs = list(set(filter(lambda x: x!='other' and x!=None, langs)))
+        except AttributeError: langs = []
 
         elements = {
             1:  'reporting-org',
             2:  'iati-identifier',
             3:  'other-identifier',
             4:  'title',
-            5:  'title[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) if lang else 'title',
+            5:  ['title[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) for lang in langs] if len(langs) else 'title',
             6:  'description',
-            7:  'description[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) if lang else 'description',
+            7:  ['description[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) for lang in langs] if len(langs) else 'description',
             8:  'activity-status',
             9:  self._start_date,
             10: self._end_date,
@@ -314,6 +329,8 @@ class ActivityStats(GenericStats):
             if callable(element):
                 if element() is None: return 0
                 else: return 1
+            elif type(element) == list:
+                return 0 if 0 in map(test_exists, element) else 1
             else:
                 if len(self.element.xpath(element)) >=1: return 1
                 else: return 0

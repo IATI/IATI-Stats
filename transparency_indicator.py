@@ -279,9 +279,18 @@ class ActivityStats(GenericStats):
         if not self._current_activity():
             return
 
+        if self.element.find('reporting-org').attrib.get('ref') in ['CA-3']:
+            endorser_langs = ['en', 'fr']
+        elif self.element.find('reporting-org').attrib.get('ref') in ['ES-5', '50']:
+            endorser_langs = ['es']
+        elif self.element.find('reporting-org').attrib.get('ref') in ['IADB']:
+            endorser_langs = ['es','en']
+        else:
+            endorser_langs = ['en']
+
         try:
             langs = [ country_lang_map.get(x.attrib.get('code')) for x in self.element.findall('recipient-country') ]
-            langs = list(set(filter(lambda x: x!='other' and x!=None, langs)))
+            langs = list(set(filter(lambda x: x!='other' and x!=None and x not in endorser_langs, langs)))
         except AttributeError: langs = []
 
         elements = {
@@ -289,9 +298,9 @@ class ActivityStats(GenericStats):
             2:  'iati-identifier',
             3:  'other-identifier',
             4:  'title',
-            5:  ['title[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) for lang in langs] if len(langs) else 'title',
+            5:  ['title[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) for lang in langs],
             6:  'description',
-            7:  ['description[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) for lang in langs] if len(langs) else 'description',
+            7:  ['description[@xml:lang="{0}" or ../@xml:lang="{0}"]'.format(lang) for lang in langs],
             8:  'activity-status',
             9:  self._start_date,
             10: self._end_date,
@@ -323,14 +332,15 @@ class ActivityStats(GenericStats):
             36: 'related-activity',
             37: 'conditions/@attached',
             38: 'conditions/condition',
-            39: 'result'
+            39: 'result',
+            'lang-denominator': lambda: 1 if len(langs) else 0
             }
         def test_exists(element):
             if callable(element):
                 if element() is None: return 0
                 else: return 1
             elif type(element) == list:
-                return 0 if 0 in map(test_exists, element) else 1
+                return 0 if len(element)==0 or 0 in map(test_exists, element) else 1
             else:
                 if len(self.element.xpath(element)) >=1: return 1
                 else: return 0

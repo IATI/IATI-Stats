@@ -333,7 +333,7 @@ class ActivityStats(GenericStats):
             37: 'conditions/@attached',
             38: 'conditions/condition',
             39: 'result',
-            'lang-denominator': lambda: 1 if len(langs) else 0
+            'lang-denominator': lambda: len(langs) if len(langs) else None
             }
         def test_exists(element):
             if callable(element):

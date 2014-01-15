@@ -355,6 +355,7 @@ class ActivityStats(GenericStats):
         regions = set()
         e = self.element
         return not(
+            len(e.xpath('recipient-country')) == 0 or
             len(sectors.intersection(e.xpath('sector/@code'))) > 0 or
             len(aid_types.intersection(e.xpath('default-aid-type/@code'))) > 0 or
             len(flow_types.intersection(e.xpath('default-flow-type/@code'))) > 0 or
@@ -377,7 +378,7 @@ class ActivityStats(GenericStats):
 
     @returns_numberdict
     def forward_looking_activity(self):
-        if not self._cpa:
+        if not self._cpa():
             return {}
         out = defaultdict(int)
         budgets = self.element.findall('budget')

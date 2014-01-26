@@ -355,7 +355,7 @@ class ActivityStats(GenericStats):
         regions = set()
         e = self.element
         return not(
-            len(e.xpath('recipient-country')) == 0 or
+            ( (len(e.xpath('recipient-country/@code')) == 0 or '' in e.xpath('recipient-country/@code')) and (len(e.xpath('recipient-region/@code')) == 0 or '998' in e.xpath('recipient-region/@code') or '' in e.xpath('recipient-region/@code')) ) or
             len(sectors.intersection(e.xpath('sector/@code'))) > 0 or
             len(aid_types.intersection(e.xpath('default-aid-type/@code'))) > 0 or
             len(flow_types.intersection(e.xpath('default-flow-type/@code'))) > 0 or

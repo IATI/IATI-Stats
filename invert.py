@@ -28,9 +28,17 @@ def invert(dirname, out_filename):
                         out[stats_name] = defaultdict(int)
                     out[stats_name][f[:-5]] += stats_values
 
-    with open(out_filename, 'w') as fp:
-        json.dump(out, fp, sort_keys=True, indent=2)
+    with open(out_filename+'.json', 'w') as fp:
+            json.dump(out, fp, sort_keys=True, indent=2)
+
+    for statname, inverted in out.items():
+        with open(os.path.join(out_filename, statname+'.json'), 'w') as fp:
+            json.dump(inverted, fp, sort_keys=True, indent=2)
 
 if __name__ == '__main__':
-    invert('aggregated', 'inverted.json')
-    invert('aggregated-file', 'inverted-file.json')
+    for dirname in ['inverted-publisher', 'inverted-file']:
+        try:
+            os.mkdir(dirname)
+        except OSError: pass
+    invert('aggregated-publisher', 'inverted-publisher')
+    invert('aggregated-file', 'inverted-file')

@@ -51,7 +51,7 @@ def make_blank():
     return blank
 
 def aggregate():
-    for newdir in ['aggregated', 'aggregated-file']:
+    for newdir in ['aggregated-publisher', 'aggregated-file', 'aggregated']:
         try:
             os.mkdir(newdir)
         except OSError: pass
@@ -87,11 +87,14 @@ def aggregate():
             publisher_total[name] = function()
 
         dict_sum_inplace(total, publisher_total)
-        with open(os.path.join('aggregated', folder+'.json'), 'w') as fp:
+        with open(os.path.join('aggregated-publisher', folder+'.json'), 'w') as fp:
             json.dump(publisher_total, fp, sort_keys=True, indent=2, default=decimal_default)
 
     with open('aggregated.json', 'w') as fp:
         json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)
+    for aggregate_name,aggregate in total.items():
+        with open(os.path.join('aggregated', aggregate_name+'.json'), 'w') as fp:
+            json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
 
 if __name__ == '__main__':
     aggregate()

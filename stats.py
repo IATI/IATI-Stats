@@ -333,9 +333,10 @@ class GenericFileStats(object):
     @memoize
     def updated(self):
         if self.inputfile.startswith('data/'):
+            cwd = os.getcwd()
             os.chdir('data')
             out = subprocess.check_output(['git', 'log', '-1', '--format="%ai"', '--', self.inputfile[5:]]).strip('"\n')
-            os.chdir('..')
+            os.chdir(cwd)
             return out
 
     @returns_numberdict

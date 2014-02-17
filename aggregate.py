@@ -75,7 +75,10 @@ def aggregate():
                     dict_sum_inplace(subtotal, activity_json)
                 dict_sum_inplace(subtotal, stats_json['file'])
 
-                with open(os.path.join('aggregated-file', jsonfile+'.json'), 'w') as fp:
+                try:
+                    os.mkdir(os.path.join('aggregated-file', folder))
+                except OSError: pass
+                with open(os.path.join('aggregated-file', folder, jsonfile+'.json'), 'w') as fp:
                     json.dump(subtotal, fp, sort_keys=True, indent=2, default=decimal_default)
             dict_sum_inplace(publisher_total, subtotal)
 

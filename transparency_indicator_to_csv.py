@@ -12,11 +12,14 @@ detail_top.writerow(['endorser','activities'] + detail_columns)
 forward = csv.writer(open('out-ti-csv/4-forward-looking.csv','w'))
 forward.writerow(['endorser','numerator','2013 Agg','2013 Act','2014 Agg','2014 Act','2015 Agg','2015 Act','2016 Agg', '2016 Act'])
 
-for endorser in sorted(os.listdir('out-ti')):
+#for endorser in sorted(os.listdir('out-ti')):
+for endorser in sorted(os.listdir('aggregated-publisher')):
     if not endorser.endswith('.json'): continue
     endorser_name = endorser[:-5]
-    aggregated = json.load(open(os.path.join('out-ti', endorser)))
-    if endorser_name == 'irishaid': continue
+    aggregated = json.load(open(os.path.join('aggregated-publisher', endorser)))
+    #if endorser_name == 'irishaid': continue
+    if not aggregated['bottom_hierarchy']:
+        continue
     coverage.writerow([endorser_name,
         aggregated['bottom_hierarchy']['coverage_A'],
         aggregated['bottom_hierarchy']['coverage_B'],

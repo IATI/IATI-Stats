@@ -134,7 +134,10 @@ class PublisherStats(object):
             'Annually': 1,
             'Beyond one year': 0
         }
-        return frenquency_weightings[frequency_map[self.folder]]
+        if not self.folder in frequency_map:
+            return -1
+        else:
+            return frenquency_weightings[frequency_map[self.folder]]
 
 
 
@@ -233,16 +236,17 @@ class ActivityStats(GenericStats):
 
     @returns_numberdict
     def timelag_months(self):
-        one_month_ago = datetime.date(2013, 11, 1)
-        two_months_ago = datetime.date(2013, 11, 1)
-        three_months_ago = datetime.date(2013, 9, 1)
-        six_months_ago = datetime.date(2013, 6, 1)
-        twelve_months_ago = datetime.date(2012, 12, 1)
+        one_month_ago = datetime.date(2014, 1, 1)
+        two_months_ago = datetime.date(2013, 12, 1)
+        three_months_ago = datetime.date(2013, 11, 1)
+        six_months_ago = datetime.date(2013, 8, 1)
+        twelve_months_ago = datetime.date(2012, 2, 1)
         dates = [ transaction_date(x) for x in self.element.findall('transaction') ]
         return {
             '1':   len(filter(lambda x: x and x>one_month_ago, dates)),
             '1-2': len(filter(lambda x: x and x>two_months_ago and x<one_month_ago, dates)),
             '2-3': len(filter(lambda x: x and x>three_months_ago and x<two_months_ago, dates)),
+            '3': len(filter(lambda x: x and x>three_months_ago, dates)),
             '6':   len(filter(lambda x: x and x>six_months_ago, dates)),
             '12':  len(filter(lambda x: x and x>twelve_months_ago, dates))
         }

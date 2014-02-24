@@ -141,6 +141,10 @@ class ActivityStats(object):
         return {self.element.find('reporting-org').attrib.get('ref'):1}
 
     @returns_numberdict
+    def element_versions(self):
+        return { self.element.attrib.get('version'): 1 }
+
+    @returns_numberdict
     def currencies(self):
         currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
         currencies = [ c if c else self.element.get('default-currency') for c in currencies ]
@@ -284,6 +288,12 @@ class GenericFileStats(object):
     @returns_numberdict
     def versions(self):
         return { self.root.attrib.get('version'): 1 }
+
+    @returns_numberdict
+    def version_mismatch(self):
+        file_version = self.root.attrib.get('version')
+        element_versions = self.root.xpath('//@version')
+        return {( file_version is not None and len(element_versions) and [file_version] != element_versions ):1}
 
     @returns_numberdict
     def validation(self):
@@ -435,3 +445,7 @@ class OrganisationStats(object):
     @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-organisation', {})
+
+    @returns_numberdict
+    def element_versions(self):
+        return { self.element.attrib.get('version'): 1 }

@@ -33,7 +33,8 @@ def element_to_count_dict(element, path, count_dict):
     """
     count_dict[path] = 1
     for child in element:
-        element_to_count_dict(child, path+'/'+child.tag, count_dict)
+        if type(child.tag) == str:
+            element_to_count_dict(child, path+'/'+child.tag, count_dict)
     for attribute in element.attrib:
         count_dict[path+'/@'+attribute] = 1
     return count_dict
@@ -292,8 +293,11 @@ class GenericFileStats(object):
     @returns_numberdict
     def version_mismatch(self):
         file_version = self.root.attrib.get('version')
-        element_versions = self.root.xpath('//@version')
-        return {( file_version is not None and len(element_versions) and [file_version] != element_versions ):1}
+        element_versions = self.root.xpath('//iati-activity/@version')
+        element_versions = list(set(element_versions))
+        return {
+            'true' if ( file_version is not None and len(element_versions) and [file_version] != element_versions ) else 'false'
+            :1}
 
     @returns_numberdict
     def validation(self):

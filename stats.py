@@ -343,6 +343,7 @@ class GenericFileStats(object):
         else:
             return {'>20MB': 1}
 
+    """
     @returns_date
     @memoize
     def updated(self):
@@ -356,6 +357,7 @@ class GenericFileStats(object):
     @returns_numberdict
     def updated_dates(self):
         return {self.updated().split(' ')[0]:1}
+    """
         
 
 

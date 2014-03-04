@@ -11,6 +11,7 @@ for commit in os.listdir('gitout'):
     if len(commit) == 40: # all git commits should be this length
         try:
             for k,v in json.load(open(os.path.join('gitout', commit, 'aggregated.json'))).items():
+                if k == 'by_hierarchy': continue
                 if dated:
                     if commit in gitdates:
                         total[k][gitdates[commit]] = v

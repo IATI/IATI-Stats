@@ -1,4 +1,4 @@
-from stats import returns_number, returns_numberdict, returns_dict, no_aggregation, memoize
+from stats_decorators import returns_number, returns_numberdict, returns_dict, no_aggregation, memoize
 from decimal import Decimal
 from collections import defaultdict
 import re, datetime

@@ -8,8 +8,8 @@ Requirements
 -  Python 2.7
 -  python-virtualenv
 -  gcc
--  Development files for libxml and libxslt e.g. libxml2-dev,
-   libxslt-dev
+-  Development files for libxml and libxslt e.g. ``libxml2-dev``,
+   ``libxslt-dev``
 
 Getting started
 ---------------
@@ -17,7 +17,6 @@ Getting started
 .. code-block:: bash
 
     git clone git@github.com:Bjwebb/IATI-Data-Snapshot.git data
-    # (Do not use a symlink for this, as it will end badly!)
 
     virtualenv pyenv
     source pyenv/bin/activate
@@ -33,6 +32,7 @@ Getting started
     python posttests.py
 
     # Do the above for every new commit in the data git repository
+    # WARNING: This takes a long time (hours) and produces a lot of data (GBs)
     mkdir gitout
     ./git.sh
 

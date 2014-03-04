@@ -1,11 +1,13 @@
 from __future__ import unicode_literals
 import unittest
+import os
 import json
 import decimal
+from settings import *
 
 class TestAggregatedValues(unittest.TestCase):
     def setUp(self):
-        with open('aggregated.json') as fp:
+        with open(os.path.join(OUTPUT_DIR, 'aggregated.json')) as fp:
             self.aggregated = json.load(fp, parse_float=decimal.Decimal)
 
     def test_activity_sum(self):

@@ -1,3 +1,7 @@
+"""
+This is the default file called by loop.py. 
+You can choose a different set of tests by running loop.py with the ``--stats-module`` flag  
+"""
 from lxml import etree
 import datetime, dateutil.parser, dateutil.tz
 from collections import defaultdict
@@ -8,11 +12,14 @@ import os, re
 import subprocess
 from collections import defaultdict
 
+## In order to test whether or not correct codelist values are being used in the data 
+## we need to pull in data about how codelists map to elements
 codelist_mapping_xml = etree.parse('mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
 
+## I have no idea what this does! DC
 def memoize(f):
     def wrapper(self):
         if not hasattr(self, 'cache'):
@@ -147,6 +154,11 @@ class ActivityStats(CommonSharedElements):
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
 
+    @returns_numberdict
+    def iati_identifiers(self):
+        return {self.element.find('iati-identifier').text:1}
+
+
     @returns_number
     def activities(self):
         return 1
@@ -216,6 +228,7 @@ class ActivityStats(CommonSharedElements):
     
     @returns_number
     def spend(self):
+        """ Spend is defined as the sum of all transactions that are Disbursements (D) or Expenditure (E) """
         transactions = [ x for x in self.element.findall('transaction') if x.find('transaction-type') is not None and x.find('transaction-type').get('code') in ['D','E'] ]
         return sum(map(self.__value_to_dollars, transactions))
 
@@ -225,6 +238,7 @@ class ActivityStats(CommonSharedElements):
     
     @returns_numberdict
     def activities_per_country(self):
+        """ Legacy code according to @bjwebb this is not used now """
         if self.__get_start_year() >= 2010:
             countries = self.element.findall('recipient-country')
             regions = self.element.findall('recipient-region')
@@ -406,9 +420,6 @@ class ActivityFileStats(GenericFileStats):
     @returns_number
     def activity_files(self):
         return 1
-
-
-
 
 
 

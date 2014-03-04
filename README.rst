@@ -1,6 +1,10 @@
 IATI Stats
 ==========
 
+IATI-Stats is a python application for generating JSON stats files from IATI data. An example of this outputted JSON can be found at http://arstneio.com/iati/stats/current/
+
+These stats are used to build the `IATI Dashboard <http://iati.github.io/IATI-Dashboard/>`_, and also to produce some of the stats for the Transparency Indicator and the IATI Annual report.
+
 Requirements
 ------------
 
@@ -16,14 +20,20 @@ Getting started
 
 .. code-block:: bash
 
-    git clone git@github.com:Bjwebb/IATI-Data-Snapshot.git data
+    # Get the code
+    git clone https://github.com/IATI/IATI-Stats.git
 
+    # Download some data to the 'data' directory
+    git clone https://github.com/idsdata/IATI-Data-Snapshot.git data
+
+    # Setup the depencies 
     virtualenv pyenv
     source pyenv/bin/activate
     pip install -r requirements.txt
     ./get_schemas.sh
 
-    # Square brackets indicate optional argument
+    # Calculate some stats 
+    # These commands generate JSON in the out/ directory
     python loop.py [--folder publisher-registry-id]
     python aggreagate.py
     python invert.py
@@ -31,16 +41,37 @@ Getting started
     # Test it worked correctly
     python posttests.py
 
-    # Do the above for every new commit in the data git repository
-    # WARNING: This takes a long time (hours) and produces a lot of data (GBs)
-    mkdir gitout
-    ./git.sh
-
 Commandline options
 -------------------
 
 Run ``python loop.py --help`` and ``python aggregate.py --help`` for a
 summary of commandline options.
+
+Outputted JSON
+~~~~~~~~~~~~~~
+
+``loop.py`` produces json for each file, in the ``out`` directory. This
+contains the stats calculated for each individual Activity and
+Organisation, as well as by file.
+
+``aggregated.py`` produces json aggregated at the publisher level, in
+the ``aggregated`` directory. It also produces ``aggregated.json``,
+which is the same, but for the entire dataset.
+
+``invert.py`` produces ``inverted.json``, which has a list of publishers
+for each stat.
+
+Running for every commit in the data directory
+----------------------------------------------
+
+To do the above for every new commit in the data git repository
+
+WARNING: This takes a long time (hours) and produces a lot of data (GBs)
+
+.. code-block:: bash
+
+    mkdir gitout
+    ./git.sh
 
 Structure of stats
 ------------------
@@ -68,19 +99,6 @@ provided for this purpose.
 To calculate a new stat, add a function to the appropriate class in
 ``stats.py``.
 
-Outputted JSON
-~~~~~~~~~~~~~~
-
-``loop.py`` produces json for each file, in the ``out`` directory. This
-contains the stats calculated for each individual Activity and
-Organisation, as well as by file.
-
-``aggregated.py`` produces json aggregated at the publisher level, in
-the ``aggregated`` directory. It also produces ``aggregated.json``,
-which is the same, but for the entire dataset.
-
-``invert.py`` produces ``inverted.json``, which has a list of publishers
-for each stat.
 
 License
 -------

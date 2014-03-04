@@ -24,7 +24,7 @@ Getting started
     ./get_schemas.sh
 
     # Square brackets indicate optional argument
-    python loop.py [--folder publishername]
+    python loop.py [--folder publisher-registry-id]
     python aggreagate.py
     python invert.py
 

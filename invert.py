@@ -10,7 +10,7 @@ def invert(basedirname, out_filename):
     publisher.
 
     """
-    out = defaultdict(lambda: defaultdict(list))
+    out = defaultdict(lambda: defaultdict(dict))
 
     for dirname, dirs, files in os.walk(os.path.join(OUTPUT_DIR, basedirname)):
         for f in files:
@@ -20,11 +20,11 @@ def invert(basedirname, out_filename):
                         for k,v in stats_values.items():
                             if type(v) == dict:
                                 if not k in out[stats_name]:
-                                    out[stats_name][k] = defaultdict(list)
+                                    out[stats_name][k] = defaultdict(dict)
                                 for k2,v2 in v.items():
-                                    out[stats_name][k][k2].append(f[:-5])
+                                    out[stats_name][k][k2][f[:-5]] = v2
                             else:
-                                out[stats_name][k].append(f[:-5])
+                                out[stats_name][k][f[:-5]] = v
                     elif type(stats_values) == int:
                         if not stats_name in out:
                             out[stats_name] = defaultdict(int)

@@ -117,21 +117,27 @@ def returns_date(f):
             return f(self, *args, **kwargs)
     return wrapper
 
-
-
-class ActivityStats(object):
-    """ Stats calculated on a single iati-activity. """
-    element = None
+#Deals with elements that are in both organisation and activity files
+class CommonSharedElements(object):
     blank = False
-    strict = False # (Setting this to true will ignore values that don't follow the schema)
-    context = ''
-
+    
     @no_aggregation
     def iati_identifier(self):
         try:
             return self.element.find('iati-identifier').text
         except AttributeError:
             return None
+
+    @returns_numberdict
+    def reporting_orgs(self):
+        return {self.element.find('reporting-org').attrib.get('ref'):1}
+
+class ActivityStats(CommonSharedElements):
+    """ Stats calculated on a single iati-activity. """
+    element = None
+    blank = False
+    strict = False # (Setting this to true will ignore values that don't follow the schema)
+    context = ''
 
     @returns_number
     def activities(self):
@@ -361,6 +367,8 @@ class GenericFileStats(object):
         
 
 
+    
+
 class ActivityFileStats(GenericFileStats):
     """ Stats calculated for an IATI Activity XML file. """
     doc = None
@@ -440,7 +448,7 @@ class OrganisationFileStats(GenericFileStats):
         return 1
 
 
-class OrganisationStats(object):
+class OrganisationStats(CommonSharedElements):
     """ Stats calculated on a single iati-organisation. """
     blank = False
 
@@ -455,3 +463,5 @@ class OrganisationStats(object):
     @returns_numberdict
     def element_versions(self):
         return { self.element.attrib.get('version'): 1 }
+        
+    

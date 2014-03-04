@@ -146,6 +146,11 @@ class ActivityStats(CommonSharedElements):
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
 
+    @returns_numberdict
+    def iati_identifiers(self):
+        return {self.element.find('iati-identifier').text:1}
+
+
     @returns_number
     def activities(self):
         return 1
@@ -221,7 +226,7 @@ class ActivityStats(CommonSharedElements):
     
     @returns_numberdict
     def activities_per_country(self):
-      """ Legacy code according to @bjwebb this is not used now """
+        """ Legacy code according to @bjwebb this is not used now """
         if self.__get_start_year() >= 2010:
             countries = self.element.findall('recipient-country')
             regions = self.element.findall('recipient-region')

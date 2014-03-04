@@ -6,6 +6,7 @@ import decimal
 from exchange_rates import toUSD
 import os, re
 import subprocess
+from collections import defaultdict
 
 codelist_mapping_xml = etree.parse('mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
@@ -25,18 +26,24 @@ def debug(stats, error):
     """ prints debugging information for a given stats object and error """
     print unicode(error)+stats.context 
 
-def element_to_count_dict(element, path, count_dict):
+def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """
     Converts an element and it's children to a dictionary containing the
     count for each xpath.
     
     """
-    count_dict[path] = 1
+    if count_multiple:
+        count_dict[path] += 1
+    else:
+        count_dict[path] = 1
     for child in element:
         if type(child.tag) == str:
             element_to_count_dict(child, path+'/'+child.tag, count_dict)
     for attribute in element.attrib:
-        count_dict[path+'/@'+attribute] = 1
+        if count_multiple:
+            count_dict[path+'/@'+attribute] += 1
+        else:
+            count_dict[path+'/@'+attribute] = 1
     return count_dict
 
 
@@ -131,6 +138,7 @@ class CommonSharedElements(object):
     @returns_numberdict
     def reporting_orgs(self):
         return {self.element.find('reporting-org').attrib.get('ref'):1}
+
 
 class ActivityStats(CommonSharedElements):
     """ Stats calculated on a single iati-activity. """
@@ -264,6 +272,10 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-activity', {})
+
+    @returns_numberdict
+    def elements_total(self):
+        return element_to_count_dict(self.element, 'iati-activity', defaultdict(int), True)
 
     @returns_numberdictdict
     def codelist_values(self):
@@ -463,6 +475,10 @@ class OrganisationStats(CommonSharedElements):
     @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-organisation', {})
+
+    @returns_numberdict
+    def elements_total(self):
+        return element_to_count_dict(self.element, 'iati-organisation', defaultdict(int), True)
 
     @returns_numberdict
     def element_versions(self):

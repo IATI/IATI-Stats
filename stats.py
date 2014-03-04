@@ -146,6 +146,10 @@ class CommonSharedElements(object):
     def reporting_orgs(self):
         return {self.element.find('reporting-org').attrib.get('ref'):1}
 
+    @returns_numberdict
+    def element_versions(self):
+        return { self.element.attrib.get('version'): 1 }
+
 
 class ActivityStats(CommonSharedElements):
     """ Stats calculated on a single iati-activity. """
@@ -158,18 +162,9 @@ class ActivityStats(CommonSharedElements):
     def iati_identifiers(self):
         return {self.element.find('iati-identifier').text:1}
 
-
     @returns_number
     def activities(self):
         return 1
-
-    @returns_numberdict
-    def reporting_orgs(self):
-        return {self.element.find('reporting-org').attrib.get('ref'):1}
-
-    @returns_numberdict
-    def element_versions(self):
-        return { self.element.attrib.get('version'): 1 }
 
     @returns_numberdict
     def hierarchies(self):
@@ -395,16 +390,6 @@ class GenericFileStats(object):
         return {self.updated().split(' ')[0]:1}
     """
         
-
-
-    
-
-class ActivityFileStats(GenericFileStats):
-    """ Stats calculated for an IATI Activity XML file. """
-    doc = None
-    root = None
-    schema_name = 'iati-activities-schema.xsd'
-
     @returns_number
     def empty(self):
         return 0
@@ -416,6 +401,16 @@ class ActivityFileStats(GenericFileStats):
 
     def nonstandardroots(self):
         return 0
+
+
+
+    
+
+class ActivityFileStats(GenericFileStats):
+    """ Stats calculated for an IATI Activity XML file. """
+    doc = None
+    root = None
+    schema_name = 'iati-activities-schema.xsd'
 
     @returns_number
     def activity_files(self):

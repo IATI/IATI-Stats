@@ -146,6 +146,10 @@ class ActivityStats(object):
         return { self.element.attrib.get('version'): 1 }
 
     @returns_numberdict
+    def hierarchies(self):
+        return {self.element.attrib.get('hierarchy'):1}
+
+    @returns_numberdict
     def currencies(self):
         currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
         currencies = [ c if c else self.element.get('default-currency') for c in currencies ]

@@ -1,9 +1,8 @@
-data*/
-out*/
-gitout
-aggregated
+data*
+out*
+gitout*
 ckan
-*.json
+schemas
 
 mapping.xml
 

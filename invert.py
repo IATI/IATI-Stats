@@ -1,6 +1,7 @@
 import json
 import os, sys
 from collections import defaultdict
+from settings import *
 
 def invert(basedirname, out_filename):
     """
@@ -11,7 +12,7 @@ def invert(basedirname, out_filename):
     """
     out = defaultdict(lambda: defaultdict(list))
 
-    for dirname, dirs, files in os.walk(basedirname):
+    for dirname, dirs, files in os.walk(os.path.join(OUTPUT_DIR, basedirname)):
         for f in files:
             with open(os.path.join(dirname ,f)) as fp:
                 for stats_name,stats_values in json.load(fp).items():
@@ -29,22 +30,22 @@ def invert(basedirname, out_filename):
                             out[stats_name] = defaultdict(int)
                         out[stats_name][f[:-5]] += stats_values
 
-    with open(out_filename+'.json', 'w') as fp:
+    with open(os.path.join(OUTPUT_DIR, out_filename+'.json'), 'w') as fp:
             json.dump(out, fp, sort_keys=True, indent=2)
 
     for statname, inverted in out.items():
-        with open(os.path.join(out_filename, statname+'.json'), 'w') as fp:
+        with open(os.path.join(OUTPUT_DIR, out_filename, statname+'.json'), 'w') as fp:
             json.dump(inverted, fp, sort_keys=True, indent=2)
 
 if __name__ == '__main__':
     for dirname in ['inverted-publisher', 'inverted-file', 'inverted-file-publisher']:
         try:
-            os.mkdir(dirname)
+            os.mkdir(os.path.join(OUTPUT_DIR, dirname))
         except OSError: pass
     invert('aggregated-publisher', 'inverted-publisher')
     invert('aggregated-file', 'inverted-file')
-    for folder in os.listdir('aggregated-file'):
+    for folder in os.listdir(os.path.join(OUTPUT_DIR, 'aggregated-file')):
         try:
-            os.mkdir(os.path.join('inverted-file-publisher', folder))
+            os.mkdir(os.path.join(OUTPUT_DIR, 'inverted-file-publisher', folder))
         except OSError: pass
         invert(os.path.join('aggregated-file', folder), os.path.join('inverted-file-publisher', folder))

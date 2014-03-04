@@ -8,10 +8,8 @@
 
 python2 ckan.py
 
-# Clear other output directories
-rm -r aggregated*
-rm -r inverted*
-rm -r out*
+# Clear output directory
+rm -r out
 
 cd data || exit $?
 # Checkout automatic, and make sure it is clean and up to date
@@ -40,12 +38,11 @@ for commit in `git log --format=format:%H`; do
         git clean -df
         echo $commit;
         cd .. || exit $?
-        mkdir aggregated
         python2 loop.py $@
         python2 aggregate.py
         python2 invert.py
         mkdir gitout/$commit
-        mv aggregated* inverted* gitout/$commit || exit $?
+        mv out/aggregated* out/inverted* gitout/$commit || exit $?
         rm -r out
         cd data || exit $?
     fi

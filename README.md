@@ -27,7 +27,7 @@
     python posttests.py
 
     # Do the above for every new commit in the data git repository
-    git clone git@github.com:Bjwebb/IATI-Stats-Calculated.git gitout
+    mkdir gitout
     ./git.sh
 
 

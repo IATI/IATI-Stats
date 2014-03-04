@@ -82,11 +82,11 @@ def loop_folder(folder, args, data_dir=DATA_DIR, output_dir=OUTPUT_DIR):
         return []
     files = []
     for xmlfile in os.listdir(os.path.join(data_dir, folder)):
-        try: os.makedirs(os.path.join(output_dir,folder))
+        try: os.makedirs(os.path.join(output_dir,'loop',folder))
         except OSError: pass
         try:
             files.append((os.path.join(data_dir,folder,xmlfile),
-                         os.path.join(output_dir,folder,xmlfile), args))
+                         os.path.join(output_dir,'loop',folder,xmlfile), args))
         except UnicodeDecodeError:
             traceback.print_exc(file=sys.stdout)
             continue

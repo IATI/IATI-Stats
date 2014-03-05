@@ -255,16 +255,6 @@ class PublisherStats(object):
     context = ''
 
     @returns_numberdict
-    def publishers_per_country(self):
-        countries = self.aggregated['activities_per_country'].keys()
-        return dict((c,1) for c in countries)
-
-    @returns_numberdict
-    def publishers_per_organisation_type(self):
-        organisation_types = self.aggregated['spend_per_organisation_type'].keys()
-        return dict((o,1) for o in organisation_types)
-
-    @returns_numberdict
     def publishers_per_version(self):
         versions = self.aggregated['versions'].keys()
         return dict((v,1) for v in versions)

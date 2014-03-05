@@ -1,17 +1,13 @@
+"""
+
+Original code written to calculate some specific stats for a poster.
+Not suitable for generic use in stats.py due to hardcoded years etc.
+
+"""
+
 from stats_decorators import *
 
-class PublisherStats(object):
-    pass
-
 class ActivityFileStats(object):
-    pass
-
-class ActivityStats(object):
-    blank = False
-
-    @returns_number
-    def activities(self):
-        return 1
     pass
 
 class OrganisationFileStats(object):
@@ -20,7 +16,21 @@ class OrganisationFileStats(object):
 class OrganisationStats(object):
     pass
 
+class PublisherStats(object):
+    blank = False
+
+    @returns_numberdict
+    def publishers_per_country(self):
+        countries = self.aggregated['activities_per_country'].keys()
+        return dict((c,1) for c in countries)
+
+    @returns_numberdict
+    def publishers_per_organisation_type(self):
+        organisation_types = self.aggregated['spend_per_organisation_type'].keys()
+        return dict((o,1) for o in organisation_types)
+
 class ActivityStats(object):
+    blank = False
     def __create_decimal(self, s):
         if self.strict:
             return Decimal(s)
@@ -105,3 +115,4 @@ class ActivityStats(object):
             pass
         except AttributeError, e:
             pass
+

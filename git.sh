@@ -51,8 +51,8 @@ for commit in `git log --format=format:%H`; do
 done
 
 cd ..
-python statsrunner/gitaggregate.py > gitout/gitaggregate.json
-python statsrunner/gitaggregate.py dated > gitout/gitaggregate-dated.json
+python statsrunner/gitaggregate.py
+python statsrunner/gitaggregate.py dated
 mv gitdate.json gitout
 cp helpers/ckan.json gitout
 

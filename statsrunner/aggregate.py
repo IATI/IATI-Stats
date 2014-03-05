@@ -87,8 +87,8 @@ def aggregate(args):
         with open(os.path.join(args.output, 'aggregated-publisher', folder+'.json'), 'w') as fp:
             json.dump(publisher_total, fp, sort_keys=True, indent=2, default=decimal_default)
 
-    with open(os.path.join(args.output, 'aggregated.json'), 'w') as fp:
-        json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)
+    #with open(os.path.join(args.output, 'aggregated.json'), 'w') as fp:
+    #    json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)
     for aggregate_name,aggregate in total.items():
         with open(os.path.join(args.output, 'aggregated', aggregate_name+'.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)

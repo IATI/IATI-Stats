@@ -9,13 +9,16 @@ def invert_dir(basedirname, out_filename, output_dir):
     publisher.
 
     """
-    out = defaultdict(lambda: defaultdict(dict))
+    out = dict()
 
     for dirname, dirs, files in os.walk(os.path.join(output_dir, basedirname)):
         for f in files:
             with open(os.path.join(dirname ,f)) as fp:
                 for stats_name,stats_values in json.load(fp).items():
                     if type(stats_values) == dict:
+                        if not stats_name in out:
+                            out[stats_name] = defaultdict(dict)
+
                         for k,v in stats_values.items():
                             if type(v) == dict:
                                 if not k in out[stats_name]:
@@ -24,13 +27,15 @@ def invert_dir(basedirname, out_filename, output_dir):
                                     out[stats_name][k][k2][f[:-5]] = v2
                             else:
                                 out[stats_name][k][f[:-5]] = v
+
                     elif type(stats_values) == int:
                         if not stats_name in out:
                             out[stats_name] = defaultdict(int)
+
                         out[stats_name][f[:-5]] += stats_values
 
-    with open(os.path.join(output_dir, out_filename+'.json'), 'w') as fp:
-            json.dump(out, fp, sort_keys=True, indent=2)
+    #with open(os.path.join(output_dir, out_filename+'.json'), 'w') as fp:
+    #        json.dump(out, fp, sort_keys=True, indent=2)
 
     for statname, inverted in out.items():
         with open(os.path.join(output_dir, out_filename, statname+'.json'), 'w') as fp:

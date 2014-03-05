@@ -37,7 +37,7 @@ def element_to_count_dict(element, path, count_dict, count_multiple=False):
         count_dict[path] = 1
     for child in element:
         if type(child.tag) == str:
-            element_to_count_dict(child, path+'/'+child.tag, count_dict)
+            element_to_count_dict(child, path+'/'+child.tag, count_dict, count_multiple)
     for attribute in element.attrib:
         if count_multiple:
             count_dict[path+'/@'+attribute] += 1

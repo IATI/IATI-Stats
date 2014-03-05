@@ -11,9 +11,12 @@ Requirements
 -  Git
 -  Python 2.7
 -  python-virtualenv
+-  Bash
 -  gcc
 -  Development files for libxml and libxslt e.g. ``libxml2-dev``,
-   ``libxslt-dev``
+   ``libxslt-dev`` (alternatively, you can install the python  dependencies in
+   requirements.txt using your package manager, and skip the pip install step
+   below)
 
 Getting started
 ---------------
@@ -23,13 +26,17 @@ Getting started
     # Get the code
     git clone https://github.com/IATI/IATI-Stats.git
 
-    # Download some data to the 'data' directory
+    # Put some IATI data in the 'data' directory
+    # For example by running:
     git clone https://github.com/idsdata/IATI-Data-Snapshot.git data
 
-    # Setup the depencies 
+    # Create a virtual environment (recommended)
     virtualenv pyenv
     source pyenv/bin/activate
+    # Install python depencies
     pip install -r requirements.txt
+
+    # Fetch helper data
     cd helpers
     ./get_codelist_mapping.sh
     ./get_schemas.sh
@@ -37,16 +44,12 @@ Getting started
     cd ..
 
     # Calculate some stats 
-    # These commands generate JSON in the out/ directory
     python calculate_stats loop [--folder publisher-registry-id]
     python calculate_stats aggreagate
     python calculate_stats invert
+    # You will now have some JSON stats in the out/ directory
 
-Commandline options
--------------------
-
-Run ``python loop.py --help`` and ``python aggregate.py --help`` for a
-summary of commandline options.
+You can run ``python calculate_stats.py --help`` for a full list of command line options.
 
 Outputted JSON
 ~~~~~~~~~~~~~~
@@ -62,10 +65,36 @@ which is the same, but for the entire dataset.
 ``invert`` produces ``inverted.json``, which has a list of publishers
 for each stat.
 
+Structure of stats
+------------------
+
+Stats definitions are located in a python module, by default ``stats.dashboard`` (``stats/dashboard.py``). This can be changed with the ``--stats-module`` flag. This module must contain the following classes:
+
+-  ``PublisherStats``
+-  ``ActivityStats``
+-  ``ActivityFileStats``
+-  ``OrganisationStats``
+-  ``OrganisationFileStats``
+
+See `stats/countonly.py`_ for the structure of a simple stats module.
+
+Each function within these classes is considered to be a stats function,
+unless it begins with an underscore (``_``). In the appropriate context,
+an object is created from the class, and each stats functions is called.
+
+The functions will also be called with ``self.blank = True``, and should
+return an empty version of their normal output, for aggregation
+purposes. The ``returns_numberdict`` and ``returns_number`` decorators are
+provided for this purpose.
+
+To calculate a new stat, add a function to the appropriate class in
+``stats/dashboard.py`` (or a different stats module).
+
+
 Running for every commit in the data directory
 ----------------------------------------------
 
-To do the above for every new commit in the data git repository
+If the data directory is a git repository, you can run the code 
 
 WARNING: This takes a long time (hours) and produces a lot of data (GBs)
 
@@ -73,31 +102,6 @@ WARNING: This takes a long time (hours) and produces a lot of data (GBs)
 
     mkdir gitout
     ./git.sh
-
-Structure of stats
-------------------
-
-Tests are located in a python module, by default ``stats.dashboard`` (``stats/dashboard.py``) This can be changed with the ``--stats-module`` flag. This module must contain the following classes:
-
--  PublisherStats
--  ActivityStats
--  ActivityFileStats
--  OrganisationStats
--  OrganisationFileStats
-
-Each function within these clases is considered to be a stats function,
-unless it begins with an underscore (``_``). In the appropriate context,
-an object is created for each of these classes, and each of the stats
-functions are called.
-
-The functions will also be called with ``self.blank = True``, and should
-return an empty version of their normal output, for aggregation
-purposes. The ``returns_intdict`` and ``returns_int`` decorators are
-provided for this purpose.
-
-To calculate a new stat, add a function to the appropriate class in
-``stats.py``.
-
 
 License
 -------
@@ -124,6 +128,6 @@ Included Data
 
 (these are not released under the same license as the software)
 
--  ``exchange_rates.csv`` derived from `Exchange
+-  ``helpers/old/exchange_rates.csv`` derived from `Exchange
    rates.xls <http://www.oecd.org/dac/stats/Exchange%20rates.xls>`__
 

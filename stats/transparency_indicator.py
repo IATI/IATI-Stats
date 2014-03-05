@@ -1,4 +1,9 @@
-from stats_decorators import returns_number, returns_numberdict, returns_dict, no_aggregation, memoize
+"""
+This is a stats module, you can use it by running (in the parent directory)
+python calculate_stats.py --stats-module stats.transparency_indicator loop
+
+"""
+from stats.common.decorators import returns_number, returns_numberdict, returns_dict, no_aggregation, memoize
 from decimal import Decimal
 from collections import defaultdict
 import re, datetime
@@ -14,9 +19,9 @@ KeyError: 'INR'
 
 """
 
-reader = csv.reader(open('country_lang_map.csv'), delimiter=';')
+reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
 country_lang_map = dict((row[0], row[2]) for row in reader)
-reader = csv.reader(open('Timeliness_Files_1.2.csv'))
+reader = csv.reader(open('helpers/transparency_indicator/Timeliness_Files_1.2.csv'))
 frequency_map = dict((row[0], row[13]) for row in reader)
 
 xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')

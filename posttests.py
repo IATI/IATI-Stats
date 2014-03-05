@@ -1,5 +1,7 @@
 """
-Unit tests to be run on the data produced calculate_stats.py
+Unit tests to be run on the data produced.
+
+Note: this file is not up to date, and will fail.
 
 """
 from __future__ import unicode_literals

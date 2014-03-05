@@ -1,4 +1,4 @@
-from stats import returns_number
+from stats.common.decorators import returns_number
 
 class PublisherStats(object):
     pass

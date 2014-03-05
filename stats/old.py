@@ -1,12 +1,16 @@
 """
+This is a stats module, you can use it by running (in the parent directory)
+python calculate_stats.py --stats-module stats.old loop
 
 Original code written to calculate some specific stats for a poster.
 Not suitable for generic use in stats.py due to hardcoded years etc.
 
 """
 
-from helpers.exchange_rates import toUSD
-from stats_decorators import *
+from helpers.old.exchange_rates import toUSD
+from stats.common.decorators import *
+from stats.common import debug
+from decimal import Decimal
 
 class ActivityFileStats(object):
     pass
@@ -32,6 +36,19 @@ class PublisherStats(object):
 
 class ActivityStats(object):
     blank = False
+
+    def __get_start_year(self):
+        activity_date = self.element.find("activity-date[@type='start-actual']")
+        if activity_date is None: activity_date = self.element.find("activity-date[@type='start-planned']")
+        if activity_date is not None and activity_date.get('iso-date'):
+            try:
+                date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
+                return int(date.year)
+            except ValueError, e:
+                debug(self, e)
+            except AttributeError, e:
+                debug(self, e)
+
     def __create_decimal(self, s):
         if self.strict:
             return Decimal(s)

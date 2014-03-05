@@ -6,7 +6,9 @@
 ##rm -rf *
 ##cd .. || exit $?
 
-python2 ckan.py
+cd helpers
+python ckan.py
+cd ..
 
 # Clear output directory
 rm -r out
@@ -38,9 +40,9 @@ for commit in `git log --format=format:%H`; do
         git clean -df
         echo $commit;
         cd .. || exit $?
-        python2 loop.py $@
-        python2 aggregate.py
-        python2 invert.py
+        python calculate_stats.py loop $@
+        python calculate_stats.py aggregate $@
+        python calculate_stats.py invert $@
         mkdir gitout/$commit
         mv out/aggregated* out/inverted* gitout/$commit || exit $?
         rm -r out
@@ -49,10 +51,10 @@ for commit in `git log --format=format:%H`; do
 done
 
 cd ..
-python2 gitaggregate.py > gitout/gitaggregate.json
-python2 gitaggregate.py dated > gitout/gitaggregate-dated.json
+python statsrunner/gitaggregate.py > gitout/gitaggregate.json
+python statsrunner/gitaggregate.py dated > gitout/gitaggregate-dated.json
 mv gitdate.json gitout
-mv ckan.json gitout
+cp helpers/ckan.json gitout
 
 cd gitout || exit $?
 rm -r current

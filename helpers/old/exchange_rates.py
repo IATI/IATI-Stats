@@ -2,11 +2,11 @@ import csv
 from lxml import etree
 from decimal import Decimal
 
-root = etree.parse('./country-currency.xml').getroot()
+root = etree.parse('helpers/old/country-currency.xml').getroot()
 
 # Source: http://www.oecd.org/dac/stats/Exchange%20rates.xls
 exchange_dict = {}
-with open('./exchange_rates.csv') as fp:
+with open('helpers/old/exchange_rates.csv') as fp:
     reader = csv.DictReader(fp)
     for line in reader:
         exchange_dict[line['Country']] = line

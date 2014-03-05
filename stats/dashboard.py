@@ -1,6 +1,7 @@
 """
-This is the default file called by loop.py. 
-You can choose a different set of tests by running loop.py with the ``--stats-module`` flag  
+This is the default stats module used by calculate_stats.py
+You can choose a different set of tests by running calculate_stats.py with the ``--stats-module`` flag. 
+
 """
 from lxml import etree
 import datetime, dateutil.parser, dateutil.tz
@@ -11,7 +12,8 @@ import os, re
 import subprocess
 from collections import defaultdict
 
-from stats.decorators import *
+from stats.common.decorators import *
+from stats.common import debug
 
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
@@ -19,10 +21,6 @@ codelist_mapping_xml = etree.parse('helpers/mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
-
-def debug(stats, error):
-    """ prints debugging information for a given stats object and error """
-    print unicode(error)+stats.context 
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """

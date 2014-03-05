@@ -42,9 +42,6 @@ Getting started
     python calculate_stats aggreagate
     python calculate_stats invert
 
-    # Test it worked correctly
-    python posttests.py
-
 Commandline options
 -------------------
 
@@ -54,15 +51,15 @@ summary of commandline options.
 Outputted JSON
 ~~~~~~~~~~~~~~
 
-``loop.py`` produces json for each file, in the ``out`` directory. This
+``loop`` produces json for each file, in the ``out`` directory. This
 contains the stats calculated for each individual Activity and
 Organisation, as well as by file.
 
-``aggregated.py`` produces json aggregated at the publisher level, in
+``aggregate`` produces json aggregated at the publisher level, in
 the ``aggregated`` directory. It also produces ``aggregated.json``,
 which is the same, but for the entire dataset.
 
-``invert.py`` produces ``inverted.json``, which has a list of publishers
+``invert`` produces ``inverted.json``, which has a list of publishers
 for each stat.
 
 Running for every commit in the data directory
@@ -80,9 +77,7 @@ WARNING: This takes a long time (hours) and produces a lot of data (GBs)
 Structure of stats
 ------------------
 
-Tests are located in a python module, by default ``stats.py`` (although
-this can be changed with the ``--stats-module`` flag to loop.py and
-aggregate.py). This module must contain the following classes:
+Tests are located in a python module, by default ``stats.dashboard`` (``stats/dashboard.py``) This can be changed with the ``--stats-module`` flag. This module must contain the following classes:
 
 -  PublisherStats
 -  ActivityStats

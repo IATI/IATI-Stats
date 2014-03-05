@@ -30,13 +30,17 @@ Getting started
     virtualenv pyenv
     source pyenv/bin/activate
     pip install -r requirements.txt
+    cd helpers
+    ./get_codelist_mapping.sh
     ./get_schemas.sh
+    wget "http://arstneio.com/iati/stats/ckan.json"
+    cd ..
 
     # Calculate some stats 
     # These commands generate JSON in the out/ directory
-    python loop.py [--folder publisher-registry-id]
-    python aggreagate.py
-    python invert.py
+    python calculate_stats loop [--folder publisher-registry-id]
+    python calculate_stats aggreagate
+    python calculate_stats invert
 
     # Test it worked correctly
     python posttests.py

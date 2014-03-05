@@ -1,10 +1,11 @@
-data*
-out*
-gitout*
-ckan
-schemas
+data
+out
+gitout
 
-mapping.xml
+helpers/ckan/
+helpers/ckan.json
+helpers/mapping.xml
+helpers/schemas/
 
 pyenv
 *.pyc

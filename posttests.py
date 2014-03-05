@@ -1,9 +1,14 @@
+"""
+Unit tests to be run on the data produced calculate_stats.py
+
+"""
 from __future__ import unicode_literals
 import unittest
 import os
 import json
 import decimal
-from settings import *
+
+OUTPUT_DIR = 'out'
 
 class TestAggregatedValues(unittest.TestCase):
     def setUp(self):

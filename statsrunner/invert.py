@@ -1,9 +1,8 @@
 import json
 import os, sys
 from collections import defaultdict
-from settings import *
 
-def invert(basedirname, out_filename):
+def invert_dir(basedirname, out_filename, output_dir):
     """
     This 'inverts' the aggregated json files produced by aggregate.py
     ie. it creates a json file of the stats grouped by value, and then by
@@ -12,7 +11,7 @@ def invert(basedirname, out_filename):
     """
     out = defaultdict(lambda: defaultdict(dict))
 
-    for dirname, dirs, files in os.walk(os.path.join(OUTPUT_DIR, basedirname)):
+    for dirname, dirs, files in os.walk(os.path.join(output_dir, basedirname)):
         for f in files:
             with open(os.path.join(dirname ,f)) as fp:
                 for stats_name,stats_values in json.load(fp).items():
@@ -30,22 +29,23 @@ def invert(basedirname, out_filename):
                             out[stats_name] = defaultdict(int)
                         out[stats_name][f[:-5]] += stats_values
 
-    with open(os.path.join(OUTPUT_DIR, out_filename+'.json'), 'w') as fp:
+    with open(os.path.join(output_dir, out_filename+'.json'), 'w') as fp:
             json.dump(out, fp, sort_keys=True, indent=2)
 
     for statname, inverted in out.items():
-        with open(os.path.join(OUTPUT_DIR, out_filename, statname+'.json'), 'w') as fp:
+        with open(os.path.join(output_dir, out_filename, statname+'.json'), 'w') as fp:
             json.dump(inverted, fp, sort_keys=True, indent=2)
 
-if __name__ == '__main__':
+def invert(args):
     for dirname in ['inverted-publisher', 'inverted-file', 'inverted-file-publisher']:
         try:
-            os.mkdir(os.path.join(OUTPUT_DIR, dirname))
+            os.mkdir(os.path.join(args.output, dirname))
         except OSError: pass
-    invert('aggregated-publisher', 'inverted-publisher')
-    invert('aggregated-file', 'inverted-file')
-    for folder in os.listdir(os.path.join(OUTPUT_DIR, 'aggregated-file')):
+    invert_dir('aggregated-publisher', 'inverted-publisher', args.output)
+    invert_dir('aggregated-file', 'inverted-file', args.output)
+    for folder in os.listdir(os.path.join(args.output, 'aggregated-file')):
         try:
-            os.mkdir(os.path.join(OUTPUT_DIR, 'inverted-file-publisher', folder))
+            os.mkdir(os.path.join(args.output, 'inverted-file-publisher', folder))
         except OSError: pass
-        invert(os.path.join('aggregated-file', folder), os.path.join('inverted-file-publisher', folder))
+        invert_dir(os.path.join('aggregated-file', folder), os.path.join('inverted-file-publisher', folder), args.output)
+

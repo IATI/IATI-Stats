@@ -1,4 +1,3 @@
-from settings import *
 from collections import defaultdict
 import inspect
 import json
@@ -6,16 +5,8 @@ import os
 import copy
 import decimal
 import argparse
-import statsfunctions
+import statsrunner
 import datetime
-
-parser = argparse.ArgumentParser()
-parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
-args = parser.parse_args()
-
-import importlib
-stats = importlib.import_module(args.stats_module)
-
 
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
@@ -41,30 +32,33 @@ def dict_sum_inplace(d1, d2):
         else:
             d1[k] += v
 
-def make_blank():
+def make_blank(stats_module):
     blank = {}
-    for stats_object in [ stats.ActivityStats(), stats.ActivityFileStats(), stats.OrganisationStats(), stats.OrganisationFileStats(), stats.PublisherStats() ]:
+    for stats_object in [ stats_module.ActivityStats(), stats_module.ActivityFileStats(), stats_module.OrganisationStats(), stats_module.OrganisationFileStats(), stats_module.PublisherStats() ]:
         stats_object.blank = True
         for name, function in inspect.getmembers(stats_object, predicate=inspect.ismethod):
-            if not statsfunctions.use_stat(stats_object, name): continue
+            if not statsrunner.shared.use_stat(stats_object, name): continue
             blank[name] = function()
     return blank
 
-def aggregate():
+def aggregate(args):
+    import importlib
+    stats_module = importlib.import_module(args.stats_module)
+    
     for newdir in ['aggregated-publisher', 'aggregated-file', 'aggregated']:
         try:
-            os.mkdir(os.path.join(OUTPUT_DIR, newdir))
+            os.mkdir(os.path.join(args.output, newdir))
         except OSError: pass
 
-    blank = make_blank()
+    blank = make_blank(stats_module)
     total = copy.deepcopy(blank)
-    for folder in os.listdir(os.path.join(OUTPUT_DIR, 'loop')):
+    for folder in os.listdir(os.path.join(args.output, 'loop')):
         publisher_total = copy.deepcopy(blank)
 
-        for jsonfile in os.listdir(os.path.join(OUTPUT_DIR, 'loop', folder)):
+        for jsonfile in os.listdir(os.path.join(args.output, 'loop', folder)):
             subtotal = copy.deepcopy(blank)
             subtotal['by_hierarchy'] = {}
-            with open(os.path.join(OUTPUT_DIR, 'loop', folder, jsonfile)) as jsonfp:
+            with open(os.path.join(args.output, 'loop', folder, jsonfile)) as jsonfp:
                 stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
                 for activity_json in stats_json['elements']:
                     h = activity_json.get('hierarchy')
@@ -76,28 +70,25 @@ def aggregate():
                 dict_sum_inplace(subtotal, stats_json['file'])
 
                 try:
-                    os.mkdir(os.path.join(OUTPUT_DIR, 'aggregated-file', folder))
+                    os.mkdir(os.path.join(args.output, 'aggregated-file', folder))
                 except OSError: pass
-                with open(os.path.join(OUTPUT_DIR, 'aggregated-file', folder, jsonfile+'.json'), 'w') as fp:
+                with open(os.path.join(args.output, 'aggregated-file', folder, jsonfile+'.json'), 'w') as fp:
                     json.dump(subtotal, fp, sort_keys=True, indent=2, default=decimal_default)
             dict_sum_inplace(publisher_total, subtotal)
 
-        publisher_stats = stats.PublisherStats()
+        publisher_stats = stats_module.PublisherStats()
         publisher_stats.aggregated = publisher_total
         publisher_stats.folder = folder
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
-            if not statsfunctions.use_stat(publisher_stats, name): continue
+            if not statsrunner.shared.use_stat(publisher_stats, name): continue
             publisher_total[name] = function()
 
         dict_sum_inplace(total, publisher_total)
-        with open(os.path.join(OUTPUT_DIR, 'aggregated-publisher', folder+'.json'), 'w') as fp:
+        with open(os.path.join(args.output, 'aggregated-publisher', folder+'.json'), 'w') as fp:
             json.dump(publisher_total, fp, sort_keys=True, indent=2, default=decimal_default)
 
-    with open(os.path.join(OUTPUT_DIR, 'aggregated.json'), 'w') as fp:
+    with open(os.path.join(args.output, 'aggregated.json'), 'w') as fp:
         json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)
     for aggregate_name,aggregate in total.items():
-        with open(os.path.join(OUTPUT_DIR, 'aggregated', aggregate_name+'.json'), 'w') as fp:
+        with open(os.path.join(args.output, 'aggregated', aggregate_name+'.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
-
-if __name__ == '__main__':
-    aggregate()

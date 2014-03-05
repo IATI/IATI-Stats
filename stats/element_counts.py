@@ -1,4 +1,4 @@
-from stats import returns_numberdict, element_to_count_dict
+from stats.decorators import returns_numberdict, element_to_count_dict
 
 class PublisherStats(object):
     pass
@@ -22,3 +22,4 @@ class OrganisationStats(object):
     @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-organisation', {})
+

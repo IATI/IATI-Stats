@@ -5,6 +5,7 @@ Not suitable for generic use in stats.py due to hardcoded years etc.
 
 """
 
+from helpers.exchange_rates import toUSD
 from stats_decorators import *
 
 class ActivityFileStats(object):

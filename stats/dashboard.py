@@ -7,16 +7,15 @@ import datetime, dateutil.parser, dateutil.tz
 from collections import defaultdict
 from decimal import Decimal
 import decimal
-from exchange_rates import toUSD
 import os, re
 import subprocess
 from collections import defaultdict
 
-from stats_decorators import *
+from stats.decorators import *
 
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
-codelist_mapping_xml = etree.parse('mapping.xml')
+codelist_mapping_xml = etree.parse('helpers/mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
@@ -140,7 +139,7 @@ class ActivityStats(CommonSharedElements):
 
 
 import json
-ckan = json.load(open('ckan.json'))
+ckan = json.load(open('helpers/ckan.json'))
 publisher_re = re.compile('(.*)\-[^\-]')
 
 class GenericFileStats(object):
@@ -164,7 +163,7 @@ class GenericFileStats(object):
         version = self.root.attrib.get('version')
         if version in [None, '1', '1.0', '1.00']: version = '1.01' 
         try:
-            with open('schemas/{0}/{1}'.format(version, self.schema_name)) as f:
+            with open('helpers/schemas/{0}/{1}'.format(version, self.schema_name)) as f:
                 xmlschema_doc = etree.parse(f)
                 xmlschema = etree.XMLSchema(xmlschema_doc)
                 if xmlschema.validate(self.doc):

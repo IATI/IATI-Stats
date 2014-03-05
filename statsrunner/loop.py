@@ -6,10 +6,7 @@ import sys
 import traceback
 import decimal
 import argparse
-import statsfunctions
-
-from settings import *
-
+import statsrunner.shared
 
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
@@ -19,7 +16,7 @@ def decimal_default(obj):
 def call_stats(this_stats, args):
     this_out = {}
     for name, function in inspect.getmembers(this_stats, predicate=inspect.ismethod):
-        if not statsfunctions.use_stat(this_stats, name): continue
+        if not statsrunner.shared.use_stat(this_stats, name): continue
         try:
             this_out[name] = function()
         except KeyboardInterrupt:
@@ -33,7 +30,7 @@ def call_stats(this_stats, args):
 
 def process_file((inputfile, outputfile, args)):
     import importlib
-    stats = importlib.import_module(args.stats_module)
+    stats_module = importlib.import_module(args.stats_module)
 
     try:
         doc = etree.parse(inputfile)
@@ -60,9 +57,9 @@ def process_file((inputfile, outputfile, args)):
                 json.dump({'file':file_out, 'elements':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
 
         if root.tag == 'iati-activities':
-            process_stats(stats.ActivityFileStats, stats.ActivityStats, 'iati-activity')
+            process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, 'iati-activity')
         elif root.tag == 'iati-organisations':
-            process_stats(stats.OrganisationFileStats, stats.OrganisationStats, 'iati-organisation')
+            process_stats(stats_module.OrganisationFileStats, stats_module.OrganisationStats, 'iati-organisation')
         else:
             with open(outputfile, 'w') as outfp:
                 json.dump({'file':{'nonstandardroots':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
@@ -77,7 +74,7 @@ def process_file((inputfile, outputfile, args)):
                 json.dump({'file':{'invalidxml':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
 
 
-def loop_folder(folder, args, data_dir=DATA_DIR, output_dir=OUTPUT_DIR):
+def loop_folder(folder, args, data_dir, output_dir):
     if not os.path.isdir(os.path.join(data_dir, folder)) or folder == '.git':
         return []
     files = []
@@ -92,20 +89,7 @@ def loop_folder(folder, args, data_dir=DATA_DIR, output_dir=OUTPUT_DIR):
             continue
     return files
 
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--debug", help="Output extra debugging information",
-                        action="store_true")
-    parser.add_argument("--strict", help="Follow the schema strictly",
-                        action="store_true")
-    parser.add_argument("--stats-module", help="Name of module to import stats from", default='stats')
-    parser.add_argument("--folder", help="Limit to a specific folder in the data")
-    parser.add_argument("--data", help="Data directory", default=DATA_DIR)
-    parser.add_argument("--output", help="Output directory", default=OUTPUT_DIR)
-    parser.add_argument("--multi", help="Number of processes", default=1, type=int)
-
-    args = parser.parse_args()
-
+def loop(args):
     if args.folder:
         files = loop_folder(args.folder, args, data_dir=args.data, output_dir=args.output)
     else:
@@ -119,3 +103,4 @@ if __name__ == '__main__':
         pool.map(process_file, files)
     else:
         map(process_file, files)
+

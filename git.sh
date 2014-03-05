@@ -30,27 +30,28 @@ echo '}' >> gitdate.json
 # Perform this dance because piping to ../ behaves differently with symlinks
 cd .. || exit $?
 mv data/gitdate.json .
+
 cd data || exit $?
-
 current_hash=`git rev-parse HEAD`
+commits=`git log --format=format:%H`
+cd .. || exit $?
 
-for commit in `git log --format=format:%H`; do
-    if [ ! -e ../gitout/$commit ]; then
+for commit in $commits; do
+    if [ ! -e ../gitout/commits/$commit ]; then
+        cd data || exit $?
         git checkout $commit
         git clean -df
         echo $commit;
         cd .. || exit $?
-        python calculate_stats.py loop $@
-        python calculate_stats.py aggregate $@
-        python calculate_stats.py invert $@
-        mkdir gitout/$commit
-        mv out/aggregated* out/inverted* gitout/$commit || exit $?
+        python calculate_stats.py $@ loop
+        python calculate_stats.py $@ aggregate
+        python calculate_stats.py $@ invert
+        mkdir -p gitout/commits/$commit
+        mv out/aggregated* out/inverted* gitout/commits/$commit || exit $?
         rm -r out
-        cd data || exit $?
     fi
 done
 
-cd ..
 python statsrunner/gitaggregate.py
 python statsrunner/gitaggregate.py dated
 mv gitdate.json gitout
@@ -58,6 +59,6 @@ cp helpers/ckan.json gitout
 
 cd gitout || exit $?
 rm -r current
-cp -r $current_hash current
+cp -r commits/$current_hash current
 tar -czf current.tar.gz current
 

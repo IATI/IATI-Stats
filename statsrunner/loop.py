@@ -63,20 +63,21 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
         def process_stats(FileStats, ElementStats, tagname=None):
             file_out = process_stats_file(FileStats)
             out = list(process_stats_element(ElementStats, tagname))
-            stats_json = {'file':file_out, 'elements':out}
-            if args.verbose_loop:
-                with open(outputfile, 'w') as outfp:
-                    json.dump(stats_json, outfp, sort_keys=True, indent=2, default=decimal_default)
-            else:
-                statsrunner.aggregate.aggregate_file(stats_module, stats_json, os.path.join(output_dir, 'aggregated-file', folder, xmlfile))
+            return {'file':file_out, 'elements':out}
 
         if root.tag == 'iati-activities':
-            process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, 'iati-activity')
+            stats_json = process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, 'iati-activity')
         elif root.tag == 'iati-organisations':
-            process_stats(stats_module.OrganisationFileStats, stats_module.OrganisationStats, 'iati-organisation')
+            stats_json = process_stats(stats_module.OrganisationFileStats, stats_module.OrganisationStats, 'iati-organisation')
         else:
+            stats_json = {'file':{'nonstandardroots':1}, 'elements':[]}
+
+        if args.verbose_loop:
             with open(outputfile, 'w') as outfp:
-                json.dump({'file':{'nonstandardroots':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
+                json.dump(stats_json, outfp, sort_keys=True, indent=2, default=decimal_default)
+        else:
+            statsrunner.aggregate.aggregate_file(stats_module, stats_json, os.path.join(output_dir, 'aggregated-file', folder, xmlfile))
+
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)
         if os.path.getsize(inputfile) == 0:

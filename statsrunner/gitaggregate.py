@@ -13,7 +13,6 @@ for commit in os.listdir(os.path.join('gitout', 'commits')):
             with open(os.path.join('gitout', 'commits', commit, 'aggregated', fname)) as fp:
                 k = fname[:-5]
                 v = json.load(fp, parse_float=decimal.Decimal)
-                if k == 'by_hierarchy': continue
                 if dated:
                     if commit in gitdates:
                         total[k][gitdates[commit]] = v

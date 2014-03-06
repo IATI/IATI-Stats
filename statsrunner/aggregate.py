@@ -57,23 +57,25 @@ def aggregate(args):
 
         for jsonfile in os.listdir(os.path.join(args.output, 'loop', folder)):
             subtotal = copy.deepcopy(blank)
-            subtotal['by_hierarchy'] = {}
+            # Comment out by_hierarchy specific code
+            #subtotal['by_hierarchy'] = {}
             with open(os.path.join(args.output, 'loop', folder, jsonfile)) as jsonfp:
                 stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
                 for activity_json in stats_json['elements']:
-                    h = activity_json.get('hierarchy')
-                    if not h in subtotal['by_hierarchy']:
-                        subtotal['by_hierarchy'][h] = copy.deepcopy(blank)
+                    #h = activity_json.get('hierarchy')
+                    #if not h in subtotal['by_hierarchy']:
+                    #    subtotal['by_hierarchy'][h] = copy.deepcopy(blank)
 
-                    dict_sum_inplace(subtotal['by_hierarchy'][h], activity_json)
+                    #dict_sum_inplace(subtotal['by_hierarchy'][h], activity_json)
                     dict_sum_inplace(subtotal, activity_json)
                 dict_sum_inplace(subtotal, stats_json['file'])
 
                 try:
-                    os.mkdir(os.path.join(args.output, 'aggregated-file', folder))
+                    os.makedirs(os.path.join(args.output, 'aggregated-file', folder, jsonfile))
                 except OSError: pass
-                with open(os.path.join(args.output, 'aggregated-file', folder, jsonfile+'.json'), 'w') as fp:
-                    json.dump(subtotal, fp, sort_keys=True, indent=2, default=decimal_default)
+                for aggregate_name,aggregate in subtotal.items():
+                    with open(os.path.join(args.output, 'aggregated-file', folder, jsonfile, aggregate_name+'.json'), 'w') as fp:
+                        json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
             dict_sum_inplace(publisher_total, subtotal)
 
         publisher_stats = stats_module.PublisherStats()
@@ -84,8 +86,12 @@ def aggregate(args):
             publisher_total[name] = function()
 
         dict_sum_inplace(total, publisher_total)
-        with open(os.path.join(args.output, 'aggregated-publisher', folder+'.json'), 'w') as fp:
-            json.dump(publisher_total, fp, sort_keys=True, indent=2, default=decimal_default)
+        for aggregate_name,aggregate in publisher_total.items():
+            try:
+                os.mkdir(os.path.join(args.output, 'aggregated-publisher', folder))
+            except OSError: pass
+            with open(os.path.join(args.output, 'aggregated-publisher', folder, aggregate_name+'.json'), 'w') as fp:
+                json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
 
     #with open(os.path.join(args.output, 'aggregated.json'), 'w') as fp:
     #    json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)

@@ -12,27 +12,29 @@ def invert_dir(basedirname, out_filename, output_dir):
     out = dict()
 
     for dirname, dirs, files in os.walk(os.path.join(output_dir, basedirname)):
+        parent_folder = os.path.basename(dirname)
         for f in files:
-            with open(os.path.join(dirname ,f)) as fp:
-                for stats_name,stats_values in json.load(fp).items():
-                    if type(stats_values) == dict:
-                        if not stats_name in out:
-                            out[stats_name] = defaultdict(dict)
+            with open(os.path.join(dirname, f)) as fp:
+                stats_name = f[:-5]
+                stats_values = json.load(fp)
+                if type(stats_values) == dict:
+                    if not stats_name in out:
+                        out[stats_name] = defaultdict(dict)
 
-                        for k,v in stats_values.items():
-                            if type(v) == dict:
-                                if not k in out[stats_name]:
-                                    out[stats_name][k] = defaultdict(dict)
-                                for k2,v2 in v.items():
-                                    out[stats_name][k][k2][f[:-5]] = v2
-                            else:
-                                out[stats_name][k][f[:-5]] = v
+                    for k,v in stats_values.items():
+                        if type(v) == dict:
+                            if not k in out[stats_name]:
+                                out[stats_name][k] = defaultdict(dict)
+                            for k2,v2 in v.items():
+                                out[stats_name][k][k2][parent_folder] = v2
+                        else:
+                            out[stats_name][k][parent_folder] = v
 
-                    elif type(stats_values) == int:
-                        if not stats_name in out:
-                            out[stats_name] = defaultdict(int)
+                elif type(stats_values) == int:
+                    if not stats_name in out:
+                        out[stats_name] = defaultdict(int)
 
-                        out[stats_name][f[:-5]] += stats_values
+                    out[stats_name][parent_folder] += stats_values
 
     #with open(os.path.join(output_dir, out_filename+'.json'), 'w') as fp:
     #        json.dump(out, fp, sort_keys=True, indent=2)

@@ -21,6 +21,9 @@ def calculate_stats():
     parser.add_argument("--stats-module",
         help="Python module to import stats from, defaults to stats.dashboard",
         default='stats.dashboard')
+    parser.add_argument("--verbose-loop",
+        help="",
+        action="store_true")
     subparsers = parser.add_subparsers()
 
     parser_loop = subparsers.add_parser('loop',

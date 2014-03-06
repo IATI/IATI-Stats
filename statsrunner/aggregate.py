@@ -41,6 +41,21 @@ def make_blank(stats_module):
             blank[name] = function()
     return blank
 
+def aggregate_file(stats_module, stats_json, output_dir):
+    subtotal = make_blank(stats_module) # FIXME This may be inefficient
+    for activity_json in stats_json['elements']:
+        dict_sum_inplace(subtotal, activity_json)
+    dict_sum_inplace(subtotal, stats_json['file'])
+
+    try:
+        os.makedirs(output_dir)
+    except OSError: pass
+    for aggregate_name,aggregate in subtotal.items():
+        with open(os.path.join(output_dir, aggregate_name+'.json'), 'w') as fp:
+            json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+
+    return subtotal
+
 def aggregate(args):
     import importlib
     stats_module = importlib.import_module(args.stats_module)
@@ -51,31 +66,27 @@ def aggregate(args):
         except OSError: pass
 
     blank = make_blank(stats_module)
+
+    if args.verbose_loop:
+        base_folder = os.path.join(args.output, 'loop')
+    else:
+        base_folder = os.path.join(args.output, 'aggregated-file')
     total = copy.deepcopy(blank)
-    for folder in os.listdir(os.path.join(args.output, 'loop')):
+    for folder in os.listdir(base_folder):
         publisher_total = copy.deepcopy(blank)
 
-        for jsonfile in os.listdir(os.path.join(args.output, 'loop', folder)):
-            subtotal = copy.deepcopy(blank)
-            # Comment out by_hierarchy specific code
-            #subtotal['by_hierarchy'] = {}
-            with open(os.path.join(args.output, 'loop', folder, jsonfile)) as jsonfp:
-                stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
-                for activity_json in stats_json['elements']:
-                    #h = activity_json.get('hierarchy')
-                    #if not h in subtotal['by_hierarchy']:
-                    #    subtotal['by_hierarchy'][h] = copy.deepcopy(blank)
+        for jsonfilefolder in os.listdir(os.path.join(base_folder, folder)):
+            if args.verbose_loop:
+                with open(os.path.join(base_folder, folder, jsonfilefolder)) as jsonfp:
+                    stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
+                    subtotal = aggregate_file(stats_module, stats_json, os.path.join(args.output, 'aggregated-file', folder, jsonfilefolder))
+            else:
+                subtotal = copy.deepcopy(blank)
+                for jsonfile in os.listdir(os.path.join(base_folder, folder, jsonfilefolder)):
+                    with open(os.path.join(base_folder, folder, jsonfilefolder, jsonfile)) as jsonfp:
+                        stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
+                        subtotal[jsonfile[:-5]] = stats_json
 
-                    #dict_sum_inplace(subtotal['by_hierarchy'][h], activity_json)
-                    dict_sum_inplace(subtotal, activity_json)
-                dict_sum_inplace(subtotal, stats_json['file'])
-
-                try:
-                    os.makedirs(os.path.join(args.output, 'aggregated-file', folder, jsonfile))
-                except OSError: pass
-                for aggregate_name,aggregate in subtotal.items():
-                    with open(os.path.join(args.output, 'aggregated-file', folder, jsonfile, aggregate_name+'.json'), 'w') as fp:
-                        json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
             dict_sum_inplace(publisher_total, subtotal)
 
         publisher_stats = stats_module.PublisherStats()
@@ -98,3 +109,4 @@ def aggregate(args):
     for aggregate_name,aggregate in total.items():
         with open(os.path.join(args.output, 'aggregated', aggregate_name+'.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+

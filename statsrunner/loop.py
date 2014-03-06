@@ -7,6 +7,7 @@ import traceback
 import decimal
 import argparse
 import statsrunner.shared
+import statsrunner.aggregate
 
 def decimal_default(obj):
     if isinstance(obj, decimal.Decimal):
@@ -28,14 +29,19 @@ def call_stats(this_stats, args):
     return this_out
 
 
-def process_file((inputfile, outputfile, args)):
+def process_file((inputfile, output_dir, folder, xmlfile, args)):
     import importlib
     stats_module = importlib.import_module(args.stats_module)
+    
+    if args.verbose_loop:
+        try: os.makedirs(os.path.join(output_dir,'loop',folder))
+        except OSError: pass
+        outputfile = os.path.join(output_dir,'loop',folder,xmlfile)
 
     try:
         doc = etree.parse(inputfile)
         root = doc.getroot()
-        def process_stats(FileStats, ElementStats, tagname=None):
+        def process_stats_file(FileStats):
             file_stats = FileStats()
             file_stats.doc = doc
             file_stats.root = root
@@ -43,18 +49,26 @@ def process_file((inputfile, outputfile, args)):
             file_stats.context = 'in '+inputfile
             file_stats.fname = os.path.basename(inputfile)
             file_stats.inputfile = inputfile
-            file_out = call_stats(file_stats, args)
-            out = []
+            return call_stats(file_stats, args)
+
+        def process_stats_element(ElementStats, tagname=None):
             for element in root:
                 if tagname and tagname != element.tag: continue
                 element_stats = ElementStats()
                 element_stats.element = element
                 element_stats.strict = args.strict
                 element_stats.context = 'in '+inputfile
-                element_out = call_stats(element_stats, args)
-                out.append(element_out)
-            with open(outputfile, 'w') as outfp:
-                json.dump({'file':file_out, 'elements':out}, outfp, sort_keys=True, indent=2, default=decimal_default)
+                yield call_stats(element_stats, args)
+
+        def process_stats(FileStats, ElementStats, tagname=None):
+            file_out = process_stats_file(FileStats)
+            out = list(process_stats_element(ElementStats, tagname))
+            stats_json = {'file':file_out, 'elements':out}
+            if args.verbose_loop:
+                with open(outputfile, 'w') as outfp:
+                    json.dump(stats_json, outfp, sort_keys=True, indent=2, default=decimal_default)
+            else:
+                statsrunner.aggregate.aggregate_file(stats_module, stats_json, os.path.join(output_dir, 'aggregated-file', folder, xmlfile))
 
         if root.tag == 'iati-activities':
             process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, 'iati-activity')
@@ -79,11 +93,9 @@ def loop_folder(folder, args, data_dir, output_dir):
         return []
     files = []
     for xmlfile in os.listdir(os.path.join(data_dir, folder)):
-        try: os.makedirs(os.path.join(output_dir,'loop',folder))
-        except OSError: pass
         try:
             files.append((os.path.join(data_dir,folder,xmlfile),
-                         os.path.join(output_dir,'loop',folder,xmlfile), args))
+                         output_dir, folder, xmlfile, args))
         except UnicodeDecodeError:
             traceback.print_exc(file=sys.stdout)
             continue

@@ -31,7 +31,11 @@ def calculate_stats():
     parser_loop.add_argument("--folder",
         help="Limit to a specific folder in the data")
     parser_loop.add_argument("--data",
-        help="Data directory", default='data')
+        help="Data directory",
+        default='data')
+    parser_loop.add_argument("--new",
+        help="Only create new files, don't overwrite existing ones",
+        action="store_true")
     parser_loop.set_defaults(func=statsrunner.loop.loop)
 
     parser_aggregate = subparsers.add_parser('aggregate',

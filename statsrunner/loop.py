@@ -37,6 +37,12 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
         try: os.makedirs(os.path.join(output_dir,'loop',folder))
         except OSError: pass
         outputfile = os.path.join(output_dir,'loop',folder,xmlfile)
+    else:
+        outputfile = os.path.join(output_dir,'aggregated-file',folder,xmlfile)
+
+    if args.new:
+        if os.path.exists(outputfile):
+            return
 
     try:
         doc = etree.parse(inputfile)
@@ -72,21 +78,19 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
         else:
             stats_json = {'file':{'nonstandardroots':1}, 'elements':[]}
 
-        if args.verbose_loop:
-            with open(outputfile, 'w') as outfp:
-                json.dump(stats_json, outfp, sort_keys=True, indent=2, default=decimal_default)
-        else:
-            statsrunner.aggregate.aggregate_file(stats_module, stats_json, os.path.join(output_dir, 'aggregated-file', folder, xmlfile))
-
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)
         if os.path.getsize(inputfile) == 0:
             # Assume empty files are download errors, not invalid XML
-            with open(outputfile, 'w') as outfp:
-                json.dump({'file':{'emptyfile':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
+            stats_json = {'file':{'emptyfile':1}, 'elements':[]}
         else:
-            with open(outputfile, 'w') as outfp:
-                json.dump({'file':{'invalidxml':1}, 'elements':[]}, outfp, sort_keys=True, indent=2)
+            stats_json = {'file':{'invalidxml':1}, 'elements':[]}
+
+    if args.verbose_loop:
+        with open(outputfile, 'w') as outfp:
+            json.dump(stats_json, outfp, sort_keys=True, indent=2, default=decimal_default)
+    else:
+        statsrunner.aggregate.aggregate_file(stats_module, stats_json, os.path.join(output_dir, 'aggregated-file', folder, xmlfile))
 
 
 def loop_folder(folder, args, data_dir, output_dir):

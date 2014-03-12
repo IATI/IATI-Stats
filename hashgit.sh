@@ -37,32 +37,35 @@ commits=`git log --format=format:%H`
 cd .. || exit $?
 
 for commit in $commits; do
-    if [ ! -e ../gitout/commits/$commit ]; then
+    if [ ! -e gitout/commits/$commit ]; then
         cd data || exit $?
         git checkout $commit
         git clean -df
         echo $commit;
         cd .. || exit $?
         mkdir -p gitout/hash
-        python hashlink.py
+        python statsrunner/hashlink.py
         find data | grep commit
         python calculate_stats.py $@ loop --new
         python calculate_stats.py $@ aggregate
         python calculate_stats.py $@ invert
-        python hashcopy.py
+        python statsrunner/hashcopy.py
         mkdir -p gitout/commits/$commit
         mv out/aggregated* out/inverted* gitout/commits/$commit || exit $?
         rm -r out
     fi
 done
 
+cd gitout || exit $?
+rm -r current
+cp -Lr commits/$current_hash current
+tar -czf current.tar.gz current
+find commits | grep iati_identifiers | xargs rm
+cd .. || exit $?
+
 python statsrunner/gitaggregate.py
 python statsrunner/gitaggregate.py dated
 mv gitdate.json gitout
 cp helpers/ckan.json gitout
 
-cd gitout || exit $?
-rm -r current
-cp -r commits/$current_hash current
-tar -czf current.tar.gz current
 

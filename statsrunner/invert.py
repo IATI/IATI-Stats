@@ -9,9 +9,9 @@ def invert_dir(basedirname, out_filename, output_dir):
     publisher.
 
     """
-    out = dict()
+    out = {}
 
-    for dirname, dirs, files in os.walk(os.path.join(output_dir, basedirname)):
+    for dirname, dirs, files in os.walk(os.path.join(output_dir, basedirname), followlinks=True):
         parent_folder = os.path.basename(dirname)
         for f in files:
             with open(os.path.join(dirname, f)) as fp:
@@ -36,10 +36,10 @@ def invert_dir(basedirname, out_filename, output_dir):
 
                     out[stats_name][parent_folder] += stats_values
 
-    #with open(os.path.join(output_dir, out_filename+'.json'), 'w') as fp:
-    #        json.dump(out, fp, sort_keys=True, indent=2)
-
     for statname, inverted in out.items():
+        try:
+            os.mkdir(os.path.join(output_dir, out_filename))
+        except OSError: pass
         with open(os.path.join(output_dir, out_filename, statname+'.json'), 'w') as fp:
             json.dump(inverted, fp, sort_keys=True, indent=2)
 

@@ -59,6 +59,7 @@ done
 cd gitout || exit $?
 rm -r current
 cp -Lr commits/$current_hash current
+find current | grep iati_identifiers | xargs rm
 tar -czf current.tar.gz current
 find commits | grep iati_identifiers | xargs rm
 cd .. || exit $?

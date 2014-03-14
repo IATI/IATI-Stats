@@ -44,12 +44,12 @@ for commit in $commits; do
         echo $commit;
         cd .. || exit $?
         mkdir -p gitout/hash
-        python statsrunner/hashlink.py
+        python statsrunner/hashlink.py || exit 1
         find data | grep commit
-        python calculate_stats.py $@ loop --new
-        python calculate_stats.py $@ aggregate
+        python calculate_stats.py $@ loop --new || exit 1
+        python calculate_stats.py $@ aggregate || exit 1
         python calculate_stats.py $@ invert
-        python statsrunner/hashcopy.py
+        python statsrunner/hashcopy.py || exit 1
         mkdir -p gitout/commits/$commit
         mv out/aggregated* out/inverted* gitout/commits/$commit || exit $?
         rm -r out

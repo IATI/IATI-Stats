@@ -2,12 +2,12 @@ import os
 import hashlib
 
 base = os.path.join('out', 'aggregated-file')
-output_dir = 'data'
-for publisher in os.listdir(output_dir):
-    if not os.path.isdir(os.path.join(output_dir, publisher)):
+data_dir = 'data'
+for publisher in os.listdir(data_dir):
+    if publisher.startswith('.') or not os.path.isdir(os.path.join(data_dir, publisher)):
         continue
-    for dataset in os.listdir(os.path.join(output_dir, publisher)):
-        md5hash = hashlib.md5(os.path.join(output_dir, publisher, dataset)).hexdigest()
+    for dataset in os.listdir(os.path.join(data_dir, publisher)):
+        md5hash = hashlib.md5(open(os.path.join(data_dir, publisher, dataset)).read()).hexdigest()
         if os.path.exists(os.path.join('gitout','hash',md5hash)):
             try:
                 os.makedirs(os.path.join(base, publisher))

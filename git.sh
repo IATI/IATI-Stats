@@ -37,7 +37,9 @@ commits=`git log --format=format:%H`
 cd .. || exit $?
 
 for commit in $commits; do
-    if [ ! -e gitout/commits/$commit ]; then
+    if grep -q $commit gitout/gitaggregate/activities.json; then
+        echo Skipping $commit
+    else
         cd data || exit $?
         git checkout $commit
         git clean -df
@@ -57,10 +59,12 @@ for commit in $commits; do
 done
 
 cd gitout || exit $?
-rm -r current
-cp -Lr commits/$current_hash current
-find current | grep iati_identifiers | xargs rm
-tar -czf current.tar.gz current
+if [ -d commits/$current_hash ]; then
+    rm -r current
+    cp -Lr commits/$current_hash current
+    find current | grep iati_identifiers | xargs rm
+    tar -czf current.tar.gz current
+fi
 find commits | grep iati_identifiers | xargs rm
 cd .. || exit $?
 
@@ -69,4 +73,7 @@ python statsrunner/gitaggregate.py dated
 mv gitdate.json gitout
 cp helpers/ckan.json gitout
 
+cd gitout || exit $?
+tar -czf gitaggregate.tar.gz gitaggregate
+tar -czf gitaggregate-dated.tar.gz gitaggregate-dated
 

@@ -13,5 +13,5 @@ for publisher in os.listdir(data_dir):
                 os.makedirs(os.path.join(base, publisher))
             except OSError:
                 pass
-            os.symlink(os.path.join('/home','bjwebb','iati','stats','gitout','hash',md5hash), os.path.join(base, publisher, dataset))
+            os.symlink(os.path.join(os.getcwd(),'gitout','hash',md5hash), os.path.join(base, publisher, dataset))
 

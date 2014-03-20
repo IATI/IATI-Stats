@@ -68,6 +68,8 @@ fi
 find commits | grep iati_identifiers | xargs rm
 cd .. || exit $?
 
+mkdir -p gitout/gitaggregate
+mkdir -p gitout/gitaggregate-dated
 python statsrunner/gitaggregate.py
 python statsrunner/gitaggregate.py dated
 mv gitdate.json gitout

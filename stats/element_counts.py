@@ -32,3 +32,6 @@ class OrganisationStats(object):
     def elements_total(self):
         return element_to_count_dict(self.element, 'iati-organisation', defaultdict(int), True)
 
+class AllDataStats(object):
+    pass
+

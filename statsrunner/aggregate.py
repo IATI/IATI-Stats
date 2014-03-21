@@ -34,7 +34,7 @@ def dict_sum_inplace(d1, d2):
 
 def make_blank(stats_module):
     blank = {}
-    for stats_object in [ stats_module.ActivityStats(), stats_module.ActivityFileStats(), stats_module.OrganisationStats(), stats_module.OrganisationFileStats(), stats_module.PublisherStats() ]:
+    for stats_object in [ stats_module.ActivityStats(), stats_module.ActivityFileStats(), stats_module.OrganisationStats(), stats_module.OrganisationFileStats(), stats_module.PublisherStats(), stats_module.AllDataStats() ]:
         stats_object.blank = True
         for name, function in inspect.getmembers(stats_object, predicate=inspect.ismethod):
             if not statsrunner.shared.use_stat(stats_object, name): continue
@@ -103,6 +103,12 @@ def aggregate(args):
             except OSError: pass
             with open(os.path.join(args.output, 'aggregated-publisher', folder, aggregate_name+'.json'), 'w') as fp:
                 json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+
+    all_stats = stats_module.AllDataStats()
+    all_stats.aggregated = total
+    for name, function in inspect.getmembers(all_stats, predicate=inspect.ismethod):
+        if not statsrunner.shared.use_stat(all_stats, name): continue
+        total[name] = function()
 
     #with open(os.path.join(args.output, 'aggregated.json'), 'w') as fp:
     #    json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)

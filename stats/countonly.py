@@ -19,3 +19,7 @@ class OrganisationFileStats(object):
 
 class OrganisationStats(object):
     pass
+        
+class AllDataStats(object):
+    pass
+

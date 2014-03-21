@@ -416,3 +416,7 @@ class OrganisationStats(GenericStats):
         for budget in budgets:
             out[budget_year(budget)] += self._transaction_to_dollars(budget, datetime.date.today())
         return out
+
+class AllDataStats(object):
+    pass
+

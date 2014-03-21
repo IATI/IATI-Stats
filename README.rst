@@ -25,6 +25,7 @@ Getting started
 
     # Get the code
     git clone https://github.com/IATI/IATI-Stats.git
+    cd IATI-Stats
 
     # Put some IATI data in the 'data' directory
     # For example by running:

@@ -274,6 +274,17 @@ class PublisherStats(object):
         else:
             return {'no':1}
 
+    # The following two functions have different names to the AllData equivalents
+    # This is because the aggregation of the publisher level functions will ignore duplication between publishers
+
+    @returns_number
+    def publisher_unique_identifiers(self):
+        return len(self.aggregated['iati_identifiers'])
+
+    @returns_numberdict
+    def publisher_duplicate_identifiers(self):
+        return {k:v for k,v in self.aggregated['iati_identifiers'].items() if v>1}
+
 
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """
@@ -306,4 +317,13 @@ class OrganisationStats(CommonSharedElements):
     def element_versions(self):
         return { self.element.attrib.get('version'): 1 }
         
-    
+class AllDataStats(object):
+    blank = False
+
+    @returns_number
+    def unique_identifiers(self):
+        return len(self.aggregated['iati_identifiers'])
+
+    @returns_numberdict
+    def duplicate_identifiers(self):
+        return {k:v for k,v in self.aggregated['iati_identifiers'].items() if v>1}

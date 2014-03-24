@@ -1,9 +1,9 @@
 IATI Stats
 ==========
 
-IATI-Stats is a python application for generating JSON stats files from IATI data. An example of this outputted JSON can be found at http://arstneio.com/iati/stats/current/
+IATI-Stats is a python application for generating JSON stats files from IATI data. An example of this outputted JSON can be found at http://dashboard.iatistandard.org/stats/
 
-These stats are used to build the `IATI Dashboard <http://iati.github.io/IATI-Dashboard/>`_, and also to produce some of the stats for the Transparency Indicator and the IATI Annual report.
+These stats are used to build the `IATI Dashboard <http://dashboard.iatistandard.org/>`_, and also to produce some of the stats for the Transparency Indicator and the IATI Annual report.
 
 Requirements
 ------------
@@ -41,7 +41,7 @@ Getting started
     cd helpers
     ./get_codelist_mapping.sh
     ./get_schemas.sh
-    wget "http://arstneio.com/iati/stats/ckan.json"
+    wget "http://dashboard.iatistandard.org/stats/ckan.json"
     cd ..
 
     # Calculate some stats 

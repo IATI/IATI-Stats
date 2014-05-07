@@ -4,7 +4,7 @@ You can choose a different set of tests by running calculate_stats.py with the `
 
 """
 from lxml import etree
-import datetime, dateutil.parser, dateutil.tz
+import datetime
 from collections import defaultdict
 from decimal import Decimal
 import decimal

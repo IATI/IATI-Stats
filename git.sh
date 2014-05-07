@@ -52,6 +52,7 @@ for commit in $commits; do
         python calculate_stats.py $@ aggregate || exit 1
         python calculate_stats.py $@ invert
         python statsrunner/hashcopy.py || exit 1
+        rm -r gitout/commits/$commit
         mkdir -p gitout/commits/$commit
         mv out/aggregated* out/inverted* gitout/commits/$commit || exit $?
         rm -r out
@@ -62,7 +63,7 @@ cd gitout || exit $?
 if [ -d commits/$current_hash ]; then
     rm -r current
     cp -Lr commits/$current_hash current
-    find current | grep iati_identifiers | xargs rm
+    #find current | grep iati_identifiers | xargs rm
     tar -czf current.tar.gz current
 fi
 find commits | grep iati_identifiers | xargs rm

@@ -110,8 +110,6 @@ def aggregate(args):
         if not statsrunner.shared.use_stat(all_stats, name): continue
         total[name] = function()
 
-    #with open(os.path.join(args.output, 'aggregated.json'), 'w') as fp:
-    #    json.dump(total, fp, sort_keys=True, indent=2, default=decimal_default)
     for aggregate_name,aggregate in total.items():
         with open(os.path.join(args.output, 'aggregated', aggregate_name+'.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)

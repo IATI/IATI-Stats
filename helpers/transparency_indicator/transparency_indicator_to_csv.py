@@ -12,6 +12,11 @@ detail_top.writerow(['endorser','activities'] + detail_columns)
 forward = csv.writer(open('out-ti-csv/4-forward-looking.csv','w'))
 forward.writerow(['endorser','numerator','2013 Agg','2013 Act','2014 Agg','2014 Act','2015 Agg','2015 Act','2016 Agg', '2016 Act'])
 
+"""
+Note that the below code no longer works due to the splitting of JSON files, and the removal of by_hierarchy.
+
+"""
+
 #for endorser in sorted(os.listdir('out-ti')):
 for endorser in sorted(os.listdir('aggregated-publisher')):
     if not endorser.endswith('.json'): continue

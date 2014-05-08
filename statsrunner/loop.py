@@ -68,7 +68,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
 
         def process_stats(FileStats, ElementStats, tagname=None):
             file_out = process_stats_file(FileStats)
-            out = list(process_stats_element(ElementStats, tagname))
+            out = process_stats_element(ElementStats, tagname)
             return {'file':file_out, 'elements':out}
 
         if root.tag == 'iati-activities':
@@ -88,6 +88,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
 
     if args.verbose_loop:
         with open(outputfile, 'w') as outfp:
+            stats_json['elements'] = list(stats_json['elements'])
             json.dump(stats_json, outfp, sort_keys=True, indent=2, default=decimal_default)
     else:
         statsrunner.aggregate.aggregate_file(stats_module, stats_json, os.path.join(output_dir, 'aggregated-file', folder, xmlfile))

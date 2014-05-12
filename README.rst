@@ -29,7 +29,7 @@ Getting started
 
     # Put some IATI data in the 'data' directory
     # For example by running:
-    git clone https://github.com/idsdata/IATI-Data-Snapshot.git data
+    git clone git://arstneio.com/IATI-Data-Snapshot.git data
 
     # Create a virtual environment (recommended)
     virtualenv pyenv

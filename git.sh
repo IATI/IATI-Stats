@@ -73,10 +73,14 @@ mkdir -p gitout/gitaggregate
 mkdir -p gitout/gitaggregate-dated
 python statsrunner/gitaggregate.py
 python statsrunner/gitaggregate.py dated
+python statsrunner/gitaggregate-publisher.py
+python statsrunner/gitaggregate-publisher.py dated
 mv gitdate.json gitout
 cp helpers/ckan.json gitout
 
 cd gitout || exit $?
 tar -czf gitaggregate.tar.gz gitaggregate
 tar -czf gitaggregate-dated.tar.gz gitaggregate-dated
+tar -czf gitaggregate-publisher.tar.gz gitaggregate-publisher
+tar -czf gitaggregate-publisher-dated.tar.gz gitaggregate-publisher-dated
 

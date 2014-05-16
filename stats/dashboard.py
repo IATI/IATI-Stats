@@ -5,15 +5,16 @@ You can choose a different set of tests by running calculate_stats.py with the `
 """
 from lxml import etree
 import datetime
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 from decimal import Decimal
 import decimal
 import os, re
 import subprocess
-from collections import defaultdict
 
 from stats.common.decorators import *
 from stats.common import debug
+
+import iatirulesets
 
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
@@ -60,6 +61,14 @@ class CommonSharedElements(object):
     @returns_numberdict
     def element_versions(self):
         return { self.element.attrib.get('version'): 1 }
+
+    @returns_numberdict
+    def ruleset_passes(self):
+        out = {}
+        for ruleset_name in ['standard']:
+            ruleset = json.load(open('rulesets/{0}.json'.format(ruleset_name)), object_pairs_hook=OrderedDict)
+            out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
+        return out
 
 
 class ActivityStats(CommonSharedElements):
@@ -133,8 +142,6 @@ class ActivityStats(CommonSharedElements):
             for value in self.element.xpath(path):
                 out[path][value] += 1
         return out 
-
-
 
 import json
 ckan = json.load(open('helpers/ckan.json'))

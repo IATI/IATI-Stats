@@ -18,6 +18,8 @@ for commit in os.listdir(os.path.join('gitout', 'commits')):
         if fname.endswith('.json'):
             with open(os.path.join('gitout', 'commits', commit, 'aggregated', fname)) as fp:
                 k = fname[:-5]
+                if k in ['codelist_values','duplicate_identifiers','publisher_duplicate_identifiers']:
+                   continue
                 if not commit in total[k]:
                     v = json.load(fp, parse_float=decimal.Decimal)
                     if dated:

@@ -39,6 +39,7 @@ Getting started
 
     # Fetch helper data
     cd helpers
+    ln -s ../pyenv/src/iatirulesets/rulesets .
     ./get_codelist_mapping.sh
     ./get_schemas.sh
     wget "http://dashboard.iatistandard.org/stats/ckan.json"

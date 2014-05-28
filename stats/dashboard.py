@@ -66,7 +66,7 @@ class CommonSharedElements(object):
     def ruleset_passes(self):
         out = {}
         for ruleset_name in ['standard']:
-            ruleset = json.load(open('rulesets/{0}.json'.format(ruleset_name)), object_pairs_hook=OrderedDict)
+            ruleset = json.load(open('helpers/rulesets/{0}.json'.format(ruleset_name)), object_pairs_hook=OrderedDict)
             out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
         return out
 

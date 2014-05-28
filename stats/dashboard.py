@@ -274,10 +274,12 @@ class PublisherStats(object):
 
     @returns_dict
     def bottom_hierarchy(self):
+        hierarchies = self.aggregated['hierarchies'].keys()
+        if not hierarchies: return
         try:
-            h = str(max(map(int, self.aggregated['hierarchies'].keys())))
+            h = str(max(map(int, hierarchies)))
         except ValueError:
-            h = max(self.aggregated['hierarchies'].keys())
+            h = max(hierarchies)
         try:
             out = copy.deepcopy(self.aggregated['by_hierarchy'][h])
         except KeyError:

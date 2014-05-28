@@ -10,6 +10,7 @@ from decimal import Decimal
 import decimal
 import os, re
 import subprocess
+import copy
 
 from stats.common.decorators import *
 from stats.common import debug
@@ -90,6 +91,17 @@ class ActivityStats(CommonSharedElements):
     def hierarchies(self):
         return {self.element.attrib.get('hierarchy'):1}
 
+    def by_hierarchy(self):
+        out = {
+            'activities': self.activities(),
+            'elements': self.elements(),
+            'elements_total': self.elements_total()
+        }
+        if self.blank:
+            return defaultdict(lambda: out)
+        else:
+            return { self.element.attrib.get('hierarchy'): out }
+
     @returns_numberdict
     def currencies(self):
         currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
@@ -113,10 +125,12 @@ class ActivityStats(CommonSharedElements):
     def activities_per_year(self):
         return {self.__get_start_year():1}
 
+    @memoize
     @returns_numberdict
     def elements(self):
         return element_to_count_dict(self.element, 'iati-activity', {})
 
+    @memoize
     @returns_numberdict
     def elements_total(self):
         return element_to_count_dict(self.element, 'iati-activity', defaultdict(int), True)
@@ -257,6 +271,18 @@ class PublisherStats(object):
     blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
+
+    @returns_dict
+    def bottom_hierarchy(self):
+        try:
+            h = str(max(map(int, self.aggregated['hierarchies'].keys())))
+        except ValueError:
+            h = max(self.aggregated['hierarchies'].keys())
+        try:
+            out = copy.deepcopy(self.aggregated['by_hierarchy'][h])
+        except KeyError:
+            out = {}
+        return out
 
     @returns_numberdict
     def publishers_per_version(self):

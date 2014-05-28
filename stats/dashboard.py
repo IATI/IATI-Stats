@@ -92,11 +92,9 @@ class ActivityStats(CommonSharedElements):
         return {self.element.attrib.get('hierarchy'):1}
 
     def by_hierarchy(self):
-        out = {
-            'activities': self.activities(),
-            'elements': self.elements(),
-            'elements_total': self.elements_total()
-        }
+        out = {}
+        for stat in ['activities', 'elements', 'elements_total', 'annualreport']:
+            out[stat] = copy.deepcopy(getattr(self, stat)())
         if self.blank:
             return defaultdict(lambda: out)
         else:
@@ -156,6 +154,32 @@ class ActivityStats(CommonSharedElements):
             for value in self.element.xpath(path):
                 out[path][value] += 1
         return out 
+
+    @memoize
+    @returns_numberdict
+    def annualreport(self):
+        return {
+            #'1.1': -1,
+            #'1.2': -1,
+            #'1.3': -1,
+            #'1.4': -1,
+            #'1.5': -1,
+            #'2.2': -1,
+            '2.3': 1 if self.element.xpath('activity-date[@type="start-planned"]') or self.element.xpath('activity-date[@type="start-actual"]') else 0,
+            '2.4': 1 if self.element.xpath('activity-date[@type="end-planned"]') or self.element.xpath('activity-date[@type="end-actual"]') else 0,
+            '2.5': 1 if self.element.xpath('participating-org[@role="Implementing"]') else 0,
+            '2.6': 1 if self.element.xpath('participating-org[@role="Accountable"]') else 0,
+            '3.1': 1 if self.element.xpath('location/description') else 0,
+            '3.2': 1 if self.element.xpath('location/coordinates') or self.element.xpath('location/administrative') else 0,
+            '3.3': 1 if self.element.xpath('sector[@vocabulary="" or @vocabulary="DAC" or not(@vocabulary)]') else 0,
+            '5.1': 1 if self.element.xpath('transaction/transaction-type[@code="C"]') else 0,
+            '5.2': 1 if self.element.xpath('transaction/transaction-type[@code="D"]') or self.element.xpath('transaction/transaction-type[@code="E"]') else 0,
+            #'5.3': -1, # Needs transactions as denominator
+            '6.1': 1 if self.element.xpath('location/coordinates') or self.element.xpath('location/administrative') else 0,
+            '6.2': 1 if self.element.xpath('conditions/@attached') in ['0', 'false'] or self.element.xpath('conditions/condition') else 0,
+            '6.3': 1 if self.element.xpath('results') else 0,
+            '6.4': 1 if self.element.xpath('results/indicator') else 0,
+        }
 
 import json
 ckan = json.load(open('helpers/ckan.json'))
@@ -312,6 +336,7 @@ class PublisherStats(object):
     # The following two functions have different names to the AllData equivalents
     # This is because the aggregation of the publisher level functions will ignore duplication between publishers
 
+    @memoize
     @returns_number
     def publisher_unique_identifiers(self):
         return len(self.aggregated['iati_identifiers'])
@@ -319,7 +344,6 @@ class PublisherStats(object):
     @returns_numberdict
     def publisher_duplicate_identifiers(self):
         return {k:v for k,v in self.aggregated['iati_identifiers'].items() if v>1}
-
 
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """

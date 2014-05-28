@@ -93,7 +93,7 @@ class ActivityStats(CommonSharedElements):
 
     def by_hierarchy(self):
         out = {}
-        for stat in ['activities', 'elements', 'elements_total', 'annualreport']:
+        for stat in ['activities', 'elements', 'elements_total', 'annualreport', 'annualreport_denominator']:
             out[stat] = copy.deepcopy(getattr(self, stat)())
         if self.blank:
             return defaultdict(lambda: out)
@@ -164,7 +164,7 @@ class ActivityStats(CommonSharedElements):
             #'1.3': -1,
             #'1.4': -1,
             #'1.5': -1,
-            #'2.2': -1,
+            #'2.2': -1, # Needs special denominator
             '2.3': 1 if self.element.xpath('activity-date[@type="start-planned"]') or self.element.xpath('activity-date[@type="start-actual"]') else 0,
             '2.4': 1 if self.element.xpath('activity-date[@type="end-planned"]') or self.element.xpath('activity-date[@type="end-actual"]') else 0,
             '2.5': 1 if self.element.xpath('participating-org[@role="Implementing"]') else 0,
@@ -174,11 +174,34 @@ class ActivityStats(CommonSharedElements):
             '3.3': 1 if self.element.xpath('sector[@vocabulary="" or @vocabulary="DAC" or not(@vocabulary)]') else 0,
             '5.1': 1 if self.element.xpath('transaction/transaction-type[@code="C"]') else 0,
             '5.2': 1 if self.element.xpath('transaction/transaction-type[@code="D"]') or self.element.xpath('transaction/transaction-type[@code="E"]') else 0,
-            #'5.3': -1, # Needs transactions as denominator
+            '5.3': len(self.element.xpath('transaction[(transaction-type/@code="D" and receiver-org) or (transaction-type/@code="IF" and provider-org)]')),
             '6.1': 1 if self.element.xpath('location/coordinates') or self.element.xpath('location/administrative') else 0,
             '6.2': 1 if self.element.xpath('conditions/@attached') in ['0', 'false'] or self.element.xpath('conditions/condition') else 0,
             '6.3': 1 if self.element.xpath('results') else 0,
             '6.4': 1 if self.element.xpath('results/indicator') else 0,
+        }
+
+    @memoize
+    @returns_numberdict
+    def annualreport_denominator(self):
+        return {
+            #'1.3'
+            #'2.2': 1 if True else 0,
+            '2.3': 1,
+            '2.4': 1,
+            '2.5': 1,
+            '2.6': 1,
+            '3.1': 1,
+            '3.2': 1,
+            '3.3': 1,
+            '5.1': 1,
+            '5.2': 1,
+            '5.3': len(self.element.xpath('transaction[transaction-type/@code="D" or transaction-type/@code="IF"]')),
+            '6.1': 1,
+            '6.2': 1,
+            '6.3': 1,
+            '6.4': 1,
+
         }
 
 import json
@@ -344,6 +367,22 @@ class PublisherStats(object):
     @returns_numberdict
     def publisher_duplicate_identifiers(self):
         return {k:v for k,v in self.aggregated['iati_identifiers'].items() if v>1}
+
+    @returns_numberdict
+    def annualreport(self):
+        out = self.aggregated['annualreport']
+        out.update({
+            '2.1': self.publisher_unique_identifiers()
+        })
+        return out
+
+    @returns_numberdict
+    def annualreport_denominator(self):
+        out = self.aggregated['annualreport_denominator']
+        out.update({
+            '2.1': self.aggregated['activities']
+        })
+        return out
 
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """

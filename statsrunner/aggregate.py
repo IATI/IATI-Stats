@@ -19,6 +19,7 @@ def decimal_default(obj):
     raise TypeError
 
 def dict_sum_inplace(d1, d2):
+    if d1 is None: return
     for k,v in d2.items():
         if type(v) == dict or type(v) == defaultdict:
             if k in d1:

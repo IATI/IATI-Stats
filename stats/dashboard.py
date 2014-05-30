@@ -13,7 +13,7 @@ import subprocess
 import copy
 
 from stats.common.decorators import *
-from stats.common import debug
+from stats.common import *
 
 import iatirulesets
 
@@ -23,6 +23,10 @@ codelist_mapping_xml = etree.parse('helpers/mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
+
+import csv
+reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
+country_lang_map = dict((row[0], row[2]) for row in reader)
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """
@@ -78,6 +82,7 @@ class ActivityStats(CommonSharedElements):
     blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
+    now = datetime.datetime.now() # TODO Add option to set this to date of git commit
 
     @returns_numberdict
     def iati_identifiers(self):
@@ -123,13 +128,13 @@ class ActivityStats(CommonSharedElements):
     def activities_per_year(self):
         return {self.__get_start_year():1}
 
-    @memoize
     @returns_numberdict
+    @memoize
     def elements(self):
         return element_to_count_dict(self.element, 'iati-activity', {})
 
-    @memoize
     @returns_numberdict
+    @memoize
     def elements_total(self):
         return element_to_count_dict(self.element, 'iati-activity', defaultdict(int), True)
 
@@ -155,16 +160,71 @@ class ActivityStats(CommonSharedElements):
                 out[path][value] += 1
         return out 
 
-    @memoize
     @returns_numberdict
+    def transaction_timing(self):
+        today = self.now.date()
+        def months_ago(n):
+            self.now.date() - datetime.timedelta(days=n*30)
+        out = { 30:0, 60:0, 90:0, 180:0, 360:0 }
+        for transaction in self.element.findall('transaction'):
+            date = transaction_date(transaction)
+            if date:
+                days = (today - date).days
+                if days < -1:
+                    continue
+                for k in sorted(out.keys()):
+                    if days < k:
+                        out[k] += 1
+        return out
+
+    @returns_numberdict
+    def transaction_months(self):
+        out = defaultdict(int)
+        for transaction in self.element.findall('transaction'):
+            date = transaction_date(transaction)
+            if date:
+                out[date.month] += 1
+        return out
+       
+    @memoize
+    def _end_actual(self):
+        try:
+            return iso_date(self.element.xpath("activity-date[@type='end-actual']")[0])
+        except IndexError:
+            return None
+
+    @memoize
+    def _current_activity(self):
+        activity_status = self.element.find('activity-status')
+        return (activity_status is not None and activity_status.attrib.get('code') not in ['3','4','5']) and (self._end_actual() is None or self._end_actual() > self.now.date())
+
+    def _future_budget_planned_disbursement(self):
+        for el in self.element.findall('budget') + self.element.findall('planned-disbursement'):
+            date = iso_date(el.find('period-end'))
+            if date and date >= self.now.date():
+                return True
+        return False
+
+    @returns_numberdict
+    def budget_lengths(self):
+        out = defaultdict(int)
+        for budget in self.element.findall('budget'):
+            period_start = iso_date(budget.find('period-start'))
+            period_end = iso_date(budget.find('period-end'))
+            if period_start and period_end:
+                out[(period_end - period_start).days] += 1
+        return out
+
+    @returns_numberdict
+    @memoize
     def annualreport(self):
         return {
-            #'1.1': -1,
-            #'1.2': -1,
-            #'1.3': -1,
-            #'1.4': -1,
-            #'1.5': -1,
-            #'2.2': -1, # Needs special denominator
+            '1.3': 1 if self._current_activity() and self._future_budget_planned_disbursement() else 0,
+            '2.2': 1 if ( len(self.element.xpath('recipient-country')) == 1 and
+                          self.element.xpath('recipient-country/@code')[0] in country_lang_map and
+                          self.element.xpath('@xml:lang') != country_lang_map[self.element.xpath('recipient-country/@code')[0]] and
+                          ( self.element.xpath('title/@xml:lang={0}'.format(country_lang_map[self.element.xpath('recipient-country/@code')[0]])
+                            or self.element.xpath('title/@xml:lang={0}'.format(country_lang_map[self.element.xpath('recipient-country/@code')[0]]))))) else 0,
             '2.3': 1 if self.element.xpath('activity-date[@type="start-planned"]') or self.element.xpath('activity-date[@type="start-actual"]') else 0,
             '2.4': 1 if self.element.xpath('activity-date[@type="end-planned"]') or self.element.xpath('activity-date[@type="end-actual"]') else 0,
             '2.5': 1 if self.element.xpath('participating-org[@role="Implementing"]') else 0,
@@ -177,16 +237,18 @@ class ActivityStats(CommonSharedElements):
             '5.3': len(self.element.xpath('transaction[(transaction-type/@code="D" and receiver-org) or (transaction-type/@code="IF" and provider-org)]')),
             '6.1': 1 if self.element.xpath('location/coordinates') or self.element.xpath('location/administrative') else 0,
             '6.2': 1 if self.element.xpath('conditions/@attached') in ['0', 'false'] or self.element.xpath('conditions/condition') else 0,
-            '6.3': 1 if self.element.xpath('results') else 0,
-            '6.4': 1 if self.element.xpath('results/indicator') else 0,
+            '6.3': 1 if self.element.xpath('result') else 0,
+            '6.4': 1 if self.element.xpath('result/indicator') else 0,
         }
 
-    @memoize
     @returns_numberdict
+    @memoize
     def annualreport_denominator(self):
         return {
-            #'1.3'
-            #'2.2': 1 if True else 0,
+            '1.3': 1 if self._current_activity() else 0,
+            '2.2': 1 if ( len(self.element.xpath('recipient-country')) == 1 and
+                          self.element.xpath('recipient-country/@code')[0] in country_lang_map and
+                          self.element.xpath('@xml:lang') != country_lang_map[self.element.xpath('recipient-country/@code')[0]]) else 0,
             '2.3': 1,
             '2.4': 1,
             '2.5': 1,
@@ -359,8 +421,8 @@ class PublisherStats(object):
     # The following two functions have different names to the AllData equivalents
     # This is because the aggregation of the publisher level functions will ignore duplication between publishers
 
-    @memoize
     @returns_number
+    @memoize
     def publisher_unique_identifiers(self):
         return len(self.aggregated['iati_identifiers'])
 
@@ -368,10 +430,77 @@ class PublisherStats(object):
     def publisher_duplicate_identifiers(self):
         return {k:v for k,v in self.aggregated['iati_identifiers'].items() if v>1}
 
+    def _timeliness_transactions(self):
+        tt = self.aggregated['transaction_timing']
+        if [tt['30'], tt['60'], tt['90']].count(0) <= 1:
+            return 'Monthly'
+        elif [tt['30'], tt['60'], tt['90']].count(0) <= 2:
+            return 'Quarterly'
+        elif tt['180'] != 0:
+            return 'Six-montly'
+        elif tt['360'] != 0:
+            return 'Annual'
+        else:
+            return 'Beyond one year'
+
+    def _transaction_alignment(self):
+        transaction_months = self.aggregated['transaction_months'].keys()
+        if len(transaction_months) == 12:
+            return 'Monthly'
+        elif len(set(map(lambda x: (int(x)-1)//3, transaction_months))) == 4:
+            return 'Quarterly'
+        elif len(transaction_months) >= 1:
+            return 'Annually'
+        else:
+            return ''
+   
+    @no_aggregation
+    @memoize
+    def budget_length_median(self):
+        budget_lengths = self.aggregated['budget_lengths']
+        budgets = sum(budget_lengths.values())
+        i = 0
+        median = None
+        for k,v in sorted([ (int(k),v) for k,v in budget_lengths.items()]):
+            i += v
+            if i >= (budgets/2.0):
+                if median:
+                    # Handle the case where the median falls between two frequency bins
+                    median = (median + k) / 2.0
+                else:
+                    median = k
+                if i != (budgets/2.0):
+                    break
+        return median
+
+    def _budget_alignment(self):
+        median = self.budget_length_median()
+        if median is None:
+            return 'Not known'
+        elif median < 100:
+            return 'Quarterly'
+        elif median < 370:
+            return 'Annually'
+        else:
+            return 'Beyond one year'
+
+    @no_aggregation
+    def annualreport_textual(self):
+        return {
+            '1.1': self._timeliness_transactions(),
+            #'1.2':
+            '1.4': self._transaction_alignment(),
+            '1.5': self._budget_alignment(),
+        }
+
     @returns_numberdict
     def annualreport(self):
         out = self.aggregated['annualreport']
         out.update({
+            '1.1': 0,
+            '1.2': 0,
+            '1.4': 0,
+            '1.5': 0,
             '2.1': self.publisher_unique_identifiers()
         })
         return out

@@ -215,6 +215,14 @@ class ActivityStats(CommonSharedElements):
                 out[(period_end - period_start).days] += 1
         return out
 
+    @memoize
+    def _recipient_language(self):
+        try:
+            return country_lang_map[self.element.xpath('recipient-country/@code')[0]]
+        except IndexError:
+            return None
+
+
     @returns_numberdict
     @memoize
     def annualreport(self):
@@ -223,8 +231,9 @@ class ActivityStats(CommonSharedElements):
             '2.2': 1 if ( len(self.element.xpath('recipient-country')) == 1 and
                           self.element.xpath('recipient-country/@code')[0] in country_lang_map and
                           self.element.xpath('@xml:lang') != country_lang_map[self.element.xpath('recipient-country/@code')[0]] and
-                          ( self.element.xpath('title/@xml:lang={0}'.format(country_lang_map[self.element.xpath('recipient-country/@code')[0]])
-                            or self.element.xpath('title/@xml:lang={0}'.format(country_lang_map[self.element.xpath('recipient-country/@code')[0]]))))) else 0,
+                          self._recipient_language() and
+                          ( self.element.xpath('title[@xml:lang="{0}"]'.format(self._recipient_language())
+                            or self.element.xpath('description[@xml:lang="{0}"]'.format(self._recipient_language()))))) else 0,
             '2.3': 1 if self.element.xpath('activity-date[@type="start-planned"]') or self.element.xpath('activity-date[@type="start-actual"]') else 0,
             '2.4': 1 if self.element.xpath('activity-date[@type="end-planned"]') or self.element.xpath('activity-date[@type="end-actual"]') else 0,
             '2.5': 1 if self.element.xpath('participating-org[@role="Implementing"]') else 0,

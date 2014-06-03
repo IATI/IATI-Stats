@@ -64,6 +64,18 @@ class CommonSharedElements(object):
         return {self.element.find('reporting-org').attrib.get('ref'):1}
 
     @returns_numberdict
+    def participating_orgs(self):
+        return dict([ (x.attrib.get('ref'), 1) for x in self.element.findall('participating-org')])
+
+    @returns_numberdictdict
+    def participating_orgs_text(self):
+        return dict([ (x.attrib.get('ref'), {x.text:1}) for x in self.element.findall('participating-org')])
+
+    @returns_numberdictdict
+    def participating_orgs_by_role(self):
+        return dict([ (x.attrib.get('role'), {x.attrib.get('ref'):1}) for x in self.element.findall('participating-org')])
+
+    @returns_numberdict
     def element_versions(self):
         return { self.element.attrib.get('version'): 1 }
 

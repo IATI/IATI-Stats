@@ -215,7 +215,7 @@ class ActivityStats(CommonSharedElements):
             if date:
                 out[date.month] += 1
         return out
-       
+
     @memoize
     def _end_actual(self):
         try:
@@ -304,6 +304,31 @@ class ActivityStats(CommonSharedElements):
             '6.4': 1,
 
         }
+
+    def _spend_currency_year(self, transactions):
+        out = defaultdict(lambda: defaultdict(Decimal))
+        for transaction in transactions:
+            value = transaction.find('value')
+            date = transaction_date(transaction)
+            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+            if date:
+                out[date.year][currency] += Decimal(value.text)
+            else:
+                out[None][currency] += Decimal(value.text)
+        return out
+
+    def _oda_test(self, transaction):
+        default_flow_type = self.element.xpath('default-flow-type/@code')
+        flow_type = transaction.xpath('flow-type/@code')
+        return '10' in default_flow_type or '10' in flow_type or (len(default_flow_type) == 0 and len(flow_type) == 0)
+
+    @returns_numberdictdict
+    def spend_currency_year(self):
+        return self._spend_currency_year(self.element.findall('transaction'))
+
+    @returns_numberdictdict
+    def spend_currency_year_oda(self):
+        return self._spend_currency_year(filter(self._oda_test, self.element.findall('transaction')))
 
 import json
 ckan = json.load(open('helpers/ckan.json'))

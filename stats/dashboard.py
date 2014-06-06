@@ -476,7 +476,7 @@ class PublisherStats(object):
         elif [tt['30'], tt['60'], tt['90']].count(0) <= 2:
             return 'Quarterly'
         elif tt['180'] != 0:
-            return 'Six-montly'
+            return 'Six-monthly'
         elif tt['360'] != 0:
             return 'Annual'
         else:

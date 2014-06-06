@@ -171,6 +171,24 @@ class ActivityStats(CommonSharedElements):
             for value in self.element.xpath(path):
                 out[path][value] += 1
         return out 
+    
+    @returns_numberdict
+    def provider_org(self):
+        out = defaultdict(int)
+        for transaction in self.element.findall('transaction'):
+            provider_org = transaction.find('provider-org')
+            if provider_org is not None:
+                out[provider_org.attrib.get('ref')] += 1
+        return out
+
+    @returns_numberdict
+    def receiver_org(self):
+        out = defaultdict(int)
+        for transaction in self.element.findall('transaction'):
+            receiver_org = transaction.find('receiver-org')
+            if receiver_org is not None:
+                out[receiver_org.attrib.get('ref')] += 1
+        return out
 
     @returns_numberdict
     def transaction_timing(self):

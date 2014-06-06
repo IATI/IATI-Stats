@@ -47,21 +47,6 @@ def aggregate_largest(f):
             return f(self, *args, **kwargs)
     return wrapper
 
-def budget_year(budget):
-    start = iso_date(budget.find('period-start'))
-    end = iso_date(budget.find('period-end'))
-
-    if start and end:
-        if (end-start).days < 370:
-            if end.month > 7:
-                return end.year
-            else:
-                return end.year - 1
-        else:
-            return None
-    else:
-        return None
-
 
 class PublisherStats(object):
     blank = False

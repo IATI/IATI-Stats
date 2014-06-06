@@ -28,3 +28,18 @@ def transaction_date(transaction):
     elif transaction.find('value') is not None:
         return iso_date_match(transaction.find('value').attrib.get('value-date'))
 
+def budget_year(budget):
+    start = iso_date(budget.find('period-start'))
+    end = iso_date(budget.find('period-end'))
+
+    if start and end:
+        if (end-start).days < 370:
+            if end.month > 7:
+                return end.year
+            else:
+                return end.year - 1
+        else:
+            return None
+    else:
+        return None
+

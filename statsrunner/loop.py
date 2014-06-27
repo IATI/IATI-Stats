@@ -45,38 +45,42 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
             return
 
     try:
-        doc = etree.parse(inputfile)
-        root = doc.getroot()
-        def process_stats_file(FileStats):
-            file_stats = FileStats()
-            file_stats.doc = doc
-            file_stats.root = root
-            file_stats.strict = args.strict
-            file_stats.context = 'in '+inputfile
-            file_stats.fname = os.path.basename(inputfile)
-            file_stats.inputfile = inputfile
-            return call_stats(file_stats, args)
-
-        def process_stats_element(ElementStats, tagname=None):
-            for element in root:
-                if tagname and tagname != element.tag: continue
-                element_stats = ElementStats()
-                element_stats.element = element
-                element_stats.strict = args.strict
-                element_stats.context = 'in '+inputfile
-                yield call_stats(element_stats, args)
-
-        def process_stats(FileStats, ElementStats, tagname=None):
-            file_out = process_stats_file(FileStats)
-            out = process_stats_element(ElementStats, tagname)
-            return {'file':file_out, 'elements':out}
-
-        if root.tag == 'iati-activities':
-            stats_json = process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, 'iati-activity')
-        elif root.tag == 'iati-organisations':
-            stats_json = process_stats(stats_module.OrganisationFileStats, stats_module.OrganisationStats, 'iati-organisation')
+        file_size = os.stat(inputfile).st_size
+        if file_size > 50000000: # Use same limit as registry https://github.com/okfn/ckanext-iati/blob/606e0919baf97552a14b7c608529192eb7a04b19/ckanext/iati/archiver.py#L23
+            stats_json = {'file':{'toolarge':1}, 'elements':[], 'file_size':file_size}
         else:
-            stats_json = {'file':{'nonstandardroots':1}, 'elements':[]}
+            doc = etree.parse(inputfile)
+            root = doc.getroot()
+            def process_stats_file(FileStats):
+                file_stats = FileStats()
+                file_stats.doc = doc
+                file_stats.root = root
+                file_stats.strict = args.strict
+                file_stats.context = 'in '+inputfile
+                file_stats.fname = os.path.basename(inputfile)
+                file_stats.inputfile = inputfile
+                return call_stats(file_stats, args)
+
+            def process_stats_element(ElementStats, tagname=None):
+                for element in root:
+                    if tagname and tagname != element.tag: continue
+                    element_stats = ElementStats()
+                    element_stats.element = element
+                    element_stats.strict = args.strict
+                    element_stats.context = 'in '+inputfile
+                    yield call_stats(element_stats, args)
+
+            def process_stats(FileStats, ElementStats, tagname=None):
+                file_out = process_stats_file(FileStats)
+                out = process_stats_element(ElementStats, tagname)
+                return {'file':file_out, 'elements':out}
+
+            if root.tag == 'iati-activities':
+                stats_json = process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, 'iati-activity')
+            elif root.tag == 'iati-organisations':
+                stats_json = process_stats(stats_module.OrganisationFileStats, stats_module.OrganisationStats, 'iati-organisation')
+            else:
+                stats_json = {'file':{'nonstandardroots':1}, 'elements':[]}
 
     except etree.ParseError:
         print 'Could not parse file {0}'.format(inputfile)

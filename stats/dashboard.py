@@ -438,6 +438,9 @@ class GenericFileStats(object):
     def nonstandardroots(self):
         return 0
 
+    def toolarge(self):
+        return 0
+
 
 
     

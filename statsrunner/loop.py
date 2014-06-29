@@ -47,7 +47,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
     try:
         file_size = os.stat(inputfile).st_size
         if file_size > 50000000: # Use same limit as registry https://github.com/okfn/ckanext-iati/blob/606e0919baf97552a14b7c608529192eb7a04b19/ckanext/iati/archiver.py#L23
-            stats_json = {'file':{'toolarge':1}, 'elements':[], 'file_size':file_size}
+            stats_json = {'file':{'toolarge':1, 'file_size':file_size}, 'elements':[], }
         else:
             doc = etree.parse(inputfile)
             root = doc.getroot()

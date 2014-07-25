@@ -8,7 +8,7 @@ out = defaultdict(dict)
 for publisher in os.listdir('ckan'):
     with open(os.path.join('ckan', publisher)) as fp:
         try:
-	    for package in json.load(fp)['result']:
+	    for package in json.load(fp)['result']['results']:
 		if package['resources']:
 		    extras = dict((x['key'], x['value']) for x in package['extras'])
 		    out[publisher][package['name']] = {

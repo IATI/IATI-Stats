@@ -310,11 +310,13 @@ class ActivityStats(CommonSharedElements):
         for transaction in transactions:
             value = transaction.find('value')
             date = transaction_date(transaction)
-            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-            if date:
-                out[date.year][currency] += Decimal(value.text)
-            else:
-                out[None][currency] += Decimal(value.text)
+            if (transaction.find('transaction-type') is not None and
+                    transaction.find('transaction-type').attrib.get('code') in ['D','E']):
+                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+                if date:
+                    out[date.year][currency] += Decimal(value.text)
+                else:
+                    out[None][currency] += Decimal(value.text)
         return out
 
     @returns_numberdictdict

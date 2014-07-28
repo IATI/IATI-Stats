@@ -317,18 +317,9 @@ class ActivityStats(CommonSharedElements):
                 out[None][currency] += Decimal(value.text)
         return out
 
-    def _oda_test(self, transaction):
-        default_flow_type = self.element.xpath('default-flow-type/@code')
-        flow_type = transaction.xpath('flow-type/@code')
-        return '10' in default_flow_type or '10' in flow_type or (len(default_flow_type) == 0 and len(flow_type) == 0)
-
     @returns_numberdictdict
     def spend_currency_year(self):
         return self._spend_currency_year(self.element.findall('transaction'))
-
-    @returns_numberdictdict
-    def spend_currency_year_oda(self):
-        return self._spend_currency_year(filter(self._oda_test, self.element.findall('transaction')))
 
     @returns_numberdictdict
     def forwardlooking_currency_year(self):

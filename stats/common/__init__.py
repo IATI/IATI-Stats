@@ -43,3 +43,14 @@ def budget_year(budget):
     else:
         return None
 
+def planned_disbursement_year(planned_disbursement):
+    start = iso_date(planned_disbursement.find('period-start'))
+    end = iso_date(planned_disbursement.find('period-end'))
+
+    if start and end:
+        return budget_year(planned_disbursement)
+    elif start:
+        return start
+    else:
+        return None
+

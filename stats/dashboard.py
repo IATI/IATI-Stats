@@ -397,6 +397,22 @@ class ActivityStats(CommonSharedElements):
             out[budget.attrib.get('type')][currency][budget_year(budget)] += Decimal(value.text)
         return out
 
+    @returns_numberdict
+    def count_planned_disbursements_by_year(self):
+        out = defaultdict(int)
+        for pd in self.element.findall('planned-disbursement'):
+            out[planned_disbursement_year(pd)] += 1
+        return out
+
+    @returns_numberdictdict
+    def sum_planned_disbursements_by_year(self):
+        out = defaultdict(lambda: defaultdict(Decimal))
+        for pd in self.element.findall('planned-disbursement'):
+            value = pd.find('value')
+            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+            out[currency][planned_disbursement_year(pd)] += Decimal(value.text)
+        return out
+
 import json
 ckan = json.load(open('helpers/ckan.json'))
 publisher_re = re.compile('(.*)\-[^\-]')

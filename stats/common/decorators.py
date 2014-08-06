@@ -14,8 +14,17 @@ def memoize(f):
 
 
 ## Decorators that modify return when self.blank = True etc.
+def returns_numberdictdictdict(f):
+    def wrapper(self, *args, **kwargs):
+        if self.blank:
+            return defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+        else:
+            out = f(self, *args, **kwargs)
+            if out is None: return {}
+            else: return out
+    return wrapper
+
 def returns_numberdictdict(f):
-    """ Dectorator for dictionaries of integers. """
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return defaultdict(lambda: defaultdict(int))

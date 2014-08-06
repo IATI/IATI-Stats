@@ -305,18 +305,18 @@ class ActivityStats(CommonSharedElements):
 
         }
 
+    def _transaction_year(self, transaction):
+        date = transaction_date(transaction)
+        return date.year if date else None
+
     def _spend_currency_year(self, transactions):
         out = defaultdict(lambda: defaultdict(Decimal))
         for transaction in transactions:
             value = transaction.find('value')
-            date = transaction_date(transaction)
             if (transaction.find('transaction-type') is not None and
                     transaction.find('transaction-type').attrib.get('code') in ['D','E']):
                 currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-                if date:
-                    out[date.year][currency] += Decimal(value.text)
-                else:
-                    out[None][currency] += Decimal(value.text)
+                out[self._transaction_year(transaction)][currency] += Decimal(value.text)
         return out
 
     @returns_numberdictdict
@@ -339,16 +339,19 @@ class ActivityStats(CommonSharedElements):
                 out[budget_year(planned_disbursement)][currency] += Decimal(value.text)
         return out
 
+    def _transaction_type_code(self, transaction):
+        type_code = None
+        transaction_type = transaction.find('transaction-type')
+        if transaction_type is not None:
+            type_code = transaction_type.attrib.get('code')
+        return type_code
+
     @returns_numberdictdict
     def transaction_dates(self):
         out = defaultdict(lambda: defaultdict(int))
         for transaction in self.element.findall('transaction'):
-            type_code = None
-            transaction_type = transaction.find('transaction-type')
-            if transaction_type is not None:
-                type_code = transaction_type.attrib.get('code')
             date = transaction_date(transaction)
-            out[type_code][unicode(date)] += 1
+            out[self._transaction_type_code(transaction)][unicode(date)] += 1
         return out
 
     @returns_numberdictdict
@@ -358,6 +361,40 @@ class ActivityStats(CommonSharedElements):
             type_code = activity_date.attrib.get('type')
             date = iso_date(activity_date)
             out[type_code][unicode(date)] += 1
+        return out
+
+    @returns_numberdictdict
+    def count_transactions_by_type_by_year(self):
+        out = defaultdict(lambda: defaultdict(int))
+        for transaction in self.element.findall('transaction'):
+            out[self._transaction_type_code(transaction)][self._transaction_year(transaction)] += 1
+        return out
+
+    @returns_numberdictdictdict
+    def sum_transactions_by_type_by_year(self):
+        out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
+        for transaction in self.element.findall('transaction'):
+            value = transaction.find('value')
+            if (transaction.find('transaction-type') is not None and
+                    transaction.find('transaction-type').attrib.get('code') in ['D','E']):
+                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+                out[self._transaction_type_code(transaction)][currency][self._transaction_year(transaction)] += Decimal(value.text)
+        return out
+
+    @returns_numberdictdict
+    def count_budgets_by_type_by_year(self):
+        out = defaultdict(lambda: defaultdict(int))
+        for budget in self.element.findall('budget'):
+            out[budget.attrib.get('type')][budget_year(budget)] += 1
+        return out
+
+    @returns_numberdictdictdict
+    def sum_budgets_by_type_by_year(self):
+        out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
+        for budget in self.element.findall('budget'):
+            value = budget.find('value')
+            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+            out[budget.attrib.get('type')][currency][budget_year(budget)] += Decimal(value.text)
         return out
 
 import json

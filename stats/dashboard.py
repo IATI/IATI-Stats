@@ -339,14 +339,26 @@ class ActivityStats(CommonSharedElements):
                 out[budget_year(planned_disbursement)][currency] += Decimal(value.text)
         return out
 
-    @returns_numberdict
+    @returns_numberdictdict
     def transaction_dates(self):
-        out = defaultdict(int)
+        out = defaultdict(lambda: defaultdict(int))
         for transaction in self.element.findall('transaction'):
+            type_code = None
+            transaction_type = transaction.find('transaction-type')
+            if transaction_type is not None:
+                type_code = transaction_type.attrib.get('code')
             date = transaction_date(transaction)
-            out[unicode(date)] += 1
+            out[type_code][unicode(date)] += 1
         return out
 
+    @returns_numberdictdict
+    def activity_dates(self):
+        out = defaultdict(lambda: defaultdict(int))
+        for activity_date in self.element.findall('activity-date'):
+            type_code = activity_date.attrib.get('type')
+            date = iso_date(activity_date)
+            out[type_code][unicode(date)] += 1
+        return out
 
 import json
 ckan = json.load(open('helpers/ckan.json'))

@@ -47,7 +47,6 @@ for commit in $commits; do
         cd .. || exit $?
         mkdir -p gitout/hash
         python statsrunner/hashlink.py || exit 1
-        find data | grep commit
         python calculate_stats.py $@ loop --new || exit 1
         python calculate_stats.py $@ aggregate || exit 1
         python calculate_stats.py $@ invert

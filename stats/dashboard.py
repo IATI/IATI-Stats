@@ -663,6 +663,26 @@ class PublisherStats(object):
         })
         return out
 
+    @no_aggregation
+    def date_extremes(self):
+        notnone = lambda x: x is not None
+        activity_dates = { k:filter(notnone, map(iso_date_match, v.keys()))
+                for k,v in self.aggregated['activity_dates'].items() }
+        min_dates = { k:min(v) for k,v in activity_dates.items() if v }
+        max_dates = { k:max(v) for k,v in activity_dates.items() if v }
+        overall_min = unicode(min(min_dates.values())) if min_dates else None
+        overall_max = unicode(max(max_dates.values())) if min_dates else None
+        return {
+            'min': {
+                'overall': overall_min,
+                'by_type': { k:unicode(v) for k,v in min_dates.items() }
+            },
+            'max': {
+                'overall': overall_max,
+                'by_type': { k:unicode(v) for k,v in max_dates.items() }
+            },
+        }
+
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """
     doc = None

@@ -8,7 +8,7 @@ if dated:
 
 
 for commit in os.listdir(os.path.join('gitout', 'commits')):
-    for publisher in ['dfid']:#FIXME os.listdir(os.path.join('gitout', 'commits', commit, 'aggregated-publisher')):
+    for publisher in os.listdir(os.path.join('gitout', 'commits', commit, 'aggregated-publisher')):
         git_out_dir = os.path.join('gitout','gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)
         total = defaultdict(dict)
         if os.path.isdir(git_out_dir):

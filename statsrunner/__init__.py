@@ -2,6 +2,16 @@ import argparse
 import statsrunner.loop
 import statsrunner.aggregate
 import statsrunner.invert
+import datetime
+import re
+
+def parse_date(x):
+    xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')
+    m = xsDateRegex.match(x)
+    if m:
+        return datetime.date(*map(int, m.groups()))
+    else:
+        raise ValueError
 
 def calculate_stats():
     parser = argparse.ArgumentParser()
@@ -24,6 +34,10 @@ def calculate_stats():
     parser.add_argument("--verbose-loop",
         help="",
         action="store_true")
+    parser.add_argument("--today",
+        help="",
+        type=parse_date,
+        default=datetime.date.today())
     subparsers = parser.add_subparsers()
 
     parser_loop = subparsers.add_parser('loop',

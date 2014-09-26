@@ -683,6 +683,20 @@ class PublisherStats(object):
             },
         }
 
+    @no_aggregation
+    def most_recent_transaction_date(self):
+        nonfuture_transaction_dates = filter(lambda x: x is not None and x <= self.today,
+            map(iso_date_match, sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])))
+        if nonfuture_transaction_dates:
+            return unicode(max(nonfuture_transaction_dates))
+
+    @no_aggregation
+    def latest_transaction_date(self):
+        transaction_dates = filter(lambda x: x is not None,
+            map(iso_date_match, sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])))
+        if transaction_dates:
+            return unicode(max(transaction_dates))
+
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """
     doc = None

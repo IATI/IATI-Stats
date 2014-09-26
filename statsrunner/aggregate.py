@@ -93,6 +93,7 @@ def aggregate(args):
         publisher_stats = stats_module.PublisherStats()
         publisher_stats.aggregated = publisher_total
         publisher_stats.folder = folder
+        publisher_stats.today = args.today
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
             if not statsrunner.shared.use_stat(publisher_stats, name): continue
             publisher_total[name] = function()

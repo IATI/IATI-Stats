@@ -3,6 +3,7 @@ This is the default stats module used by calculate_stats.py
 You can choose a different set of tests by running calculate_stats.py with the ``--stats-module`` flag. 
 
 """
+from __future__ import print_function
 from lxml import etree
 import datetime
 from collections import defaultdict, OrderedDict
@@ -214,6 +215,15 @@ class ActivityStats(CommonSharedElements):
             date = transaction_date(transaction)
             if date:
                 out[date.month] += 1
+        return out
+
+    @returns_numberdict
+    def transaction_months_with_year(self):
+        out = defaultdict(int)
+        for transaction in self.element.findall('transaction'):
+            date = transaction_date(transaction)
+            if date:
+                out['{}-{}'.format(date.year, str(date.month).zfill(2))] += 1
         return out
 
     @memoize
@@ -589,6 +599,30 @@ class PublisherStats(object):
         elif tt['180'] != 0:
             return 'Six-monthly'
         elif tt['360'] != 0:
+            return 'Annual'
+        else:
+            return 'Beyond one year'
+
+    @no_aggregation
+    def timelag(self):
+        def previous_months_generator(d):
+            year = d.year
+            month = d.month
+            for i in range(0,12):
+                month -= 1
+                if month <= 0:
+                    year -= 1
+                    month = 12
+                yield '{}-{}'.format(year,str(month).zfill(2))
+        previous_months = list(previous_months_generator(self.today))
+        transaction_months_with_year = self.aggregated['transaction_months_with_year']
+        if [ x in transaction_months_with_year  for x in previous_months[:3] ].count(True) >= 2:
+            return 'Monthly'
+        elif [ x in transaction_months_with_year  for x in previous_months[:3] ].count(True) >= 1:
+            return 'Quarterly'
+        elif True in [ x in transaction_months_with_year  for x in previous_months[:6] ]:
+            return 'Six-monthly'
+        elif  True in [ x in transaction_months_with_year  for x in previous_months[:12] ]:
             return 'Annual'
         else:
             return 'Beyond one year'

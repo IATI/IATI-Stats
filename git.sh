@@ -18,7 +18,7 @@ cd data || exit $?
 git checkout automatic
 git reset --hard
 git clean -df
-#git pull --ff-only
+git pull --ff-only
 
 # Create gitdate file
 echo '{' > gitdate.json

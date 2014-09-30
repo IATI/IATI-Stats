@@ -617,15 +617,15 @@ class PublisherStats(object):
         previous_months = list(previous_months_generator(self.today))
         transaction_months_with_year = self.aggregated['transaction_months_with_year']
         if [ x in transaction_months_with_year  for x in previous_months[:3] ].count(True) >= 2:
-            return 'Monthly'
+            return 'One month'
         elif [ x in transaction_months_with_year  for x in previous_months[:3] ].count(True) >= 1:
-            return 'Quarterly'
+            return 'A quarter'
         elif True in [ x in transaction_months_with_year  for x in previous_months[:6] ]:
-            return 'Six-monthly'
+            return 'Six months'
         elif  True in [ x in transaction_months_with_year  for x in previous_months[:12] ]:
-            return 'Annual'
+            return 'One year'
         else:
-            return 'Beyond one year'
+            return 'More than one year'
 
     def _transaction_alignment(self):
         transaction_months = self.aggregated['transaction_months'].keys()

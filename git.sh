@@ -37,8 +37,8 @@ commits=`git log --format=format:%H`
 cd .. || exit $?
 
 for commit in $commits; do
-    if grep -q $commit gitout/gitaggregate/activities.json; then
-    # if [ -d gitout/commits/$commit ]; then # (uncomment htis to check commits dir instead of gitaggregate)
+    #if grep -q $commit gitout/gitaggregate/activities.json; then
+    if [ -d gitout/commits/$commit ]; then # (uncomment this to check commits dir instead of gitaggregate)
         echo Skipping $commit
     else
         cd data || exit $?

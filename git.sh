@@ -48,11 +48,12 @@ for commit in $commits; do
         commit_date=`git log --format="format:%ai" | head -n 1`
         cd .. || exit $?
         mkdir -p gitout/hash
-        python statsrunner/hashlink.py || exit 1
-        python calculate_stats.py $@ --today "$commit_date" loop --new || exit 1
+        # Disable this because it doesn't work for date dependent stuff.........
+        #python statsrunner/hashlink.py || exit 1
+        python calculate_stats.py $@ --today "$commit_date" loop || exit 1 #--new || exit 1
         python calculate_stats.py $@ --today "$commit_date" aggregate || exit 1
         python calculate_stats.py $@ --today "$commit_date" invert
-        python statsrunner/hashcopy.py || exit 1
+        #python statsrunner/hashcopy.py || exit 1
         rm -r gitout/commits/$commit
         mkdir -p gitout/commits/$commit
         mv out/aggregated* out/inverted* gitout/commits/$commit || exit $?

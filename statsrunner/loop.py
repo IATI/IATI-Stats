@@ -68,6 +68,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
                     element_stats.element = element
                     element_stats.strict = args.strict
                     element_stats.context = 'in '+inputfile
+                    element_stats.today = args.today
                     yield call_stats(element_stats, args)
 
             def process_stats(FileStats, ElementStats, tagname=None):

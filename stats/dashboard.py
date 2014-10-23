@@ -111,7 +111,10 @@ class ActivityStats(CommonSharedElements):
 
     def by_hierarchy(self):
         out = {}
-        for stat in ['activities', 'elements', 'elements_total', 'annualreport', 'annualreport_denominator']:
+        for stat in ['activities', 'elements', 'elements_total',
+                     'annualreport', 'annualreport_denominator',
+                     'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets'
+                     ]:
             out[stat] = copy.deepcopy(getattr(self, stat)())
         if self.blank:
             return defaultdict(lambda: out)

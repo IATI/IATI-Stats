@@ -337,16 +337,10 @@ class ActivityStats(CommonSharedElements):
     def forwardlooking_currency_year(self):
         out = defaultdict(lambda: defaultdict(Decimal))
         budgets = self.element.findall('budget')
-        if len(budgets):
-            for budget in budgets:
-                value = budget.find('value')
-                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-                out[budget_year(budget)][currency] += Decimal(value.text)
-        else:
-            for planned_disbursement in self.element.findall('planned-disbursement'):
-                value = planned_disbursement.find('value')
-                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-                out[budget_year(planned_disbursement)][currency] += Decimal(value.text)
+        for budget in budgets:
+            value = budget.find('value')
+            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+            out[budget_year(budget)][currency] += Decimal(value.text)
         return out
 
     def _transaction_type_code(self, transaction):

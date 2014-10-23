@@ -343,6 +343,38 @@ class ActivityStats(CommonSharedElements):
             out[budget_year(budget)][currency] += Decimal(value.text)
         return out
 
+    def _forwardlooking_is_current(self, year):
+        activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="end-planned"]') ]
+        return any(activity_end_year>=year for activity_end_year in activity_end_years)
+
+    @returns_numberdict
+    def forwardlooking_activities_current(self):
+        """
+        The number of current activities for this year and the following 2 years.
+
+        http://support.iatistandard.org/entries/52291985-Forward-looking-Activity-level-budgets-numerator
+
+        Note: this is a different definition of 'current' to the older annual
+        report stats in this file, so does not re-use those functions.
+
+        """
+        this_year = datetime.date.today().year
+        return { year: int(self._forwardlooking_is_current(year))
+                    for year in range(this_year, this_year+3) }
+
+    @returns_numberdict
+    def forwardlooking_activities_with_budgets(self):
+        """
+        The number of current activities with budgets for this year and the following 2 years.
+
+        http://support.iatistandard.org/entries/52292065-Forward-looking-Activity-level-budgets-denominator
+
+        """
+        this_year = datetime.date.today().year
+        budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
+        return { year: int(self._forwardlooking_is_current(year) and year in budget_years)
+                    for year in range(this_year, this_year+3) }
+
     def _transaction_type_code(self, transaction):
         type_code = None
         transaction_type = transaction.find('transaction-type')

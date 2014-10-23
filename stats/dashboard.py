@@ -347,7 +347,7 @@ class ActivityStats(CommonSharedElements):
         return out
 
     def _forwardlooking_is_current(self, year):
-        activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="end-planned"]') ]
+        activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="end-planned" or @type="end-actual"]') if iso_date(x) ]
         return any(activity_end_year>=year for activity_end_year in activity_end_years)
 
     @returns_numberdict

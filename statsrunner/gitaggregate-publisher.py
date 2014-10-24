@@ -1,6 +1,7 @@
 import json, os, sys
 from collections import defaultdict
 import decimal
+from common import decimal_default
 
 dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'
 if dated:
@@ -38,4 +39,4 @@ for commit in os.listdir(os.path.join('gitout', 'commits')):
 
         for k,v in total.items():
             with open(os.path.join(git_out_dir, k+'.json'), 'w') as fp:
-                json.dump(v, fp, sort_keys=True, indent=2)
+                json.dump(v, fp, sort_keys=True, indent=2, default=decimal_default)

@@ -1,11 +1,7 @@
 import json, os, sys
 from collections import defaultdict
 import decimal
-
-def decimal_default(obj):
-    if isinstance(obj, decimal.Decimal):
-        return float(obj)
-    raise TypeError
+from common import decimal_default
 
 
 dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'

@@ -119,7 +119,8 @@ class ActivityStats(CommonSharedElements):
         if self.blank:
             return defaultdict(lambda: out)
         else:
-            return { self.element.attrib.get('hierarchy'): out }
+            hierarchy = self.element.attrib.get('hierarchy')
+            return { (1 if hierarchy is None else hierarchy): out }
 
     @returns_numberdict
     def currencies(self):
@@ -572,7 +573,7 @@ class PublisherStats(object):
 
     @returns_dict
     def bottom_hierarchy(self):
-        hierarchies = self.aggregated['hierarchies'].keys()
+        hierarchies = self.aggregated['by_hierarchy'].keys()
         if not hierarchies: return
         try:
             h = str(max(map(int, hierarchies)))

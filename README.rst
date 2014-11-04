@@ -46,9 +46,9 @@ Getting started
     cd ..
 
     # Calculate some stats 
-    python calculate_stats loop [--folder publisher-registry-id]
-    python calculate_stats aggreagate
-    python calculate_stats invert
+    python calculate_stats.py loop [--folder publisher-registry-id]
+    python calculate_stats.py aggreagate
+    python calculate_stats.py invert
     # You will now have some JSON stats in the out/ directory
 
 You can run ``python calculate_stats.py --help`` for a full list of command line options.

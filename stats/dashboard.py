@@ -379,6 +379,22 @@ class ActivityStats(CommonSharedElements):
         return { year: int(self._forwardlooking_is_current(year) and year in budget_years)
                     for year in range(this_year, this_year+3) }
 
+    def _comprehensiveness_is_current(self):
+        activity_status_code = self.element.xpath('activity-status/@code')
+        if activity_status_code:
+            return activity_status_code[0] == '2'
+        else:
+            activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="end-planned" or @type="end-actual"]') if iso_date(x) ]
+            return (not activity_end_years) or any(activity_end_year>=self.today.year for activity_end_year in activity_end_years)
+
+    @returns_numberdict
+    def comprehensiveness(self):
+        return
+
+    @returns_numberdict
+    def comprehensiveness_denominator(self):
+        return
+
     def _transaction_type_code(self, transaction):
         type_code = None
         transaction_type = transaction.find('transaction-type')

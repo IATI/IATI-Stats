@@ -3,7 +3,6 @@ import datetime
 
 from stats.dashboard import ActivityStats
 
-# FIXME comprehensiveness is spelt wrong
 
 def test_comperhensiveness_is_current():
     activity_stats = ActivityStats()
@@ -82,3 +81,23 @@ y
         </iati-activity>
     ''')
     assert activity_stats._comprehensiveness_is_current()
+
+    # Activity status should take priority over activity date
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <activity-date type="end-actual" iso-date="9990-12-31"/>
+y
+        </iati-activity>
+    ''')
+    assert activity_stats._comprehensiveness_is_current()
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="4"/> 
+            <activity-date type="end-actual" iso-date="9990-06-01"/>
+y
+        </iati-activity>
+    ''')
+    assert not activity_stats._comprehensiveness_is_current()
+

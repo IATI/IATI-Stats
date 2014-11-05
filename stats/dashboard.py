@@ -49,6 +49,7 @@ def element_to_count_dict(element, path, count_dict, count_multiple=False):
             count_dict[path+'/@'+attribute] = 1
     return count_dict
 
+
 #Deals with elements that are in both organisation and activity files
 class CommonSharedElements(object):
     blank = False
@@ -389,11 +390,40 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def comprehensiveness(self):
-        return
+        if self._comprehensiveness_is_current():
+            def all_and_not_empty(bool_iterable):
+                bool_list = list(bool_iterable)
+                return all(bool_list) and len(bool_list)
+            return {
+                'reporting-org': 1 if self.element.find('reporting-org') is not None else 0,
+                'iati-identifier': 1 if self.element.find('iati-identifier') is not None else 0,
+                'participating-org': 1 if self.element.find('participating-org') is not None else 0,
+                'title': 1 if self.element.find('title') is not None else 0,
+                'description': 1 if self.element.find('description') is not None else 0,
+                'activity-status': 1 if self.element.find('activity-status') is not None else 0,
+                'activity-date': 1 if self.element.find('activity-date') is not None else 0,
+                'sector': 1 if self.element.find('sector') is not None or all_and_not_empty(
+                        (transaction.find('sector') is not None)
+                            for transaction in self.element.findall('transaction')
+                    ) else 0,
+                'country_or_region': 1 if (
+                    self.element.find('recipient-country') is not None
+                    or self.element.find('recipient-region') is not None
+                    or all_and_not_empty(
+                        (transaction.find('recipient-country') is not None or
+                         transaction.find('recipient-region') is not None)
+                            for transaction in self.element.findall('transaction')
+                    )) else 0,
+            #    '': 1 if self.element.find('') else 0,
+            #    '': 1 if self.element.find('') else 0,
+            #    '': 1 if self.element.find('') else 0,
+            }
+        else:
+            return {}
 
-    @returns_numberdict
+    @returns_number
     def comprehensiveness_denominator(self):
-        return
+        return 1 if self._comprehensiveness_is_current() else 0
 
     def _transaction_type_code(self, transaction):
         type_code = None

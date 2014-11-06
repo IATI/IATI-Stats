@@ -4,7 +4,7 @@ import datetime
 from stats.dashboard import ActivityStats
 
 
-def test_comperhensiveness_is_current():
+def test_comprehensiveness_is_current():
     activity_stats = ActivityStats()
     activity_stats.today = datetime.date(9990, 6, 1)
 
@@ -101,10 +101,10 @@ y
     ''')
     assert not activity_stats._comprehensiveness_is_current()
 
-def test_comperhensiveness_denominator():
+def test_comprehensiveness_denominator():
     pass
 
-def test_comperhensiveness_empty():
+def test_comprehensiveness_empty():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
         <iati-activity>

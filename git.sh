@@ -1,10 +1,9 @@
 #!/bin/bash
 
-# Clear gitout
-##cd gitout || exit $?
-##git rm -r *
-##rm -rf *
-##cd .. || exit $?
+echo $GITOUT_DIR
+if [ "$GITOUT_DIR" = "" ]; then
+    GITOUT_DIR="gitout"
+fi
 
 cd helpers
 python ckan.py
@@ -37,8 +36,8 @@ commits=`git log --format=format:%H`
 cd .. || exit $?
 
 for commit in $commits; do
-    if grep -q $commit gitout/gitaggregate/activities.json; then
-    #if [ -d gitout/commits/$commit ]; then # (uncomment this to check commits dir instead of gitaggregate)
+    if grep -q $commit $GITOUT_DIR/gitaggregate/activities.json; then
+    #if [ -d $GITOUT_DIR/commits/$commit ]; then # (uncomment this to check commits dir instead of gitaggregate)
         echo Skipping $commit
     else
         cd data || exit $?
@@ -47,21 +46,21 @@ for commit in $commits; do
         echo $commit;
         commit_date=`git log --format="format:%ai" | head -n 1`
         cd .. || exit $?
-        mkdir -p gitout/hash
+        mkdir -p $GITOUT_DIR/hash
         # Disable this because it doesn't work for date dependent stuff.........
         #python statsrunner/hashlink.py || exit 1
         python calculate_stats.py $@ --today "$commit_date" loop || exit 1 #--new || exit 1
         python calculate_stats.py $@ --today "$commit_date" aggregate || exit 1
         python calculate_stats.py $@ --today "$commit_date" invert
         #python statsrunner/hashcopy.py || exit 1
-        rm -r gitout/commits/$commit
-        mkdir -p gitout/commits/$commit
-        mv out/aggregated* out/inverted* gitout/commits/$commit || exit $?
+        rm -r $GITOUT_DIR/commits/$commit
+        mkdir -p $GITOUT_DIR/commits/$commit
+        mv out/aggregated* out/inverted* $GITOUT_DIR/commits/$commit || exit $?
         rm -r out
     fi
 done
 
-cd gitout || exit $?
+cd $GITOUT_DIR || exit $?
 if [ -d commits/$current_hash ]; then
     rm -r current
     cp -Lr commits/$current_hash current
@@ -71,16 +70,16 @@ fi
 find commits | grep iati_identifiers | xargs rm
 cd .. || exit $?
 
-mkdir -p gitout/gitaggregate
-mkdir -p gitout/gitaggregate-dated
+mkdir -p $GITOUT_DIR/gitaggregate
+mkdir -p $GITOUT_DIR/gitaggregate-dated
 python statsrunner/gitaggregate.py
 python statsrunner/gitaggregate.py dated
 python statsrunner/gitaggregate-publisher.py
 python statsrunner/gitaggregate-publisher.py dated
-mv gitdate.json gitout
-cp helpers/ckan.json gitout
+mv gitdate.json $GITOUT_DIR
+cp helpers/ckan.json $GITOUT_DIR
 
-cd gitout || exit $?
+cd $GITOUT_DIR || exit $?
 tar -czf gitaggregate.tar.gz gitaggregate
 tar -czf gitaggregate-dated.tar.gz gitaggregate-dated
 tar -czf gitaggregate-publisher.tar.gz gitaggregate-publisher

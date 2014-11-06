@@ -10,3 +10,4 @@ helpers/schemas/
 pyenv
 *.pyc
 *.swp
+*.pyo

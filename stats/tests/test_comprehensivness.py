@@ -119,7 +119,26 @@ def test_comperhensiveness_empty():
         'activity-status': 0,
         'activity-date': 0,
         'sector': 0,
-        'country_or_region': 0
+        'country_or_region': 0,
+#        'transaction_commitment': 0,
+#        'transaction_spend': 0,
+#        'transaction_traceability': 0,
+#        'budget': 0,
+#        'contacts': 0,
+#        'transaction_commitment': 0,
+#        'transaction_spend': 0,
+#        'transaction_traceability': 0,
+#        'budget': 0,
+#        'contact-info': 0,
+#        'location': 0,
+#        'location_point_pos': 0,
+#        'sector_dac': 0,
+#        'economic-classification': 0,
+#        'document-link': 0,
+#        'activity-website': 0,
+#        'title_recipient_language': 0,
+#        'conditions_attached': 0,
+#        'result_indicator': 0,
     }
 
 def test_comprehensiveness_full():

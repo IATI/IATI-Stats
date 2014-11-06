@@ -121,7 +121,7 @@ class ActivityStats(CommonSharedElements):
             return defaultdict(lambda: out)
         else:
             hierarchy = self.element.attrib.get('hierarchy')
-            return { (1 if hierarchy is None else hierarchy): out }
+            return { ('1' if hierarchy is None else hierarchy): out }
 
     @returns_numberdict
     def currencies(self):
@@ -619,17 +619,21 @@ class PublisherStats(object):
 
     @returns_dict
     def bottom_hierarchy(self):
+        def int_or_None(x):
+            try:
+                return int(x)
+            except ValueError:
+                return None
+
         hierarchies = self.aggregated['by_hierarchy'].keys()
-        if not hierarchies: return
+        hierarchies_ints = [ x for x in map(int_or_None, hierarchies) if x is not None ]
+        if not hierarchies_ints:
+            return {}
+        bottom_hierarchy_key = str(max(hierarchies_ints))
         try:
-            h = str(max(map(int, hierarchies)))
-        except ValueError:
-            h = max(hierarchies)
-        try:
-            out = copy.deepcopy(self.aggregated['by_hierarchy'][h])
+            return copy.deepcopy(self.aggregated['by_hierarchy'][bottom_hierarchy_key])
         except KeyError:
-            out = {}
-        return out
+            return {}
 
     @returns_numberdict
     def publishers_per_version(self):

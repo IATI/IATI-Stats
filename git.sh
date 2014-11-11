@@ -40,7 +40,8 @@ cd .. || exit $?
 
 for commit in $commits; do
     if grep -q $commit $COMMIT_SKIP_FILE; then
-    #if [ -d $GITOUT_DIR/commits/$commit ]; then # (uncomment this to check commits dir instead of gitaggregate)
+        echo Skipping $commit
+    elif [ $GITOUT_SKIP_INCOMMITSDIR ] && [ -d $GITOUT_DIR/commits/$commit ]; then
         echo Skipping $commit
     else
         cd data || exit $?

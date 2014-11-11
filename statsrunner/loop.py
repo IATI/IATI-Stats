@@ -8,11 +8,7 @@ import decimal
 import argparse
 import statsrunner.shared
 import statsrunner.aggregate
-
-def decimal_default(obj):
-    if isinstance(obj, decimal.Decimal):
-        return float(obj)
-    raise TypeError
+from statsrunner.common import decimal_default
 
 def call_stats(this_stats, args):
     this_out = {}

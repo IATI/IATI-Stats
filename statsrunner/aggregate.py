@@ -7,16 +7,16 @@ import decimal
 import argparse
 import statsrunner
 import datetime
+from statsrunner import common
 
 def decimal_default(obj):
-    if isinstance(obj, decimal.Decimal):
-        return float(obj)
     if hasattr(obj, 'value'):
         if type(obj.value) == datetime.datetime:
             return obj.value.strftime('%Y-%m-%d %H:%M:%S %z')
         else:
             return obj.value
-    raise TypeError
+    else:
+        return common.decimal_default(obj)
 
 def dict_sum_inplace(d1, d2):
     if d1 is None: return

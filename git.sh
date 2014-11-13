@@ -38,6 +38,8 @@ current_hash=`git rev-parse HEAD`
 commits=`git log --format=format:%H`
 cd .. || exit $?
 
+mkdir -p $GITOUT_DIR/logs
+
 for commit in $commits; do
     if grep -q $commit $COMMIT_SKIP_FILE; then
         echo Skipping $commit
@@ -53,9 +55,10 @@ for commit in $commits; do
         # Disable this because it doesn't work for date dependent stuff.........
         #mkdir -p $GITOUT_DIR/hash
         #python statsrunner/hashlink.py || exit 1
-        python calculate_stats.py $@ --today "$commit_date" loop || exit 1 #--new || exit 1
-        python calculate_stats.py $@ --today "$commit_date" aggregate || exit 1
-        python calculate_stats.py $@ --today "$commit_date" invert
+        # (and also this on the next line: --new)
+        python calculate_stats.py $@ --today "$commit_date" loop > $GITOUT_DIR/logs/${commit}_loop.log || exit 1
+        python calculate_stats.py $@ --today "$commit_date" aggregate > $GITOUT_DIR/logs/${commit}_aggregate.log || exit 1
+        python calculate_stats.py $@ --today "$commit_date" invert > $GITOUT_DIR/logs/${commit}_invert.log
         #python statsrunner/hashcopy.py || exit 1
         rm -r $GITOUT_DIR/commits/$commit
         mkdir -p $GITOUT_DIR/commits/$commit

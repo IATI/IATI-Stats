@@ -395,6 +395,7 @@ class ActivityStats(CommonSharedElements):
                 bool_list = list(bool_iterable)
                 return all(bool_list) and len(bool_list)
             return {
+                'version': 1 if self.element.getparent() and 'version' in self.element.getparent().attrib else 0,
                 'reporting-org': 1 if self.element.find('reporting-org') is not None else 0,
                 'iati-identifier': 1 if self.element.find('iati-identifier') is not None else 0,
                 'participating-org': 1 if self.element.find('participating-org') is not None else 0,

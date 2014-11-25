@@ -111,6 +111,7 @@ def test_comprehensiveness_empty():
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness() == {
+        'version': 0,
         'reporting-org': 0,
         'iati-identifier': 0,
         'participating-org': 0,
@@ -143,20 +144,24 @@ def test_comprehensiveness_empty():
 
 def test_comprehensiveness_full():
     activity_stats = ActivityStats()
-    activity_stats.element = etree.fromstring('''
-        <iati-activity>
-            <reporting-org/>
-            <iati-identifier/>
-            <participating-org/>
-            <title/>
-            <description/>
-            <activity-status/>
-            <activity-date/>
-            <sector/>
-            <recipient-country/>
-        </iati-activity>
+    root = etree.fromstring('''
+        <iati-activities version="1.05">
+            <iati-activity>
+                <reporting-org/>
+                <iati-identifier/>
+                <participating-org/>
+                <title/>
+                <description/>
+                <activity-status/>
+                <activity-date/>
+                <sector/>
+                <recipient-country/>
+            </iati-activity>
+        </iati-activities>
     ''')
+    activity_stats.element = root.find('iati-activity')
     assert activity_stats.comprehensiveness() == {
+        'version': 1,
         'reporting-org': 1,
         'iati-identifier': 1,
         'participating-org': 1,

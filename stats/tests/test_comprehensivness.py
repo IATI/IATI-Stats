@@ -101,8 +101,6 @@ y
     ''')
     assert not activity_stats._comprehensiveness_is_current()
 
-def test_comprehensiveness_denominator():
-    pass
 
 def test_comprehensiveness_empty():
     activity_stats = ActivityStats()
@@ -141,6 +139,7 @@ def test_comprehensiveness_empty():
 #        'conditions_attached': 0,
 #        'result_indicator': 0,
     }
+
 
 def test_comprehensiveness_full():
     activity_stats = ActivityStats()
@@ -183,6 +182,24 @@ def test_comprehensiveness_full():
     ''')
     comprehensiveness = activity_stats.comprehensiveness()
     assert comprehensiveness['country_or_region'] == 1
+
+
+def test_comprehensivness_denominator_default():
+    activity_stats = ActivityStats()
+    activity_stats._comprehensiveness_is_current = lambda: True
+    assert activity_stats.comprehensiveness_denominator_default() == 1
+    activity_stats._comprehensiveness_is_current = lambda: False
+    assert activity_stats.comprehensiveness_denominator_default() == 0
+
+
+def test_comprehensivness_denominator_empty():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators() == {}
+    
 
 
 def comprehensiveness_transaction_level_elements():

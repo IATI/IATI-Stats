@@ -380,6 +380,7 @@ class ActivityStats(CommonSharedElements):
         return { year: int(self._forwardlooking_is_current(year) and year in budget_years)
                     for year in range(this_year, this_year+3) }
 
+    @memoize
     def _comprehensiveness_is_current(self):
         activity_status_code = self.element.xpath('activity-status/@code')
         if activity_status_code:
@@ -388,38 +389,53 @@ class ActivityStats(CommonSharedElements):
             activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="end-planned" or @type="end-actual"]') if iso_date(x) ]
             return (not activity_end_years) or any(activity_end_year>=self.today.year for activity_end_year in activity_end_years)
 
-    @returns_numberdict
-    def comprehensiveness(self):
-        if self._comprehensiveness_is_current():
+    @memoize
+    def _comprehensiveness_bools(self):
             def all_and_not_empty(bool_iterable):
                 bool_list = list(bool_iterable)
                 return all(bool_list) and len(bool_list)
             return {
-                'version': 1 if (self.element.getparent() is not None
-                                 and 'version' in self.element.getparent().attrib) else 0,
-                'reporting-org': 1 if self.element.find('reporting-org') is not None else 0,
-                'iati-identifier': 1 if self.element.find('iati-identifier') is not None else 0,
-                'participating-org': 1 if self.element.find('participating-org') is not None else 0,
-                'title': 1 if self.element.find('title') is not None else 0,
-                'description': 1 if self.element.find('description') is not None else 0,
-                'activity-status': 1 if self.element.find('activity-status') is not None else 0,
-                'activity-date': 1 if self.element.find('activity-date') is not None else 0,
-                'sector': 1 if self.element.find('sector') is not None or all_and_not_empty(
+                'version': (self.element.getparent() is not None
+                            and 'version' in self.element.getparent().attrib),
+                'reporting-org': self.element.find('reporting-org') is not None,
+                'iati-identifier': self.element.find('iati-identifier') is not None,
+                'participating-org': self.element.find('participating-org') is not None,
+                'title': self.element.find('title') is not None,
+                'description': self.element.find('description') is not None,
+                'activity-status':self.element.find('activity-status') is not None,
+                'activity-date': self.element.find('activity-date') is not None,
+                'sector': self.element.find('sector') is not None or all_and_not_empty(
                         (transaction.find('sector') is not None)
                             for transaction in self.element.findall('transaction')
-                    ) else 0,
-                'country_or_region': 1 if (
+                    ),
+                'country_or_region': (
                     self.element.find('recipient-country') is not None
                     or self.element.find('recipient-region') is not None
                     or all_and_not_empty(
                         (transaction.find('recipient-country') is not None or
                          transaction.find('recipient-region') is not None)
                             for transaction in self.element.findall('transaction')
-                    )) else 0,
-            #    '': 1 if self.element.find('') else 0,
-            #    '': 1 if self.element.find('') else 0,
-            #    '': 1 if self.element.find('') else 0,
+                    )),
             }
+
+    def _comprehensiveness_with_validation_bools(self):
+            bools = copy.copy(self._comprehensiveness_bools())
+            bools.update({
+                'participating-org': bools['participating-org'] and '1' in self.element.xpath('participating-org/@type')
+            })
+            return bools
+
+    @returns_numberdict
+    def comprehensiveness(self):
+        if self._comprehensiveness_is_current():
+            return { k:(1 if v else 0) for k,v in self._comprehensiveness_bools().items() }
+        else:
+            return {}
+
+    @returns_numberdict
+    def comprehensiveness_with_validation(self):
+        if self._comprehensiveness_is_current():
+            return { k:(1 if v else 0) for k,v in self._comprehensiveness_with_validation_bools().items() }
         else:
             return {}
 

@@ -15,6 +15,8 @@ def test_comprehensiveness_is_current():
     ''')
     assert activity_stats._comprehensiveness_is_current()
 
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-status code="3"/>
@@ -22,6 +24,8 @@ def test_comprehensiveness_is_current():
     ''')
     assert not activity_stats._comprehensiveness_is_current()
 
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
         </iati-activity>
@@ -29,50 +33,58 @@ def test_comprehensiveness_is_current():
     assert activity_stats._comprehensiveness_is_current()
 
     def end_planned_date(datestring):
-        return etree.fromstring('''
+        activity_stats = ActivityStats()
+        activity_stats.today = datetime.date(9990, 6, 1)
+        activity_stats.element = etree.fromstring('''
             <iati-activity>
                 <activity-date type="end-planned" iso-date="{}"/>
             </iati-activity>
         '''.format(datestring))
+        return activity_stats
     
     # Any end dates in a year before this year should be current
-    activity_stats.element = end_planned_date('9989-06-01')
+    activity_stats = end_planned_date('9989-06-01')
     assert not activity_stats._comprehensiveness_is_current()
-    activity_stats.element = end_planned_date('9989-12-31')
+    activity_stats = end_planned_date('9989-12-31')
     assert not activity_stats._comprehensiveness_is_current()
 
     # Any end dates in a year after this year should be current
-    activity_stats.element = end_planned_date('9990-01-01')
+    activity_stats = end_planned_date('9990-01-01')
     assert activity_stats._comprehensiveness_is_current()
-    activity_stats.element = end_planned_date('9990-01-01')
+    activity_stats = end_planned_date('9990-01-01')
     assert activity_stats._comprehensiveness_is_current()
-    activity_stats.element = end_planned_date('9990-06-01')
+    activity_stats = end_planned_date('9990-06-01')
     assert activity_stats._comprehensiveness_is_current()
-    activity_stats.element = end_planned_date('9990-06-02')
+    activity_stats = end_planned_date('9990-06-02')
     assert activity_stats._comprehensiveness_is_current()
-    activity_stats.element = end_planned_date('9991-06-01')
+    activity_stats = end_planned_date('9991-06-01')
     assert activity_stats._comprehensiveness_is_current()
 
     def datetype(typestring):
-        return etree.fromstring('''
+        activity_stats = ActivityStats()
+        activity_stats.today = datetime.date(9990, 6, 1)
+        activity_stats.element = etree.fromstring('''
             <iati-activity>
                 <activity-date type="{}" iso-date="9989-06-01"/>
             </iati-activity>
         '''.format(typestring))
+        return activity_stats
 
     # Ignore start dates
-    activity_stats.element = datetype('start-actual')
+    activity_stats = datetype('start-actual')
     assert activity_stats._comprehensiveness_is_current()
-    activity_stats.element = datetype('start-planned')
+    activity_stats = datetype('start-planned')
     assert activity_stats._comprehensiveness_is_current()
 
     # But use all end dates
-    activity_stats.element = datetype('end-actual')
+    activity_stats = datetype('end-actual')
     assert not activity_stats._comprehensiveness_is_current()
-    activity_stats.element = datetype('end-planned')
+    activity_stats = datetype('end-planned')
     assert not activity_stats._comprehensiveness_is_current()
 
     # If there are two end dates, and one of them is in the future, then it is current
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-date type="end-planned" iso-date="9989-06-01"/>
@@ -83,6 +95,8 @@ y
     assert activity_stats._comprehensiveness_is_current()
 
     # Activity status should take priority over activity date
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-status code="2"/> 
@@ -92,6 +106,8 @@ y
     ''')
     assert activity_stats._comprehensiveness_is_current()
 
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-status code="4"/> 
@@ -159,6 +175,7 @@ def test_comprehensiveness_full():
         </iati-activities>
     ''')
     activity_stats.element = root.find('iati-activity')
+    assert all(type(x) == int for x in activity_stats.comprehensiveness().values())
     assert activity_stats.comprehensiveness() == {
         'version': 1,
         'reporting-org': 1,
@@ -184,10 +201,34 @@ def test_comprehensiveness_full():
     assert comprehensiveness['country_or_region'] == 1
 
 
+def test_comprehensiveness_with_validation():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <participating-org type="2"/>
+        </iati-activity>
+    ''')
+    activity_stats_valid = ActivityStats()
+    activity_stats_valid.element = etree.fromstring('''
+        <iati-activity>
+            <participating-org type="1"/>
+        </iati-activity>
+    ''')
+    comprehensiveness = activity_stats.comprehensiveness()
+    not_valid = activity_stats.comprehensiveness_with_validation()
+    valid = activity_stats_valid.comprehensiveness_with_validation()
+    for key in ['participating-org']:
+        print(key)
+        assert comprehensiveness[key] == 1
+        assert not_valid[key] == 0
+        assert valid[key] == 1
+
+
 def test_comprehensivness_denominator_default():
     activity_stats = ActivityStats()
     activity_stats._comprehensiveness_is_current = lambda: True
     assert activity_stats.comprehensiveness_denominator_default() == 1
+    activity_stats = ActivityStats()
     activity_stats._comprehensiveness_is_current = lambda: False
     assert activity_stats.comprehensiveness_denominator_default() == 0
 

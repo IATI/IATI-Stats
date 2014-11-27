@@ -218,6 +218,12 @@ def test_comprehensiveness_with_validation():
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="end-planned" iso-date="2014-01-01" />
                 <activity-date type="start-planned" iso-date="2014-0101" />
+                <sector vocabulary="DAC" percentage="100" />
+                <sector vocabulary="DAC" percentage="100" />
+                <sector vocabulary="RO" percentage="100" />
+                <sector vocabulary="RO" percentage="100" />
+                <recipient-country percentage="100"/>
+                <recipient-region percentage="100"/>
             </iati-activity>
         </iati-activities>
     ''')
@@ -232,6 +238,12 @@ def test_comprehensiveness_with_validation():
                 <activity-status code="2"/>
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="start-planned" iso-date="2014-01-01" />
+                <sector vocabulary="DAC" percentage="50" />
+                <sector vocabulary="DAC" percentage="50" />
+                <sector vocabulary="RO" percentage="51" />
+                <sector vocabulary="RO" percentage="49" />
+                <recipient-country percentage="44.5"/>
+                <recipient-region percentage="55.5"/>
             </iati-activity>
         </iati-activities>
     ''')
@@ -239,11 +251,90 @@ def test_comprehensiveness_with_validation():
     comprehensiveness = activity_stats.comprehensiveness()
     not_valid = activity_stats.comprehensiveness_with_validation()
     valid = activity_stats_valid.comprehensiveness_with_validation()
-    for key in ['version', 'iati-identifier', 'participating-org', 'activity-status', 'activity-status']:
+    for key in ['version', 'iati-identifier', 'participating-org', 'activity-status', 'activity-status', 'sector', 'country_or_region']:
         print(key)
         assert comprehensiveness[key] == 1
         assert not_valid[key] == 0
         assert valid[key] == 1
+    
+
+def test_comprehensiveness_transaction_level_elements():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <transaction>
+                <sector/>
+                <recipient-country/>
+            </transaction>
+        </iati-activity>
+    ''')
+    comprehensiveness = activity_stats.comprehensiveness()
+    assert comprehensiveness['sector'] == 1
+    assert comprehensiveness['country_or_region'] == 1
+
+    # Check recipient-region too
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <recipient-region/>
+        </iati-activity>
+    ''')
+    comprehensiveness = activity_stats.comprehensiveness()
+    assert comprehensiveness['country_or_region'] == 1
+
+    # If is only at transaction level, but not for all transactions, we should get 0
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <transaction>
+                <sector/>
+                <recipient-country/>
+                <recipient-region/>
+            </transaction>
+            <transaction></transaction>
+        </iati-activity>
+    ''')
+    comprehensiveness = activity_stats.comprehensiveness()
+    assert comprehensiveness['sector'] == 0
+    assert comprehensiveness['country_or_region'] == 0
+
+
+def test_comprehensiveness_with_validation_transaction_level_elements():
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(2014, 1, 1)
+    root = etree.fromstring('''
+        <iati-activities version="9.99">
+            <iati-activity>
+                <sector/>
+                <recipient-country/>
+            </iati-activity>
+        </iati-activities>
+    ''')
+    activity_stats.element = root.find('iati-activity')
+    activity_stats_valid = ActivityStats()
+    root_valid = etree.fromstring('''
+        <iati-activities version="1.04">
+            <iati-activity>
+                <transaction>
+                    <sector/>
+                    <recipient-country/>
+                </transaction>
+            </iati-activity>
+        </iati-activities>
+    ''')
+    activity_stats_valid.element = root_valid.find('iati-activity')
+    comprehensiveness = activity_stats.comprehensiveness()
+    not_valid = activity_stats.comprehensiveness_with_validation()
+    valid = activity_stats_valid.comprehensiveness_with_validation()
+    for key in ['sector', 'country_or_region']:
+        print(key)
+        assert comprehensiveness[key] == 1
+        assert not_valid[key] == 0
+        assert valid[key] == 1
+    
+
+
+## Denominator
 
 
 def test_comprehensivness_denominator_default():
@@ -262,43 +353,3 @@ def test_comprehensivness_denominator_empty():
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_denominators() == {}
-    
-
-
-def comprehensiveness_transaction_level_elements():
-    activity_stats = ActivityStats()
-    activity_stats.element = etree.fromstring('''
-        <iati-activity>
-            <transaction>
-                <sector/>
-                <recipient-country/>
-            </transaction>
-        </iati-activity>
-    ''')
-    comprehensiveness = activity_stats.comprehensiveness()
-    assert comprehensiveness['sector'] == 1
-    assert comprehensiveness['country_or_region'] == 1
-
-    # Check recipient-region too
-    activity_stats.element = etree.fromstring('''
-        <iati-activity>
-            <recipient-region/>
-        </iati-activity>
-    ''')
-    comprehensiveness = activity_stats.comprehensiveness()
-    assert comprehensiveness['country_or_region'] == 1
-
-    # If is only at transaction level, but not for all transactions, we should get 0
-    activity_stats.element = etree.fromstring('''
-        <iati-activity>
-            <transaction>
-                <sector/>
-                <recipient-country/>
-                <recipient-region/>
-            </transaction>
-            <transaction></transaction>
-        </iati-activity>
-    ''')
-    comprehensiveness = activity_stats.comprehensiveness()
-    assert comprehensiveness['sector'] == 0
-    assert comprehensiveness['country_or_region'] == 0

@@ -431,12 +431,37 @@ class ActivityStats(CommonSharedElements):
     def _comprehensiveness_with_validation_bools(self):
             reporting_org_ref = self.element.find('reporting-org').attrib.get('ref') if self.element.find('reporting-org') is not None else None
             bools = copy.copy(self._comprehensiveness_bools())
+            def decimal_or_zero(value):
+                try:
+                    return Decimal(value)
+                except TypeError:
+                    return 0
+            def empty_or_percentage_sum_is_100(path, by_vocab=False):
+                elements = self.element.xpath(path)
+                if not elements:
+                    return True
+                else:
+                    elements_by_vocab = defaultdict(list)
+                    if by_vocab:
+                        for element in elements:
+                            elements_by_vocab[element.attrib.get('vocabulary')].append(element)
+                        return all(
+                            sum(decimal_or_zero(x.attrib.get('percentage')) for x in es) == 100
+                            for es in elements_by_vocab.values())
+                    else:
+                        return sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in VERSION_CODELIST,
                 'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
                 'participating-org': bools['participating-org'] and '1' in self.element.xpath('participating-org/@type'),
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in ACTIVITY_STATUS_CODELIST for x in self.element.xpath('activity-status/@code')),
-                'activity-date': bools['activity-date']
+                'activity-date': bools['activity-date'],
+                'sector': (
+                    bools['sector'] and
+                    empty_or_percentage_sum_is_100('sector', by_vocab=True)),
+                'country_or_region': (
+                    bools['country_or_region'] and 
+                    empty_or_percentage_sum_is_100('recipient-country|recipient-region')),
             })
             return bools
 

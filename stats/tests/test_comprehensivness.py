@@ -122,6 +122,10 @@ def test_comprehensiveness_empty():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <reporting-org></reporting-org>
+            <iati-identifier></iati-identifier>
+            <title/>
+            <description/>
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness() == {
@@ -162,11 +166,11 @@ def test_comprehensiveness_full():
     root = etree.fromstring('''
         <iati-activities version="1.05">
             <iati-activity>
-                <reporting-org/>
-                <iati-identifier/>
+                <reporting-org>Reporting ORG Name</reporting-org>
+                <iati-identifier>AA-AAA-1</iati-identifier>
                 <participating-org/>
-                <title/>
-                <description/>
+                <title>A title</title>
+                <description>A description</description>
                 <activity-status/>
                 <activity-date/>
                 <sector/>
@@ -203,21 +207,39 @@ def test_comprehensiveness_full():
 
 def test_comprehensiveness_with_validation():
     activity_stats = ActivityStats()
-    activity_stats.element = etree.fromstring('''
-        <iati-activity>
-            <participating-org type="2"/>
-        </iati-activity>
+    activity_stats.today = datetime.date(2014, 1, 1)
+    root = etree.fromstring('''
+        <iati-activities version="9.99">
+            <iati-activity>
+                <reporting-org ref="BBB"/>
+                <iati-identifier>AAA-1</iati-identifier>
+                <participating-org type="2"/>
+                <activity-status/>
+                <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
+                <activity-date type="end-planned" iso-date="2014-01-01" />
+                <activity-date type="start-planned" iso-date="2014-0101" />
+            </iati-activity>
+        </iati-activities>
     ''')
+    activity_stats.element = root.find('iati-activity')
     activity_stats_valid = ActivityStats()
-    activity_stats_valid.element = etree.fromstring('''
-        <iati-activity>
-            <participating-org type="1"/>
-        </iati-activity>
+    root_valid = etree.fromstring('''
+        <iati-activities version="1.04">
+            <iati-activity>
+                <reporting-org ref="AAA"/>
+                <iati-identifier>AAA-1</iati-identifier>
+                <participating-org type="1"/>
+                <activity-status code="2"/>
+                <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
+                <activity-date type="start-planned" iso-date="2014-01-01" />
+            </iati-activity>
+        </iati-activities>
     ''')
+    activity_stats_valid.element = root_valid.find('iati-activity')
     comprehensiveness = activity_stats.comprehensiveness()
     not_valid = activity_stats.comprehensiveness_with_validation()
     valid = activity_stats_valid.comprehensiveness_with_validation()
-    for key in ['participating-org']:
+    for key in ['version', 'iati-identifier', 'participating-org', 'activity-status', 'activity-status']:
         print(key)
         assert comprehensiveness[key] == 1
         assert not_valid[key] == 0

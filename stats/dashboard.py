@@ -9,7 +9,9 @@ import datetime
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 import decimal
-import os, re
+import os
+import re
+import json
 import subprocess
 import copy
 
@@ -18,12 +20,19 @@ from stats.common import *
 
 import iatirulesets
 
+def all_and_not_empty(bool_iterable):
+    bool_list = list(bool_iterable)
+    return all(bool_list) and len(bool_list)
+
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
 codelist_mapping_xml = etree.parse('helpers/mapping.xml')
 codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
+
+VERSION_CODELIST = set(c['code'] for c in json.load(open('helpers/Version.json'))['data']) 
+ACTIVITY_STATUS_CODELIST = set(c['code'] for c in json.load(open('helpers/ActivityStatus.json'))['data']) 
 
 import csv
 reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
@@ -391,17 +400,18 @@ class ActivityStats(CommonSharedElements):
 
     @memoize
     def _comprehensiveness_bools(self):
-            def all_and_not_empty(bool_iterable):
-                bool_list = list(bool_iterable)
-                return all(bool_list) and len(bool_list)
+            def nonempty_text_element(tagname):
+                element = self.element.find(tagname)
+                return element is not None and element.text
+
             return {
                 'version': (self.element.getparent() is not None
                             and 'version' in self.element.getparent().attrib),
-                'reporting-org': self.element.find('reporting-org') is not None,
-                'iati-identifier': self.element.find('iati-identifier') is not None,
+                'reporting-org': nonempty_text_element('reporting-org'),
+                'iati-identifier': nonempty_text_element('iati-identifier'),
                 'participating-org': self.element.find('participating-org') is not None,
-                'title': self.element.find('title') is not None,
-                'description': self.element.find('description') is not None,
+                'title': nonempty_text_element('title'),
+                'description': nonempty_text_element('description'),
                 'activity-status':self.element.find('activity-status') is not None,
                 'activity-date': self.element.find('activity-date') is not None,
                 'sector': self.element.find('sector') is not None or all_and_not_empty(
@@ -419,9 +429,14 @@ class ActivityStats(CommonSharedElements):
             }
 
     def _comprehensiveness_with_validation_bools(self):
+            reporting_org_ref = self.element.find('reporting-org').attrib.get('ref') if self.element.find('reporting-org') is not None else None
             bools = copy.copy(self._comprehensiveness_bools())
             bools.update({
-                'participating-org': bools['participating-org'] and '1' in self.element.xpath('participating-org/@type')
+                'version': bools['version'] and self.element.getparent().attrib['version'] in VERSION_CODELIST,
+                'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
+                'participating-org': bools['participating-org'] and '1' in self.element.xpath('participating-org/@type'),
+                'activity-status': bools['activity-status'] and all_and_not_empty(x in ACTIVITY_STATUS_CODELIST for x in self.element.xpath('activity-status/@code')),
+                'activity-date': bools['activity-date']
             })
             return bools
 

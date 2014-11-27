@@ -1,5 +1,6 @@
 from lxml import etree
 import datetime
+import pytest
 
 from stats.dashboard import ActivityStats
 
@@ -118,6 +119,7 @@ y
     assert not activity_stats._comprehensiveness_is_current()
 
 
+@pytest.mark.xfail
 def test_comprehensiveness_empty():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
@@ -126,6 +128,13 @@ def test_comprehensiveness_empty():
             <iati-identifier></iati-identifier>
             <title/>
             <description/>
+            <transaction>
+                <transaction-type/>
+            </transaction>
+            <transaction provider-activity-id="">
+            <!-- provider-activity-id only on one transaction should get no points -->
+                <transaction-type/>
+            </transaction>
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness() == {
@@ -139,25 +148,26 @@ def test_comprehensiveness_empty():
         'activity-date': 0,
         'sector': 0,
         'country_or_region': 0,
-#        'transaction_commitment': 0,
-#        'transaction_spend': 0,
-#        'transaction_traceability': 0,
-#        'budget': 0,
-#        'contacts': 0,
-#        'transaction_commitment': 0,
-#        'transaction_spend': 0,
-#        'transaction_traceability': 0,
-#        'budget': 0,
-#        'contact-info': 0,
-#        'location': 0,
-#        'location_point_pos': 0,
-#        'sector_dac': 0,
-#        'economic-classification': 0,
-#        'document-link': 0,
-#        'activity-website': 0,
-#        'title_recipient_language': 0,
-#        'conditions_attached': 0,
-#        'result_indicator': 0,
+        'transaction_commitment': 0,
+        'transaction_spend': 0,
+        'transaction_currency': 0,
+        'transaction_traceability': 0,
+        'budget': 0,
+        'contacts': 0,
+        'transaction_commitment': 0,
+        'transaction_spend': 0,
+        'transaction_traceability': 0,
+        'budget': 0,
+        'contact-info': 0,
+        'location': 0,
+        'location_point_pos': 0,
+        'sector_dac': 0,
+        'economic-classification': 0,
+        'document-link': 0,
+        'activity-website': 0,
+        'title_recipient_language': 0,
+        'conditions_attached': 0,
+        'result_indicator': 0,
     }
 
 
@@ -175,6 +185,15 @@ def test_comprehensiveness_full():
                 <activity-date/>
                 <sector/>
                 <recipient-country/>
+                <transaction provider-activity-id="AAA">
+                    <transaction-type code="C"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction provider-activity-id="AAA">
+                    <transaction-type code="E"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <budget/>
             </iati-activity>
         </iati-activities>
     ''')
@@ -190,7 +209,12 @@ def test_comprehensiveness_full():
         'activity-status': 1,
         'activity-date': 1,
         'sector': 1,
-        'country_or_region': 1
+        'country_or_region': 1,
+        'transaction_commitment': 1,
+        'transaction_spend': 1,
+        'transaction_currency': 1,
+        'transaction_traceability': 1,
+        'budget': 1,
     }
 
     # Check recipient-region independently
@@ -205,6 +229,41 @@ def test_comprehensiveness_full():
     assert comprehensiveness['country_or_region'] == 1
 
 
+def test_comprehensiveness_other_passes():
+    activity_stats = ActivityStats()
+    root = etree.fromstring('''
+        <iati-activities>
+            <iati-activity default-currency="">
+            <!-- default currency can be used instead of at transaction level -->
+                <transaction>
+                    <transaction-type code="D"/>
+                    <value value-date="2014-01-01"/>
+                </transaction>
+            </iati-activity>
+        </iati-activities>
+    ''')
+    activity_stats.element = root.find('iati-activity')
+    assert all(type(x) == int for x in activity_stats.comprehensiveness().values())
+    assert activity_stats.comprehensiveness() == {
+        'version': 0,
+        'reporting-org': 0,
+        'iati-identifier': 0,
+        'participating-org': 0,
+        'title': 0,
+        'description': 0,
+        'activity-status': 0,
+        'activity-date': 0,
+        'sector': 0,
+        'country_or_region': 0,
+        'transaction_commitment': 0,
+        'transaction_spend': 1,
+        'transaction_currency': 1,
+        'transaction_traceability': 0,
+        'budget': 0,
+    }
+
+
+@pytest.mark.xfail
 def test_comprehensiveness_with_validation():
     activity_stats = ActivityStats()
     activity_stats.today = datetime.date(2014, 1, 1)
@@ -251,11 +310,20 @@ def test_comprehensiveness_with_validation():
     comprehensiveness = activity_stats.comprehensiveness()
     not_valid = activity_stats.comprehensiveness_with_validation()
     valid = activity_stats_valid.comprehensiveness_with_validation()
-    for key in ['version', 'iati-identifier', 'participating-org', 'activity-status', 'activity-status', 'sector', 'country_or_region']:
+    for key in [
+            'version', 'iati-identifier', 'participating-org', 'activity-status',
+            'activity-status', 'sector', 'country_or_region',
+            'transaction_commitment', 'transaction_spend', 'transaction_currency',
+            'budget']:
         print(key)
         assert comprehensiveness[key] == 1
         assert not_valid[key] == 0
         assert valid[key] == 1
+
+
+@pytest.mark.xfail
+def test_transaction_exclusions():
+    raise NotImplementedError
     
 
 def test_comprehensiveness_transaction_level_elements():

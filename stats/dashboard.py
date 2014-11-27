@@ -426,6 +426,11 @@ class ActivityStats(CommonSharedElements):
                          transaction.find('recipient-region') is not None)
                             for transaction in self.element.findall('transaction')
                     )),
+                'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="C"]'),
+                'transaction_spend': self.element.xpath('transaction[transaction-type/@code="D" or transaction-type/@code="E"]'),
+                'transaction_currency': all_and_not_empty(filter(lambda x: x!='', x.xpath('value/@value-date')) for x in self.element.findall('transaction')),
+                'transaction_traceability': all_and_not_empty(x.attrib.get('provider-activity-id') for x in self.element.findall('transaction')),
+                'budget': self.element.findall('budget'),
             }
 
     def _comprehensiveness_with_validation_bools(self):

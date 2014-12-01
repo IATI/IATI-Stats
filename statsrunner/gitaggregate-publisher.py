@@ -40,5 +40,6 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
                             total[k][commit] = v
 
         for k,v in total.items():
-            with open(os.path.join(git_out_dir, k+'.json'), 'w') as fp:
+            with open(os.path.join(git_out_dir, k+'.json.new'), 'w') as fp:
                 json.dump(v, fp, sort_keys=True, indent=2, default=decimal_default)
+            os.rename(os.path.join(git_out_dir, k+'.json.new'), os.path.join(git_out_dir, k+'.json'))

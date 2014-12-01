@@ -4,5 +4,6 @@ python:
 install:
   - pip install -r requirements_dev.txt
   - cd helpers; ./get_codelist_mapping.sh; ./get_codelists.sh; echo '{}' > ckan.json; cd ..
+  - git config --global user.name "Travis"
 script:  py.test
 

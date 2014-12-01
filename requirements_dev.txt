@@ -1,5 +1,5 @@
 -r requirements.txt
-pytest
-mock
-pytest-cov
-coveralls
+pytest==2.6.4
+mock==1.0.1
+pytest-cov==1.8.1
+coveralls==0.4.4

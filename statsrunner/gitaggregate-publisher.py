@@ -13,6 +13,10 @@ if dated:
 for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
         git_out_dir = os.path.join(GITOUT_DIR,'gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)
+        try:
+            os.makedirs(git_out_dir)
+        except OSError:
+            pass
         total = defaultdict(dict)
         if os.path.isdir(git_out_dir):
             for fname in os.listdir(git_out_dir):
@@ -34,11 +38,6 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
                                 total[k][gitdates[commit]] = v
                         else:
                             total[k][commit] = v
-
-        try:
-            os.makedirs(git_out_dir)
-        except OSError:
-            pass
 
         for k,v in total.items():
             with open(os.path.join(git_out_dir, k+'.json'), 'w') as fp:

@@ -10,6 +10,11 @@ git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-dated' if dated else 'gitag
 if dated:
     gitdates = json.load(open('gitdate.json'))
 
+try:
+    os.makedirs(git_out_dir)
+except OSError:
+    pass
+
 total = defaultdict(dict)
 for fname in os.listdir(git_out_dir):
     if fname.endswith('.json'):
@@ -31,11 +36,6 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
                             total[k][gitdates[commit]] = v
                     else:
                         total[k][commit] = v
-
-try:
-    os.makedirs(git_out_dir)
-except OSError:
-    pass
 
 for k,v in total.items():
     with open(os.path.join(git_out_dir, k+'.json'), 'w') as fp:

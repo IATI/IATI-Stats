@@ -159,13 +159,12 @@ def test_comprehensiveness_empty():
         'capital-spend': 0,
         'document-link': 0,
         'activity-website': 0,
-        'title_recipient_language': 0,
+        #'title_recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
     }
 
 
-@pytest.mark.xfail
 def test_comprehensiveness_full():
     activity_stats = ActivityStats()
     root = etree.fromstring('''
@@ -232,7 +231,7 @@ def test_comprehensiveness_full():
         'capital-spend': 1,
         'document-link': 1,
         'activity-website': 1,
-        'title_recipient_language': 1,
+        #'title_recipient_language': 1,
         'conditions_attached': 1,
         'result_indicator': 1,
     }
@@ -290,7 +289,7 @@ def test_comprehensiveness_other_passes():
         'capital-spend': 0,
         'document-link': 1,
         'activity-website': 1,
-        'title_recipient_language': 0,
+        #'title_recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
     }

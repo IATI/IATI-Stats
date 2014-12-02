@@ -438,7 +438,7 @@ class ActivityStats(CommonSharedElements):
                 'capital-spend': self.element.xpath('capital-spend/@percentage'),
                 'document-link': self.element.findall('document-link'),
                 'activity-website': self.element.xpath('activity-website|document-link[category/@code="A12"]'),
-                'title_recipient_language': False,
+                #'title_recipient_language': ,
                 'conditions_attached': self.element.xpath('conditions/@attached'),
                 'result_indicator': self.element.xpath('result/indicator')
             }

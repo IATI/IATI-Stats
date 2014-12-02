@@ -39,6 +39,9 @@ commits=`git log --format=format:%H`
 cd .. || exit $?
 
 mkdir -p $GITOUT_DIR/logs
+mkdir -p $GITOUT_DIR/commits
+mkdir -p $GITOUT_DIR/gitaggregate
+mkdir -p $GITOUT_DIR/gitaggregate-dated
 
 for commit in $commits; do
     if grep -q $commit $COMMIT_SKIP_FILE; then
@@ -58,12 +61,19 @@ for commit in $commits; do
         # (and also this on the next line: --new)
         python calculate_stats.py $@ --today "$commit_date" loop > $GITOUT_DIR/logs/${commit}_loop.log || exit 1
         python calculate_stats.py $@ --today "$commit_date" aggregate > $GITOUT_DIR/logs/${commit}_aggregate.log || exit 1
-        python calculate_stats.py $@ --today "$commit_date" invert > $GITOUT_DIR/logs/${commit}_invert.log
+        if [ $commit = $current_hash ]; then
+		python calculate_stats.py $@ --today "$commit_date" invert > $GITOUT_DIR/logs/${commit}_invert.log
+        fi
         #python statsrunner/hashcopy.py || exit 1
         rm -r $GITOUT_DIR/commits/$commit
-        mkdir -p $GITOUT_DIR/commits/$commit
-        mv out/aggregated* out/inverted* $GITOUT_DIR/commits/$commit || exit $?
-        rm -r out
+        mv out $GITOUT_DIR/commits/$commit || exit $?
+        python statsrunner/gitaggregate.py
+        python statsrunner/gitaggregate.py dated
+        python statsrunner/gitaggregate-publisher.py
+        python statsrunner/gitaggregate-publisher.py dated
+        if [ ! $commit = $current_hash ]; then
+            rm -r $GITOUT_DIR/commits/$commit
+        fi
     fi
 done
 
@@ -71,18 +81,11 @@ cd $GITOUT_DIR || exit $?
 if [ -d commits/$current_hash ]; then
     rm -r current
     cp -Lr commits/$current_hash current
-    #find current | grep iati_identifiers | xargs rm
     tar -czf current.tar.gz current
 fi
-find commits | grep iati_identifiers | xargs rm
+#find commits | grep iati_identifiers | xargs rm
 cd .. || exit $?
 
-mkdir -p $GITOUT_DIR/gitaggregate
-mkdir -p $GITOUT_DIR/gitaggregate-dated
-python statsrunner/gitaggregate.py
-python statsrunner/gitaggregate.py dated
-python statsrunner/gitaggregate-publisher.py
-python statsrunner/gitaggregate-publisher.py dated
 mv gitdate.json $GITOUT_DIR
 cp helpers/ckan.json $GITOUT_DIR
 

@@ -27,7 +27,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
         if fname.endswith('.json'):
             with open(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)) as fp:
                 k = fname[:-5]
-                if k in ['codelist_values','duplicate_identifiers','publisher_duplicate_identifiers', 'participating_orgs_text','transaction_dates']:
+                if k in ['codelist_values','iati_identifiers','duplicate_identifiers','publisher_duplicate_identifiers', 'participating_orgs_text','transaction_dates']:
                    continue
                 if not commit in total[k]:
                     v = json.load(fp, parse_float=decimal.Decimal)

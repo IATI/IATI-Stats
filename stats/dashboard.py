@@ -431,6 +431,16 @@ class ActivityStats(CommonSharedElements):
                 'transaction_currency': all_and_not_empty(filter(lambda x: x!='', x.xpath('value/@value-date')) for x in self.element.findall('transaction')),
                 'transaction_traceability': all_and_not_empty(x.attrib.get('provider-activity-id') for x in self.element.findall('transaction')),
                 'budget': self.element.findall('budget'),
+                'contact-info': self.element.findall('contact-info/email'),
+                'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
+                'location_point_pos': self.element.xpath('location/point/pos'),
+                'sector_dac': self.element.xpath('sector[@vocabulary="DAC" or @vocabulary="DAC-3"]'),
+                'capital-spend': self.element.xpath('capital-spend/@percentage'),
+                'document-link': self.element.findall('document-link'),
+                'activity-website': self.element.xpath('activity-website|document-link[category/@code="A12"]'),
+                'title_recipient_language': False,
+                'conditions_attached': self.element.xpath('conditions/@attached'),
+                'result_indicator': self.element.xpath('result/indicator')
             }
 
     def _comprehensiveness_with_validation_bools(self):

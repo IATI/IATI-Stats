@@ -119,7 +119,6 @@ y
     assert not activity_stats._comprehensiveness_is_current()
 
 
-@pytest.mark.xfail
 def test_comprehensiveness_empty():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
@@ -153,16 +152,11 @@ def test_comprehensiveness_empty():
         'transaction_currency': 0,
         'transaction_traceability': 0,
         'budget': 0,
-        'contacts': 0,
-        'transaction_commitment': 0,
-        'transaction_spend': 0,
-        'transaction_traceability': 0,
-        'budget': 0,
         'contact-info': 0,
         'location': 0,
         'location_point_pos': 0,
         'sector_dac': 0,
-        'economic-classification': 0,
+        'capital-spend': 0,
         'document-link': 0,
         'activity-website': 0,
         'title_recipient_language': 0,
@@ -171,11 +165,12 @@ def test_comprehensiveness_empty():
     }
 
 
+@pytest.mark.xfail
 def test_comprehensiveness_full():
     activity_stats = ActivityStats()
     root = etree.fromstring('''
         <iati-activities version="1.05">
-            <iati-activity>
+            <iati-activity xml:lang="en">
                 <reporting-org>Reporting ORG Name</reporting-org>
                 <iati-identifier>AA-AAA-1</iati-identifier>
                 <participating-org/>
@@ -183,8 +178,8 @@ def test_comprehensiveness_full():
                 <description>A description</description>
                 <activity-status/>
                 <activity-date/>
-                <sector/>
-                <recipient-country/>
+                <sector vocabulary="DAC"/>
+                <recipient-country code="AI"/>
                 <transaction provider-activity-id="AAA">
                     <transaction-type code="C"/>
                     <value currency="" value-date="2014-01-01"/>
@@ -194,6 +189,21 @@ def test_comprehensiveness_full():
                     <value currency="" value-date="2014-01-01"/>
                 </transaction>
                 <budget/>
+                <contact-info>
+                    <email>test@example.org</email>
+                </contact-info>
+                <location>
+                    <point srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+                        <pos>31.616944 65.716944</pos>
+                    </point>
+                </location>
+                <capital-spend percentage=""/>
+                <document-link/>
+                <activity-website/>
+                <conditions attached="0"/>
+                <result>
+                    <indicator/>
+                </result>
             </iati-activity>
         </iati-activities>
     ''')
@@ -215,6 +225,16 @@ def test_comprehensiveness_full():
         'transaction_currency': 1,
         'transaction_traceability': 1,
         'budget': 1,
+        'contact-info': 1,
+        'location': 1,
+        'location_point_pos': 1,
+        'sector_dac': 1,
+        'capital-spend': 1,
+        'document-link': 1,
+        'activity-website': 1,
+        'title_recipient_language': 1,
+        'conditions_attached': 1,
+        'result_indicator': 1,
     }
 
     # Check recipient-region independently
@@ -239,6 +259,9 @@ def test_comprehensiveness_other_passes():
                     <transaction-type code="D"/>
                     <value value-date="2014-01-01"/>
                 </transaction>
+                <document-link>
+                    <category code="A12"/>
+                </document-link>
             </iati-activity>
         </iati-activities>
     ''')
@@ -260,7 +283,81 @@ def test_comprehensiveness_other_passes():
         'transaction_currency': 1,
         'transaction_traceability': 0,
         'budget': 0,
+        'contact-info': 0,
+        'location': 0,
+        'location_point_pos': 0,
+        'sector_dac': 0,
+        'capital-spend': 0,
+        'document-link': 1,
+        'activity-website': 1,
+        'title_recipient_language': 0,
+        'conditions_attached': 0,
+        'result_indicator': 0,
     }
+
+
+def test_comprehensiveness_location_other_passes():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity default-currency="">
+            <location>
+                <name>Name</name>
+            </location>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['location'] == 1
+    assert activity_stats.comprehensiveness()['location_point_pos'] == 0
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity default-currency="">
+            <location>
+                <description>Name</description>
+            </location>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['location'] == 1
+    assert activity_stats.comprehensiveness()['location_point_pos'] == 0
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity default-currency="">
+            <location>
+                <location-administrative>Name</location-administrative>
+            </location>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['location'] == 1
+    assert activity_stats.comprehensiveness()['location_point_pos'] == 0
+
+
+def test_comprehensiveness_sector_other_passes():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity default-currency="">
+            <sector/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['sector'] == 1
+    assert activity_stats.comprehensiveness()['sector_dac'] == 0
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity default-currency="">
+            <sector vocabulary="DAC"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['sector'] == 1
+    assert activity_stats.comprehensiveness()['sector_dac'] == 1
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity default-currency="">
+            <sector vocabulary="DAC-3"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['sector'] == 1
+    assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
 
 @pytest.mark.xfail

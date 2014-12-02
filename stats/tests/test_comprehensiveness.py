@@ -359,7 +359,6 @@ def test_comprehensiveness_sector_other_passes():
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
 
-@pytest.mark.xfail
 def test_comprehensiveness_with_validation():
     activity_stats = ActivityStats()
     activity_stats.today = datetime.date(2014, 1, 1)
@@ -379,6 +378,15 @@ def test_comprehensiveness_with_validation():
                 <sector vocabulary="RO" percentage="100" />
                 <recipient-country percentage="100"/>
                 <recipient-region percentage="100"/>
+                <transaction>
+                    <transaction-type code="C"/>
+                    <value value-date="" currency=""/>
+                </transaction>
+                <transaction>
+                    <transaction-type code="D"/>
+                    <value value-date="" currency=""/>
+                </transaction>
+                <budget/>
             </iati-activity>
         </iati-activities>
     ''')
@@ -399,6 +407,21 @@ def test_comprehensiveness_with_validation():
                 <sector vocabulary="RO" percentage="49" />
                 <recipient-country percentage="44.5"/>
                 <recipient-region percentage="55.5"/>
+                <transaction>
+                    <transaction-type code="C"/>
+                    <value value-date="2014-01-01" currency="GBP"/>
+                    <transaction-date iso-date="2014-01-01" />
+                </transaction>
+                <transaction>
+                    <transaction-type code="D"/>
+                    <value value-date="2014-01-01" currency="GBP"/>
+                    <transaction-date iso-date="2014-01-01" />
+                </transaction>
+                <budget>
+                    <period-start iso-date="2014-01-01"/>
+                    <period-end iso-date="2014-01-02"/>
+                    <value value-date="2014-01-01"/>
+                </budget>
             </iati-activity>
         </iati-activities>
     ''')
@@ -408,14 +431,21 @@ def test_comprehensiveness_with_validation():
     valid = activity_stats_valid.comprehensiveness_with_validation()
     for key in [
             'version', 'iati-identifier', 'participating-org', 'activity-status',
-            'activity-status', 'sector', 'country_or_region',
+            'activity-date', 'sector', 'country_or_region',
             'transaction_commitment', 'transaction_spend', 'transaction_currency',
-            'budget']:
+            'budget',
+            #'location_point_pos', 'sector_dac', 'activity-website'
+            ]:
         print(key)
         assert comprehensiveness[key] == 1
         assert not_valid[key] == 0
         assert valid[key] == 1
 
+
+@pytest.mark.xfail
+def test_valid_value():
+    # We should test that a value elements contain a valid decimal, where relevant
+    raise NotImplementedError
 
 @pytest.mark.xfail
 def test_transaction_exclusions():

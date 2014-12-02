@@ -33,6 +33,7 @@ codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings
 
 VERSION_CODELIST = set(c['code'] for c in json.load(open('helpers/Version.json'))['data']) 
 ACTIVITY_STATUS_CODELIST = set(c['code'] for c in json.load(open('helpers/ActivityStatus.json'))['data']) 
+CURRENCY_CODELIST = set(c['code'] for c in json.load(open('helpers/Currency.json'))['data']) 
 
 import csv
 reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
@@ -57,6 +58,38 @@ def element_to_count_dict(element, path, count_dict, count_multiple=False):
         else:
             count_dict[path+'/@'+attribute] = 1
     return count_dict
+
+
+def valid_date(date_element):
+    if date_element is None:
+        return False
+    schema_root = etree.XML('''
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:element name="activity-date" type="dateType"/>
+            <xsd:element name="transaction-date" type="dateType"/>
+            <xsd:element name="period-start" type="dateType"/>
+            <xsd:element name="period-end" type="dateType"/>
+            <xsd:complexType name="dateType">
+                <xsd:sequence>
+                    <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+                </xsd:sequence>
+                <xsd:attribute name="iso-date" type="xsd:date" use="required"/>
+                <xsd:anyAttribute processContents="lax"/>
+            </xsd:complexType>
+            <xsd:element name="value">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+                    </xsd:sequence>
+                    <xsd:attribute name="value-date" type="xsd:date" use="required"/>
+                    <xsd:anyAttribute processContents="lax"/>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    ''')
+    schema = etree.XMLSchema(schema_root)
+    return schema.validate(date_element)
+
 
 
 #Deals with elements that are in both organisation and activity files
@@ -428,7 +461,7 @@ class ActivityStats(CommonSharedElements):
                     )),
                 'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="C"]'),
                 'transaction_spend': self.element.xpath('transaction[transaction-type/@code="D" or transaction-type/@code="E"]'),
-                'transaction_currency': all_and_not_empty(filter(lambda x: x!='', x.xpath('value/@value-date')) for x in self.element.findall('transaction')),
+                'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
                 'transaction_traceability': all_and_not_empty(x.attrib.get('provider-activity-id') for x in self.element.findall('transaction')),
                 'budget': self.element.findall('budget'),
                 'contact-info': self.element.findall('contact-info/email'),
@@ -446,11 +479,13 @@ class ActivityStats(CommonSharedElements):
     def _comprehensiveness_with_validation_bools(self):
             reporting_org_ref = self.element.find('reporting-org').attrib.get('ref') if self.element.find('reporting-org') is not None else None
             bools = copy.copy(self._comprehensiveness_bools())
+
             def decimal_or_zero(value):
                 try:
                     return Decimal(value)
                 except TypeError:
                     return 0
+
             def empty_or_percentage_sum_is_100(path, by_vocab=False):
                 elements = self.element.xpath(path)
                 if not elements:
@@ -465,18 +500,44 @@ class ActivityStats(CommonSharedElements):
                             for es in elements_by_vocab.values())
                     else:
                         return sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
+
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in VERSION_CODELIST,
                 'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
                 'participating-org': bools['participating-org'] and '1' in self.element.xpath('participating-org/@type'),
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in ACTIVITY_STATUS_CODELIST for x in self.element.xpath('activity-status/@code')),
-                'activity-date': bools['activity-date'],
+                'activity-date': (
+                    bools['activity-date'] and
+                    self.element.xpath('activity-date[@type="start-planned" or @type="start-actual"]') and
+                    all_and_not_empty(map(valid_date, self.element.findall('activity-date')))
+                    ),
                 'sector': (
                     bools['sector'] and
                     empty_or_percentage_sum_is_100('sector', by_vocab=True)),
                 'country_or_region': (
                     bools['country_or_region'] and 
                     empty_or_percentage_sum_is_100('recipient-country|recipient-region')),
+                'transaction_commitment': (
+                    bools['transaction_commitment'] and
+                    all([ x.find('value') is not None for x in bools['transaction_commitment'] ]) and
+                    all_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_commitment'])
+                    ),
+                'transaction_spend': (
+                    bools['transaction_commitment'] and
+                    all([ x.find('value') is not None for x in bools['transaction_spend'] ]) and
+                    all_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_spend'])
+                    ),
+                'transaction_currency': all(
+                    all(map(valid_date, t.findall('value'))) and
+                    all(x in CURRENCY_CODELIST for x in t.xpath('../@default-currency|./value/@currency')) for t in self.element.findall('transaction')
+                    ),
+                'budget': (
+                    bools['budget'] and
+                    all(
+                        valid_date(budget.find('period-start')) and
+                        valid_date(budget.find('period-end')) and
+                        valid_date(budget.find('value'))
+                        for budget in bools['budget']))
             })
             return bools
 

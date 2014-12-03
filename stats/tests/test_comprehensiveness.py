@@ -359,7 +359,16 @@ def test_comprehensiveness_sector_other_passes():
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
 
-def test_comprehensiveness_with_validation():
+xf = pytest.mark.xfail
+
+@pytest.mark.parametrize('key', [
+    'version', 'iati-identifier', 'participating-org', 'activity-status',
+    'activity-date', 'sector', 'country_or_region',
+    'transaction_commitment', 'transaction_spend', 'transaction_currency',
+    'budget',
+    xf('location_point_pos'), xf('sector_dac'), xf('document-link'), xf('activity-website')
+])
+def test_comprehensiveness_with_validation(key):
     activity_stats = ActivityStats()
     activity_stats.today = datetime.date(2014, 1, 1)
     root = etree.fromstring('''
@@ -429,17 +438,9 @@ def test_comprehensiveness_with_validation():
     comprehensiveness = activity_stats.comprehensiveness()
     not_valid = activity_stats.comprehensiveness_with_validation()
     valid = activity_stats_valid.comprehensiveness_with_validation()
-    for key in [
-            'version', 'iati-identifier', 'participating-org', 'activity-status',
-            'activity-date', 'sector', 'country_or_region',
-            'transaction_commitment', 'transaction_spend', 'transaction_currency',
-            'budget',
-            #'location_point_pos', 'sector_dac', 'activity-website'
-            ]:
-        print(key)
-        assert comprehensiveness[key] == 1
-        assert not_valid[key] == 0
-        assert valid[key] == 1
+    assert comprehensiveness[key] == 1
+    assert not_valid[key] == 0
+    assert valid[key] == 1
 
 
 @pytest.mark.xfail
@@ -493,7 +494,8 @@ def test_comprehensiveness_transaction_level_elements():
     assert comprehensiveness['country_or_region'] == 0
 
 
-def test_comprehensiveness_with_validation_transaction_level_elements():
+@pytest.mark.parametrize('key', ['sector', 'country_or_region'])
+def test_comprehensiveness_with_validation_transaction_level_elements(key):
     activity_stats = ActivityStats()
     activity_stats.today = datetime.date(2014, 1, 1)
     root = etree.fromstring('''
@@ -520,11 +522,9 @@ def test_comprehensiveness_with_validation_transaction_level_elements():
     comprehensiveness = activity_stats.comprehensiveness()
     not_valid = activity_stats.comprehensiveness_with_validation()
     valid = activity_stats_valid.comprehensiveness_with_validation()
-    for key in ['sector', 'country_or_region']:
-        print(key)
-        assert comprehensiveness[key] == 1
-        assert not_valid[key] == 0
-        assert valid[key] == 1
+    assert comprehensiveness[key] == 1
+    assert not_valid[key] == 0
+    assert valid[key] == 1
     
 
 

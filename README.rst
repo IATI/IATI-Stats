@@ -1,6 +1,17 @@
 IATI Stats
 ==========
 
+.. image:: https://travis-ci.org/IATI/IATI-Stats.svg?branch=master
+    :target: https://travis-ci.org/IATI/IATI-Stats
+.. image:: https://requires.io/github/IATI/IATI-Stats/requirements.svg?branch=master
+    :target: https://requires.io/github/IATI/IATI-Stats/requirements/?branch=master
+    :alt: Requirements Status
+.. image:: https://coveralls.io/repos/IATI/IATI-Stats/badge.png?branch=master
+    :target: https://coveralls.io/r/IATI/IATI-Stats?branch=master
+
+Introduction
+------------
+
 IATI-Stats is a python application for generating JSON stats files from IATI data. An example of this outputted JSON can be found at http://dashboard.iatistandard.org/stats/
 
 These stats are used to build the `IATI Dashboard <http://dashboard.iatistandard.org/>`_, and also to produce some of the stats for the Transparency Indicator and the IATI Annual report.
@@ -78,7 +89,7 @@ Stats definitions are located in a python module, by default ``stats.dashboard``
 -  ``OrganisationStats``
 -  ``OrganisationFileStats``
 
-See `stats/countonly.py`_ for the structure of a simple stats module.
+See `./stats/countonly.py <https://github.com/IATI/IATI-Stats/blob/master/stats/countonly.py>`__ for the structure of a simple stats module.
 
 Each function within these classes is considered to be a stats function,
 unless it begins with an underscore (``_``). In the appropriate context,

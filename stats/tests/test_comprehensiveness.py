@@ -359,14 +359,12 @@ def test_comprehensiveness_sector_other_passes():
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
 
-xf = pytest.mark.xfail
-
 @pytest.mark.parametrize('key', [
     'version', 'iati-identifier', 'participating-org', 'activity-status',
     'activity-date', 'sector', 'country_or_region',
     'transaction_commitment', 'transaction_spend', 'transaction_currency',
     'budget',
-    xf('location_point_pos'), xf('sector_dac'), xf('document-link'), xf('activity-website')
+    'location_point_pos', 'sector_dac', 'document-link', 'activity-website'
 ])
 def test_comprehensiveness_with_validation(key):
     activity_stats = ActivityStats()
@@ -381,8 +379,10 @@ def test_comprehensiveness_with_validation(key):
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="end-planned" iso-date="2014-01-01" />
                 <activity-date type="start-planned" iso-date="2014-0101" />
-                <sector vocabulary="DAC" percentage="100" />
-                <sector vocabulary="DAC" percentage="100" />
+                <sector vocabulary="DAC" percentage="100" code="a" />
+                <sector vocabulary="DAC" percentage="100" code="b" />
+                <sector vocabulary="DAC-3" percentage="100" code="a" />
+                <sector vocabulary="DAC-3" percentage="100" code="b" />
                 <sector vocabulary="RO" percentage="100" />
                 <sector vocabulary="RO" percentage="100" />
                 <recipient-country percentage="100"/>
@@ -396,6 +396,15 @@ def test_comprehensiveness_with_validation(key):
                     <value value-date="" currency=""/>
                 </transaction>
                 <budget/>
+                <location>
+                    <point>
+                        <pos>1.5,2</pos>
+                    </point>
+                </location>
+                <document-link url="">
+                    <category code="" />
+                </document-link>
+                <activity-website>notaurl</activity-website>
             </iati-activity>
         </iati-activities>
     ''')
@@ -410,8 +419,10 @@ def test_comprehensiveness_with_validation(key):
                 <activity-status code="2"/>
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="start-planned" iso-date="2014-01-01" />
-                <sector vocabulary="DAC" percentage="50" />
-                <sector vocabulary="DAC" percentage="50" />
+                <sector vocabulary="DAC" percentage="50" code="11220" />
+                <sector vocabulary="DAC" percentage="50" code="11240" />
+                <sector vocabulary="DAC-3" percentage="50" code="111" />
+                <sector vocabulary="DAC-3" percentage="50" code="112" />
                 <sector vocabulary="RO" percentage="51" />
                 <sector vocabulary="RO" percentage="49" />
                 <recipient-country percentage="44.5"/>
@@ -431,6 +442,15 @@ def test_comprehensiveness_with_validation(key):
                     <period-end iso-date="2014-01-02"/>
                     <value value-date="2014-01-01"/>
                 </budget>
+                <location>
+                    <point>
+                        <pos>1.5 2</pos>
+                    </point>
+                </location>
+                <document-link url="http://example.org/">
+                    <category code="A01" />
+                </document-link>
+                <activity-website>http://example.org/</activity-website>
             </iati-activity>
         </iati-activities>
     ''')
@@ -447,6 +467,45 @@ def test_comprehensiveness_with_validation(key):
 def test_valid_value():
     # We should test that a value elements contain a valid decimal, where relevant
     raise NotImplementedError
+
+
+def test_valid_location():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <location>
+                <point>
+                    <pos>+1.5 -2</pos>
+                </point>
+            </location>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['location_point_pos'] == 1
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <location>
+                <point>
+                    <pos>x1.5 -2</pos>
+                </point>
+            </location>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['location_point_pos'] == 0
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <location>
+                <point>
+                    <pos>1,5 2,5</pos>
+                </point>
+            </location>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['location_point_pos'] == 0
+
 
 @pytest.mark.xfail
 def test_transaction_exclusions():

@@ -31,9 +31,9 @@ codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path')
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
 
-VERSION_CODELIST = set(c['code'] for c in json.load(open('helpers/Version.json'))['data']) 
-ACTIVITY_STATUS_CODELIST = set(c['code'] for c in json.load(open('helpers/ActivityStatus.json'))['data']) 
-CURRENCY_CODELIST = set(c['code'] for c in json.load(open('helpers/Currency.json'))['data']) 
+CODELISTS = {}
+for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory']:
+    CODELISTS[codelist_name] = set(c['code'] for c in json.load(open('helpers/{}.json'.format(codelist_name)))['data']) 
 
 import csv
 reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
@@ -89,6 +89,62 @@ def valid_date(date_element):
     ''')
     schema = etree.XMLSchema(schema_root)
     return schema.validate(date_element)
+
+
+def valid_url(element):
+    if element is None:
+        return False
+
+    if element.tag == 'document-link':
+        url = element.attrib.get('url')
+    elif element.tag == 'activity-website':
+        url = element.text
+    else:
+        return False
+
+    if url is None or url == '' or '://' not in url:
+        # Return false if it's empty or not an absolute url
+        return False
+
+    schema_root = etree.XML('''
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:element name="document-link">
+                <xsd:complexType>
+                    <xsd:sequence>
+                        <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax" />
+                    </xsd:sequence>
+                    <xsd:attribute name="url" type="xsd:anyURI" use="required"/>
+                    <xsd:anyAttribute processContents="lax"/>
+                </xsd:complexType>
+            </xsd:element>
+            <xsd:element name="activity-website">
+                <xsd:complexType>
+                    <xsd:simpleContent>
+                        <xsd:extension base="xsd:anyURI">
+                            <xsd:anyAttribute processContents="lax"/>
+                        </xsd:extension>
+                    </xsd:simpleContent>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    ''')
+    schema = etree.XMLSchema(schema_root)
+    return schema.validate(element)
+
+
+def valid_coords(x):
+    coords = x.split(' ')
+    if len(coords) != 2:
+        return False
+    try:
+        x = decimal.Decimal(coords[0])
+        y = decimal.Decimal(coords[1])
+        if x == 0 and y ==0:
+            return False
+        else:
+            return True
+    except decimal.InvalidOperation:
+        return False
 
 
 
@@ -502,10 +558,10 @@ class ActivityStats(CommonSharedElements):
                         return sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
 
             bools.update({
-                'version': bools['version'] and self.element.getparent().attrib['version'] in VERSION_CODELIST,
+                'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS['Version'],
                 'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
                 'participating-org': bools['participating-org'] and '1' in self.element.xpath('participating-org/@type'),
-                'activity-status': bools['activity-status'] and all_and_not_empty(x in ACTIVITY_STATUS_CODELIST for x in self.element.xpath('activity-status/@code')),
+                'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (
                     bools['activity-date'] and
                     self.element.xpath('activity-date[@type="start-planned" or @type="start-actual"]') and
@@ -529,7 +585,7 @@ class ActivityStats(CommonSharedElements):
                     ),
                 'transaction_currency': all(
                     all(map(valid_date, t.findall('value'))) and
-                    all(x in CURRENCY_CODELIST for x in t.xpath('../@default-currency|./value/@currency')) for t in self.element.findall('transaction')
+                    all(x in CODELISTS['Currency'] for x in t.xpath('../@default-currency|./value/@currency')) for t in self.element.findall('transaction')
                     ),
                 'budget': (
                     bools['budget'] and
@@ -537,7 +593,16 @@ class ActivityStats(CommonSharedElements):
                         valid_date(budget.find('period-start')) and
                         valid_date(budget.find('period-end')) and
                         valid_date(budget.find('value'))
-                        for budget in bools['budget']))
+                        for budget in bools['budget'])),
+                'location_point_pos': all_and_not_empty(
+                    valid_coords(x.text) for x in bools['location_point_pos']),
+                'sector_dac': (
+                    all(x.attrib.get('code') in CODELISTS['Sector'] for x in self.element.xpath('sector[@vocabulary="DAC"]')) and
+                    all(x.attrib.get('code') in CODELISTS['SectorCategory'] for x in self.element.xpath('sector[@vocabulary="DAC-3"]'))
+                    ),
+                'document-link': all_and_not_empty(
+                    valid_url(x) and x.find('category') is not None and x.find('category').attrib.get('code') in CODELISTS['DocumentCategory'] for x in bools['document-link']),
+                'activity-website': all_and_not_empty(map(valid_url, bools['activity-website'])),
             })
             return bools
 

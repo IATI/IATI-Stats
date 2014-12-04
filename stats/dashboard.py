@@ -572,10 +572,11 @@ class ActivityStats(CommonSharedElements):
                         for element in elements:
                             elements_by_vocab[element.attrib.get('vocabulary')].append(element)
                         return all(
+                            len(es) == 1 or
                             sum(decimal_or_zero(x.attrib.get('percentage')) for x in es) == 100
                             for es in elements_by_vocab.values())
                     else:
-                        return sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
+                        return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
 
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS['Version'],

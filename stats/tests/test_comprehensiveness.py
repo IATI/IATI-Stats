@@ -470,6 +470,23 @@ def test_comprehensiveness_with_validation(key):
     assert valid[key] == 1
 
 
+def test_valid_single_recipient_country():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <recipient-country/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['country_or_region'] == 1
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <recipient-region/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['country_or_region'] == 1
+
 def test_valid_location():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
@@ -557,6 +574,8 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key):
         <iati-activities version="9.99">
             <iati-activity>
                 <sector/>
+                <sector/>
+                <recipient-country/>
                 <recipient-country/>
             </iati-activity>
         </iati-activities>

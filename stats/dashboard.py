@@ -69,7 +69,7 @@ def valid_date(date_element):
             <xsd:element name="transaction-date" type="dateType"/>
             <xsd:element name="period-start" type="dateType"/>
             <xsd:element name="period-end" type="dateType"/>
-            <xsd:complexType name="dateType">
+            <xsd:complexType name="dateType" mixed="true">
                 <xsd:sequence>
                     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax" />
                 </xsd:sequence>
@@ -109,7 +109,7 @@ def valid_url(element):
     schema_root = etree.XML('''
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <xsd:element name="document-link">
-                <xsd:complexType>
+                <xsd:complexType mixed="true">
                     <xsd:sequence>
                         <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax" />
                     </xsd:sequence>

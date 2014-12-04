@@ -4,7 +4,7 @@ from lxml import etree
 def test_valid_date():
     assert not valid_date(etree.XML('<activity-date iso-date=""/>'))
     assert valid_date(etree.XML('<activity-date iso-date="2014-01-01"/>'))
-    assert valid_date(etree.XML('<activity-date iso-date="2014-01-01" attribute="1"><someelement/></activity-date>'))
+    assert valid_date(etree.XML('<activity-date iso-date="2014-01-01" attribute="1">Some content<someelement/></activity-date>'))
 
     assert not valid_date(etree.XML('<transaction-date iso-date="2014-0101"/>'))
     assert valid_date(etree.XML('<transaction-date iso-date="2014-01-01"/>'))

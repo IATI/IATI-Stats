@@ -659,5 +659,3 @@ def test_transaction_non_exclusions(key):
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_denominators()[key] == 1
-
-

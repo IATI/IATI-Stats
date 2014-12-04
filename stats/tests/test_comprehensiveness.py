@@ -381,7 +381,7 @@ def test_comprehensiveness_with_validation(key):
             <iati-activity>
                 <reporting-org ref="BBB"/>
                 <iati-identifier>AAA-1</iati-identifier>
-                <participating-org type="2"/>
+                <participating-org role="2"/>
                 <activity-status/>
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="end-planned" iso-date="2014-01-01" />
@@ -422,7 +422,7 @@ def test_comprehensiveness_with_validation(key):
             <iati-activity>
                 <reporting-org ref="AAA"/>
                 <iati-identifier>AAA-1</iati-identifier>
-                <participating-org type="1"/>
+                <participating-org role="1"/>
                 <activity-status code="2"/>
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="start-planned" iso-date="2014-01-01" />

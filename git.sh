@@ -73,18 +73,15 @@ for commit in $commits; do
         python statsrunner/gitaggregate-publisher.py dated
         if [ ! $commit = $current_hash ]; then
             rm -r $GITOUT_DIR/commits/$commit
+        else
+            cd $GITOUT_DIR || exit $?
+            rm -r current
+            cp -Lr commits/$current_hash current
+            tar -czf current.tar.gz current
+            cd .. || exit $?
         fi
     fi
 done
-
-cd $GITOUT_DIR || exit $?
-if [ -d commits/$current_hash ]; then
-    rm -r current
-    cp -Lr commits/$current_hash current
-    tar -czf current.tar.gz current
-fi
-#find commits | grep iati_identifiers | xargs rm
-cd .. || exit $?
 
 mv gitdate.json $GITOUT_DIR
 cp helpers/ckan.json $GITOUT_DIR

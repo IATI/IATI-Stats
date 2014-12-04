@@ -77,7 +77,7 @@ def valid_date(date_element):
                 <xsd:anyAttribute processContents="lax"/>
             </xsd:complexType>
             <xsd:element name="value">
-                <xsd:complexType>
+                <xsd:complexType mixed="true">
                     <xsd:sequence>
                         <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax" />
                     </xsd:sequence>
@@ -130,6 +130,26 @@ def valid_url(element):
     ''')
     schema = etree.XMLSchema(schema_root)
     return schema.validate(element)
+
+
+def valid_value(value_element):
+    if value_element is None:
+        return False
+    schema_root = etree.XML('''
+        <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+            <xsd:element name="value">
+                <xsd:complexType>
+                    <xsd:simpleContent>
+                        <xsd:extension base="xsd:decimal">
+                            <xsd:anyAttribute processContents="lax"/>
+                        </xsd:extension>
+                    </xsd:simpleContent>
+                </xsd:complexType>
+            </xsd:element>
+        </xsd:schema>
+    ''')
+    schema = etree.XMLSchema(schema_root)
+    return schema.validate(value_element)
 
 
 def valid_coords(x):
@@ -575,12 +595,12 @@ class ActivityStats(CommonSharedElements):
                     empty_or_percentage_sum_is_100('recipient-country|recipient-region')),
                 'transaction_commitment': (
                     bools['transaction_commitment'] and
-                    all([ x.find('value') is not None for x in bools['transaction_commitment'] ]) and
+                    all([ valid_value(x.find('value')) for x in bools['transaction_commitment'] ]) and
                     all_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_commitment'])
                     ),
                 'transaction_spend': (
                     bools['transaction_commitment'] and
-                    all([ x.find('value') is not None for x in bools['transaction_spend'] ]) and
+                    all([ valid_value(x.find('value')) for x in bools['transaction_spend'] ]) and
                     all_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_spend'])
                     ),
                 'transaction_currency': all(
@@ -592,7 +612,8 @@ class ActivityStats(CommonSharedElements):
                     all(
                         valid_date(budget.find('period-start')) and
                         valid_date(budget.find('period-end')) and
-                        valid_date(budget.find('value'))
+                        valid_date(budget.find('value')) and
+                        valid_value(budget.find('value'))
                         for budget in bools['budget'])),
                 'location_point_pos': all_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),

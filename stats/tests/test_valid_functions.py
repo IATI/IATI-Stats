@@ -1,4 +1,4 @@
-from stats.dashboard import valid_date, valid_url
+from stats.dashboard import valid_date, valid_url, valid_value
 from lxml import etree
 
 def test_valid_date():
@@ -24,12 +24,18 @@ def test_valid_date():
 def test_valid_url():
     assert not valid_url(etree.XML('<document-link/>'))
     assert not valid_url(etree.XML('<document-link url=""/>'))
-    #assert not valid_url(etree.XML('<document-link url="http://:notaurl"/>'))
+    assert not valid_url(etree.XML('<document-link url="http://:notaurl"/>'))
     assert not valid_url(etree.XML('<document-link url="notaurl"/>'))
     assert valid_url(etree.XML('<document-link url="http://example.org/"/>'))
 
     assert not valid_url(etree.XML('<activity-website/>'))
     assert not valid_url(etree.XML('<activity-website></activity-website>'))
-    #assert not valid_url(etree.XML('<activity-website>notaurl</activity-website>'))
+    assert not valid_url(etree.XML('<activity-website>notaurl</activity-website>'))
     assert not valid_url(etree.XML('<activity-website>http://:notaurl</activity-website>'))
     assert valid_url(etree.XML('<document-link url="http://example.org/"/>'))
+
+
+def test_valid_value():
+    assert valid_value(etree.XML('<value>1.0</value>'))
+    assert valid_value(etree.XML('<value someattribute="a">1.0</value>'))
+    assert not valid_value(etree.XML('<value>1,0</value>'))

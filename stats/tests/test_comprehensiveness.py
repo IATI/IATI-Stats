@@ -429,18 +429,18 @@ def test_comprehensiveness_with_validation(key):
                 <recipient-region percentage="55.5"/>
                 <transaction>
                     <transaction-type code="C"/>
-                    <value value-date="2014-01-01" currency="GBP"/>
+                    <value value-date="2014-01-01" currency="GBP">1.0</value>
                     <transaction-date iso-date="2014-01-01" />
                 </transaction>
                 <transaction>
                     <transaction-type code="D"/>
-                    <value value-date="2014-01-01" currency="GBP"/>
+                    <value value-date="2014-01-01" currency="GBP">1.0</value>
                     <transaction-date iso-date="2014-01-01" />
                 </transaction>
                 <budget>
                     <period-start iso-date="2014-01-01"/>
                     <period-end iso-date="2014-01-02"/>
-                    <value value-date="2014-01-01"/>
+                    <value value-date="2014-01-01">1.0</value>
                 </budget>
                 <location>
                     <point>
@@ -461,12 +461,6 @@ def test_comprehensiveness_with_validation(key):
     assert comprehensiveness[key] == 1
     assert not_valid[key] == 0
     assert valid[key] == 1
-
-
-@pytest.mark.xfail
-def test_valid_value():
-    # We should test that a value elements contain a valid decimal, where relevant
-    raise NotImplementedError
 
 
 def test_valid_location():

@@ -538,7 +538,7 @@ class ActivityStats(CommonSharedElements):
                 'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="C"]'),
                 'transaction_spend': self.element.xpath('transaction[transaction-type/@code="D" or transaction-type/@code="E"]'),
                 'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-                'transaction_traceability': all_and_not_empty(x.attrib.get('provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="IF"]')),
+                'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="IF"]')),
                 'budget': self.element.findall('budget'),
                 'contact-info': self.element.findall('contact-info/email'),
                 'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),

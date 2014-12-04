@@ -130,8 +130,9 @@ def test_comprehensiveness_empty():
             <transaction>
                 <transaction-type/>
             </transaction>
-            <transaction provider-activity-id="AAA">
+            <transaction>
             <!-- provider-activity-id only on one transaction should get no points -->
+                <provider-org provider-activity-id="AAA"/>
                 <transaction-type code="IF"/>
             </transaction>
             <transaction>
@@ -190,7 +191,8 @@ def test_comprehensiveness_full():
                     <transaction-type code="E"/>
                     <value currency="" value-date="2014-01-01"/>
                 </transaction>
-                <transaction provider-activity-id="AAA">
+                <transaction>
+                    <provider-org provider-activity-id="AAA"/>
                     <transaction-type code="IF"/>
                     <value currency="" value-date="2014-01-01"/>
                 </transaction>

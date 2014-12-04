@@ -581,7 +581,7 @@ class ActivityStats(CommonSharedElements):
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS['Version'],
                 'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
-                'participating-org': bools['participating-org'] and '1' in self.element.xpath('participating-org/@role'),
+                'participating-org': bools['participating-org'] and 'Funding' in self.element.xpath('participating-org/@role'),
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (
                     bools['activity-date'] and

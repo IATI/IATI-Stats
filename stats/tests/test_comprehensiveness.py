@@ -130,9 +130,12 @@ def test_comprehensiveness_empty():
             <transaction>
                 <transaction-type/>
             </transaction>
-            <transaction provider-activity-id="">
+            <transaction provider-activity-id="AAA">
             <!-- provider-activity-id only on one transaction should get no points -->
-                <transaction-type/>
+                <transaction-type code="IF"/>
+            </transaction>
+            <transaction>
+                <transaction-type code="IF"/>
             </transaction>
         </iati-activity>
     ''')
@@ -179,12 +182,16 @@ def test_comprehensiveness_full():
                 <activity-date/>
                 <sector vocabulary="DAC"/>
                 <recipient-country code="AI"/>
-                <transaction provider-activity-id="AAA">
+                <transaction>
                     <transaction-type code="C"/>
                     <value currency="" value-date="2014-01-01"/>
                 </transaction>
-                <transaction provider-activity-id="AAA">
+                <transaction>
                     <transaction-type code="E"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction provider-activity-id="AAA">
+                    <transaction-type code="IF"/>
                     <value currency="" value-date="2014-01-01"/>
                 </transaction>
                 <budget/>
@@ -501,11 +508,6 @@ def test_valid_location():
     assert activity_stats.comprehensiveness_with_validation()['location_point_pos'] == 0
 
 
-@pytest.mark.xfail
-def test_transaction_exclusions():
-    raise NotImplementedError
-    
-
 def test_comprehensiveness_transaction_level_elements():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
@@ -593,10 +595,50 @@ def test_comprehensivness_denominator_default():
     assert activity_stats.comprehensiveness_denominator_default() == 0
 
 
+@pytest.mark.xfail
 def test_comprehensivness_denominator_empty():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
         <iati-activity>
         </iati-activity>
     ''')
-    assert activity_stats.comprehensiveness_denominators() == {}
+    assert activity_stats.comprehensiveness_denominators() == {
+        'transaction_spend': 0,
+        'transaction_traceability': 0
+    }
+
+
+@pytest.mark.parametrize('key', [
+    pytest.mark.xfail('transaction_spend'), 'transaction_traceability' ])
+def test_transaction_exclusions(key):
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <transaction>
+                <transaction-type code="C"/>
+            </transaction>
+            <transaction>
+                <transaction-type code="D"/>
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators()[key] == 0
+    
+
+@pytest.mark.parametrize('key', [
+    'transaction_spend', 'transaction_traceability' ])
+def test_transaction_non_exclusions(key):
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <transaction>
+                <transaction-type code="IF"/>
+            </transaction>
+            <transaction>
+                <transaction-type code="D"/>
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators()[key] == 1
+
+

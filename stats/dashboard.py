@@ -538,7 +538,7 @@ class ActivityStats(CommonSharedElements):
                 'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="C"]'),
                 'transaction_spend': self.element.xpath('transaction[transaction-type/@code="D" or transaction-type/@code="E"]'),
                 'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-                'transaction_traceability': all_and_not_empty(x.attrib.get('provider-activity-id') for x in self.element.findall('transaction')),
+                'transaction_traceability': all_and_not_empty(x.attrib.get('provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="IF"]')),
                 'budget': self.element.findall('budget'),
                 'contact-info': self.element.findall('contact-info/email'),
                 'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
@@ -647,8 +647,16 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def comprehensiveness_denominators(self):
-        return {
-        }
+        if self._comprehensiveness_is_current():
+            return {
+                'transaction_spend': 1,
+                'transaction_traceability': 1 if self.element.xpath('transaction[transaction-type/@code="IF"]') else 0,
+            }
+        else:
+            return {
+                'transaction_spend': 0,
+                'transaction_traceability': 0
+            }
 
     def _transaction_type_code(self, transaction):
         type_code = None

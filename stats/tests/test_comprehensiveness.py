@@ -347,6 +347,15 @@ def test_comprehensiveness_sector_other_passes():
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness()['sector'] == 1
+    assert activity_stats.comprehensiveness()['sector_dac'] == 1
+
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+        <iati-activity default-currency="">
+            <sector vocabulary="test"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['sector'] == 1
     assert activity_stats.comprehensiveness()['sector_dac'] == 0
 
     activity_stats = ActivityStats()
@@ -488,6 +497,34 @@ def test_valid_single_recipient_country():
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_with_validation()['country_or_region'] == 1
+
+
+def test_valid_sector_no_vocab():
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(2014, 1, 1)
+    root = etree.fromstring('''
+        <iati-activities>
+            <iati-activity>
+                <sector code="a" />
+                <sector code="b" />
+            </iati-activity>
+        </iati-activities>
+    ''')
+    activity_stats.element = root.find('iati-activity')
+    activity_stats_valid = ActivityStats()
+    root_valid = etree.fromstring('''
+        <iati-activities>
+            <iati-activity>
+                <sector code="11220" />
+                <sector code="11240" />
+            </iati-activity>
+        </iati-activities>
+    ''')
+    activity_stats_valid.element = root_valid.find('iati-activity')
+    assert activity_stats.comprehensiveness()['sector_dac'] == 1
+    assert activity_stats.comprehensiveness_with_validation()['sector_dac'] == 0
+    assert activity_stats_valid.comprehensiveness_with_validation()['sector_dac'] == 1
+
 
 def test_valid_location():
     activity_stats = ActivityStats()

@@ -543,7 +543,7 @@ class ActivityStats(CommonSharedElements):
                 'contact-info': self.element.findall('contact-info/email'),
                 'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
                 'location_point_pos': self.element.xpath('location/point/pos'),
-                'sector_dac': self.element.xpath('sector[@vocabulary="DAC" or @vocabulary="DAC-3"]'),
+                'sector_dac': self.element.xpath('sector[@vocabulary="DAC" or @vocabulary="DAC-3" or not(@vocabulary)]'),
                 'capital-spend': self.element.xpath('capital-spend/@percentage'),
                 'document-link': self.element.findall('document-link'),
                 'activity-website': self.element.xpath('activity-website|document-link[category/@code="A12"]'),
@@ -619,7 +619,8 @@ class ActivityStats(CommonSharedElements):
                 'location_point_pos': all_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (
-                    all(x.attrib.get('code') in CODELISTS['Sector'] for x in self.element.xpath('sector[@vocabulary="DAC"]')) and
+                    bools['sector_dac'] and
+                    all(x.attrib.get('code') in CODELISTS['Sector'] for x in self.element.xpath('sector[@vocabulary="DAC" or not(@vocabulary)]')) and
                     all(x.attrib.get('code') in CODELISTS['SectorCategory'] for x in self.element.xpath('sector[@vocabulary="DAC-3"]'))
                     ),
                 'document-link': all_and_not_empty(

@@ -8,9 +8,18 @@ if [ "$COMMIT_SKIP_FILE" = "" ]; then
     COMMIT_SKIP_FILE=$GITOUT_DIR/gitaggregate/activities.json
 fi
 
+
+mkdir -p $GITOUT_DIR/logs
+mkdir -p $GITOUT_DIR/commits
+mkdir -p $GITOUT_DIR/gitaggregate
+mkdir -p $GITOUT_DIR/gitaggregate-dated
+
+
 cd helpers
 python ckan.py
 cd ..
+cp helpers/ckan.json $GITOUT_DIR
+
 
 # Clear output directory
 rm -r out
@@ -32,16 +41,12 @@ echo '}' >> gitdate.json
 # Perform this dance because piping to ../ behaves differently with symlinks
 cd .. || exit $?
 mv data/gitdate.json .
+cp gitdate.json $GITOUT_DIR
 
 cd data || exit $?
 current_hash=`git rev-parse HEAD`
 commits=`git log --format=format:%H`
 cd .. || exit $?
-
-mkdir -p $GITOUT_DIR/logs
-mkdir -p $GITOUT_DIR/commits
-mkdir -p $GITOUT_DIR/gitaggregate
-mkdir -p $GITOUT_DIR/gitaggregate-dated
 
 for commit in $commits; do
     if grep -q $commit $COMMIT_SKIP_FILE; then
@@ -82,9 +87,6 @@ for commit in $commits; do
         fi
     fi
 done
-
-mv gitdate.json $GITOUT_DIR
-cp helpers/ckan.json $GITOUT_DIR
 
 cd $GITOUT_DIR || exit $?
 tar -czf gitaggregate.tar.gz gitaggregate

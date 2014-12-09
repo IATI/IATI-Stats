@@ -601,7 +601,7 @@ class ActivityStats(CommonSharedElements):
                     all_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_commitment'])
                     ),
                 'transaction_spend': (
-                    bools['transaction_commitment'] and
+                    bools['transaction_spend'] and
                     all([ valid_value(x.find('value')) for x in bools['transaction_spend'] ]) and
                     all_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_spend'])
                     ),
@@ -633,14 +633,20 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdict
     def comprehensiveness(self):
         if self._comprehensiveness_is_current():
-            return { k:(1 if v else 0) for k,v in self._comprehensiveness_bools().items() }
+            return { k:(1 if v and (
+                                    k not in self.comprehensiveness_denominators()
+                                    or self.comprehensiveness_denominators()[k]
+                                   ) else 0) for k,v in self._comprehensiveness_bools().items() }
         else:
             return {}
 
     @returns_numberdict
     def comprehensiveness_with_validation(self):
         if self._comprehensiveness_is_current():
-            return { k:(1 if v else 0) for k,v in self._comprehensiveness_with_validation_bools().items() }
+            return { k:(1 if v and (
+                                    k not in self.comprehensiveness_denominators()
+                                    or self.comprehensiveness_denominators()[k]
+                                   ) else 0) for k,v in self._comprehensiveness_with_validation_bools().items() }
         else:
             return {}
 

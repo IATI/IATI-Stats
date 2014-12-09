@@ -232,7 +232,8 @@ class ActivityStats(CommonSharedElements):
         out = {}
         for stat in ['activities', 'elements', 'elements_total',
                      'annualreport', 'annualreport_denominator',
-                     'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets'
+                     'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets',
+                     'comprehensiveness', 'comprehensiveness_with_validation', 'comprehensiveness_denominators', 'comprehensiveness_denominator_default'
                      ]:
             out[stat] = copy.deepcopy(getattr(self, stat)())
         if self.blank:

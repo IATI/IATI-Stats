@@ -653,7 +653,6 @@ def test_comprehensivness_denominator_default():
     assert activity_stats.comprehensiveness_denominator_default() == 0
 
 
-@pytest.mark.xfail
 def test_comprehensivness_denominator_empty():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
@@ -667,11 +666,29 @@ def test_comprehensivness_denominator_empty():
 
 
 @pytest.mark.parametrize('key', [
-    pytest.mark.xfail('transaction_spend'), 'transaction_traceability' ])
+    'transaction_spend', 'transaction_traceability' ])
 def test_transaction_exclusions(key):
     activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-date type="start-planned" iso-date="9989-05-01" />
+            <transaction>
+                <transaction-type code="C"/>
+            </transaction>
+            <transaction>
+                <transaction-type code="D"/>
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators()[key] == 0
+
+    # Broken activity-date/@iso-date
+    activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-date type="start-planned" iso-date="" />
             <transaction>
                 <transaction-type code="C"/>
             </transaction>
@@ -687,8 +704,10 @@ def test_transaction_exclusions(key):
     'transaction_spend', 'transaction_traceability' ])
 def test_transaction_non_exclusions(key):
     activity_stats = ActivityStats()
+    activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-date type="start-planned" iso-date="9990-01-01" />
             <transaction>
                 <transaction-type code="IF"/>
             </transaction>

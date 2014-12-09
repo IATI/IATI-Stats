@@ -651,8 +651,13 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdict
     def comprehensiveness_denominators(self):
         if self._comprehensiveness_is_current():
+            dates = self.element.xpath('activity-date[@type="start-actual"]') + self.element.xpath('activity-date[@type="start-planned"]')
+            if dates:
+                start_date = iso_date(dates[0])
+            else:
+                start_date = None
             return {
-                'transaction_spend': 1,
+                'transaction_spend': 1 if start_date and start_date < self.today and self.today - start_date < datetime.timedelta(days=365) else 0,
                 'transaction_traceability': 1 if self.element.xpath('transaction[transaction-type/@code="IF"]') else 0,
             }
         else:

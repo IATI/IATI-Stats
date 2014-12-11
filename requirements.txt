@@ -1,8 +1,8 @@
 lxml==3.4.1
-python-dateutil==2.2
+python-dateutil==2.3
 git+https://github.com/IATI/IATI-Rulesets.git#egg=iatirulesets
 
 # These are dependencies of the above, but are specificied explicitly in order to pin versions
 six==1.8.0
-argparse==1.2.1
+argparse==1.2.2
 wsgiref==0.1.2

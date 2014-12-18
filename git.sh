@@ -81,9 +81,13 @@ for commit in $commits; do
         else
             cd $GITOUT_DIR || exit $?
             rm -r current
-            cp -Lr commits/$current_hash current
+            # Since we're not currently creating symlinks, we can just do a plain move here
+            mv commits/$current_hash current
             tar -czf current.tar.gz current
             cd .. || exit $?
+        fi
+        if [ "$ALL_COMMITS" = "" ]; then
+            break
         fi
     fi
 done

@@ -1,15 +1,41 @@
-| For general guidance on contributing to IATI Code please see 
-| http://iatistandard.org/developer/contribute/
+If you would like to contribute to the IATI Stats project, you can....
 
-What you can do to help
-=======================
+* Send us feedback about your user experience. Contact details at: https://github.com/IATI
+* Report bugs
+* Request new features
+* Contribute code or documents to improve the application. See the list of specific tasks below.
 
-If you would like to contribute to the IATI Stats project....
+How to report a bug or request a feature
+========================================
+If you are able to work with GitHub then please "Create an issue"
 
-* We're interested in user experience and feedback from using the application.
-* We'd like people to fix bugs and contribute to features.
-* We're interested in people using the code for their own purposes.
-* We're interested in suggestions, modifications and improvements.
+Before creating a new issue check to see if the issue already exists. If not then please do report it. If you have permissions to assign the issue to people and milestones then try to select suitable options. 
+
+If you are not comfortable working with GitHub, but would still like to contribute, then talk to us.  Details at: https://github.com/IATI
+
+
+How to contribute code and documents
+====================================
+
+How we use branches in this repository
+--------------------------------------
+
+* master represents our main development branch
+* live is the branch we are currently using for our deployed instance of the code
+* Other branches represent development work or bug fixes.
+
+Submitting changes
+------------------
+
+* Fork this repository (if you haven't previously)
+* Make sure you're working on top of an up to date copy of IATI's master branch
+    - Create a branch named after the work you're doing (if you're targeting a specific issue, start the branch name with the issue number e.g. ``42-feature-name``)
+* Do your work
+    - If your work addresses a specific issue, reference that issue in your commit message by starting the commit message with ``[#issue number]`` e.g. ``[#64]``
+* Create a pull request
+
+Specific Tasks:
+===============
 
 Deployment
 ----------
@@ -32,27 +58,9 @@ Fix a Bitesize issue
 --------------------
 We mark some of issues as 'Bitesize'. Generally these will help ease you into the code and help you find your way around.
 
-
-How to contribute
-=================
-If you are not comfortable working with GitHub, but would still like to contribute, then talk to us.  Details at: https://github.com/IATI
-
-If you are able to work with Github....
-
-Branches
---------
-
-* master represents our main development branch
-* live is the branch we are currently using for our deployed instance of the code
-* Other branches represent development work or bug fixes.
-
-* Fork this repository (if you haven't previously)
-* Make sure you're working ontop of an up to date copy of IATI's master branch
-    - Create a branch named after the work you're doing (if you're targeting a specific issue, start the branch name with the issue number e.g. 42-feature-name)
-* Do your work
-    - If your work addresses a specific issue, reference that issue in your commit message by starting the commit message with [#issue number] e.g. [#64]
-* Create a pull request
-
 Talk to us
 ==========
 We'd love to hear from you. Details at: https://github.com/IATI
+
+
+For general guidance on contributing to IATI Code please see http://iatistandard.org/developer/contribute/

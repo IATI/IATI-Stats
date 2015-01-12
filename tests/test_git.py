@@ -11,6 +11,8 @@ def populate_tmpdir(root_dir, tmpdir):
     for path in ['helpers', 'calculate_stats.py', 'statsrunner', 'stats']:
         os.symlink(os.path.join(root_dir, path), os.path.join(str(tmpdir), path))
     subprocess.call('''
+        git config --global user.email "you@example.com"
+        git config --global user.name "Your Name"
         mkdir -p data/test_publisher
         cd data
         git init

@@ -31,9 +31,10 @@ codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path')
 codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
 codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
 
-CODELISTS = {}
-for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory']:
-    CODELISTS[codelist_name] = set(c['code'] for c in json.load(open('helpers/{}.json'.format(codelist_name)))['data']) 
+CODELISTS = {'1':{}, '2':{}}
+for major_version in ['1', '2']:
+    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory']:
+        CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data']) 
 
 import csv
 reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
@@ -198,6 +199,14 @@ class CommonSharedElements(object):
     @returns_numberdict
     def element_versions(self):
         return { self.element.attrib.get('version'): 1 }
+
+    @returns_numberdict
+    def _major_version(self):
+        version = self.element.attrib.get('version')
+        if version and version.startswith('2.'):
+            return '2'
+        else:
+            return '1'
 
     @returns_numberdict
     def ruleset_passes(self):
@@ -580,10 +589,10 @@ class ActivityStats(CommonSharedElements):
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
 
             bools.update({
-                'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS['Version'],
+                'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
                 'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
                 'participating-org': bools['participating-org'] and 'Funding' in self.element.xpath('participating-org/@role'),
-                'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
+                'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS[self._major_version()]['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (
                     bools['activity-date'] and
                     self.element.xpath('activity-date[@type="start-planned" or @type="start-actual"]') and
@@ -607,7 +616,7 @@ class ActivityStats(CommonSharedElements):
                     ),
                 'transaction_currency': all(
                     all(map(valid_date, t.findall('value'))) and
-                    all(x in CODELISTS['Currency'] for x in t.xpath('../@default-currency|./value/@currency')) for t in self.element.findall('transaction')
+                    all(x in CODELISTS[self._major_version()]['Currency'] for x in t.xpath('../@default-currency|./value/@currency')) for t in self.element.findall('transaction')
                     ),
                 'budget': (
                     bools['budget'] and
@@ -621,11 +630,11 @@ class ActivityStats(CommonSharedElements):
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (
                     bools['sector_dac'] and
-                    all(x.attrib.get('code') in CODELISTS['Sector'] for x in self.element.xpath('sector[@vocabulary="DAC" or not(@vocabulary)]')) and
-                    all(x.attrib.get('code') in CODELISTS['SectorCategory'] for x in self.element.xpath('sector[@vocabulary="DAC-3"]'))
+                    all(x.attrib.get('code') in CODELISTS[self._major_version()]['Sector'] for x in self.element.xpath('sector[@vocabulary="DAC" or not(@vocabulary)]')) and
+                    all(x.attrib.get('code') in CODELISTS[self._major_version()]['SectorCategory'] for x in self.element.xpath('sector[@vocabulary="DAC-3"]'))
                     ),
                 'document-link': all_and_not_empty(
-                    valid_url(x) and x.find('category') is not None and x.find('category').attrib.get('code') in CODELISTS['DocumentCategory'] for x in bools['document-link']),
+                    valid_url(x) and x.find('category') is not None and x.find('category').attrib.get('code') in CODELISTS[self._major_version()]['DocumentCategory'] for x in bools['document-link']),
                 'activity-website': all_and_not_empty(map(valid_url, bools['activity-website'])),
             })
             return bools

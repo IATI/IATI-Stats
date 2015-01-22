@@ -245,7 +245,6 @@ class ActivityStats(CommonSharedElements):
     def by_hierarchy(self):
         out = {}
         for stat in ['activities', 'elements', 'elements_total',
-                     'annualreport', 'annualreport_denominator',
                      'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets',
                      'comprehensiveness', 'comprehensiveness_with_validation', 'comprehensiveness_denominators', 'comprehensiveness_denominator_default'
                      ]:
@@ -372,25 +371,6 @@ class ActivityStats(CommonSharedElements):
                 out['{}-{}'.format(date.year, str(date.month).zfill(2))] += 1
         return out
 
-    @memoize
-    def _end_actual(self):
-        try:
-            return iso_date(self.element.xpath("activity-date[@type='end-actual']")[0])
-        except IndexError:
-            return None
-
-    @memoize
-    def _current_activity(self):
-        activity_status = self.element.find('activity-status')
-        return (activity_status is not None and activity_status.attrib.get('code') not in ['3','4','5']) and (self._end_actual() is None or self._end_actual() > self.now.date())
-
-    def _future_budget_planned_disbursement(self):
-        for el in self.element.findall('budget') + self.element.findall('planned-disbursement'):
-            date = iso_date(el.find('period-end'))
-            if date and date >= self.now.date():
-                return True
-        return False
-
     @returns_numberdict
     def budget_lengths(self):
         out = defaultdict(int)
@@ -400,66 +380,6 @@ class ActivityStats(CommonSharedElements):
             if period_start and period_end:
                 out[(period_end - period_start).days] += 1
         return out
-
-    @memoize
-    def _recipient_language(self):
-        try:
-            return country_lang_map[self.element.xpath('recipient-country/@code')[0]]
-        except IndexError:
-            return None
-
-
-    @returns_numberdict
-    @memoize
-    def annualreport(self):
-        return {
-            '1.3': 1 if self._current_activity() and self._future_budget_planned_disbursement() else 0,
-            '2.2': 1 if ( len(self.element.xpath('recipient-country')) == 1 and
-                          self.element.xpath('recipient-country/@code')[0] in country_lang_map and
-                          self.element.xpath('@xml:lang') != country_lang_map[self.element.xpath('recipient-country/@code')[0]] and
-                          self._recipient_language() and
-                          ( self.element.xpath('title[@xml:lang="{0}"]'.format(self._recipient_language())
-                            or self.element.xpath('description[@xml:lang="{0}"]'.format(self._recipient_language()))))) else 0,
-            '2.3': 1 if self.element.xpath('activity-date[@type="start-planned"]') or self.element.xpath('activity-date[@type="start-actual"]') else 0,
-            '2.4': 1 if self.element.xpath('activity-date[@type="end-planned"]') or self.element.xpath('activity-date[@type="end-actual"]') else 0,
-            '2.5': 1 if self.element.xpath('participating-org[@role="Implementing"]') else 0,
-            '2.6': 1 if self.element.xpath('participating-org[@role="Accountable"]') else 0,
-            '3.1': 1 if self.element.xpath('location/description') else 0,
-            '3.2': 1 if self.element.xpath('location/coordinates') or self.element.xpath('location/administrative') else 0,
-            '3.3': 1 if self.element.xpath('sector[@vocabulary="" or @vocabulary="DAC" or not(@vocabulary)]') else 0,
-            '5.1': 1 if self.element.xpath('transaction/transaction-type[@code="C"]') else 0,
-            '5.2': 1 if self.element.xpath('transaction/transaction-type[@code="D"]') or self.element.xpath('transaction/transaction-type[@code="E"]') else 0,
-            '5.3': len(self.element.xpath('transaction[(transaction-type/@code="D" and receiver-org) or (transaction-type/@code="IF" and provider-org)]')),
-            '6.1': 1 if self.element.xpath('location/coordinates') or self.element.xpath('location/administrative') else 0,
-            '6.2': 1 if self.element.xpath('conditions/@attached') in ['0', 'false'] or self.element.xpath('conditions/condition') else 0,
-            '6.3': 1 if self.element.xpath('result') else 0,
-            '6.4': 1 if self.element.xpath('result/indicator') else 0,
-        }
-
-    @returns_numberdict
-    @memoize
-    def annualreport_denominator(self):
-        return {
-            '1.3': 1 if self._current_activity() else 0,
-            '2.2': 1 if ( len(self.element.xpath('recipient-country')) == 1 and
-                          self.element.xpath('recipient-country/@code')[0] in country_lang_map and
-                          self.element.xpath('@xml:lang') != country_lang_map[self.element.xpath('recipient-country/@code')[0]]) else 0,
-            '2.3': 1,
-            '2.4': 1,
-            '2.5': 1,
-            '2.6': 1,
-            '3.1': 1,
-            '3.2': 1,
-            '3.3': 1,
-            '5.1': 1,
-            '5.2': 1,
-            '5.3': len(self.element.xpath('transaction[transaction-type/@code="D" or transaction-type/@code="IF"]')),
-            '6.1': 1,
-            '6.2': 1,
-            '6.3': 1,
-            '6.4': 1,
-
-        }
 
     def _transaction_year(self, transaction):
         date = transaction_date(transaction)
@@ -1016,35 +936,6 @@ class PublisherStats(object):
             return 'Annually'
         else:
             return 'Beyond one year'
-
-    @no_aggregation
-    def annualreport_textual(self):
-        return {
-            '1.1': self._timeliness_transactions(),
-            #'1.2':
-            '1.4': self._transaction_alignment(),
-            '1.5': self._budget_alignment(),
-        }
-
-    @returns_numberdict
-    def annualreport(self):
-        out = self.aggregated['annualreport']
-        out.update({
-            '1.1': 0,
-            '1.2': 0,
-            '1.4': 0,
-            '1.5': 0,
-            '2.1': self.publisher_unique_identifiers()
-        })
-        return out
-
-    @returns_numberdict
-    def annualreport_denominator(self):
-        out = self.aggregated['annualreport_denominator']
-        out.update({
-            '2.1': self.aggregated['activities']
-        })
-        return out
 
     @no_aggregation
     def date_extremes(self):

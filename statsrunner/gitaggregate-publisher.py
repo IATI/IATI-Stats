@@ -24,7 +24,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
                     with open(os.path.join(git_out_dir, fname)) as fp:
                         total[fname[:-5]] = json.load(fp, parse_float=decimal.Decimal)
 
-        for statname in [ 'activities', 'activity_files', 'annualreport', 'annualreport_denominator', 'annualreport_textual', 'bottom_hierarchy', 'empty', 'invalidxml', 'file_size', 'nonstandardroots', 'organisation_files', 'publisher_unique_identifiers', 'toolarge', 'validation', 'versions', # Whitelist small stats to avoid using too much diskspace
+        for statname in [ 'activities', 'activity_files', 'bottom_hierarchy', 'empty', 'invalidxml', 'file_size', 'nonstandardroots', 'organisation_files', 'publisher_unique_identifiers', 'toolarge', 'validation', 'versions', # Whitelist small stats to avoid using too much diskspace
             'activities_with_future_transactions',
                 'latest_transaction_date', 'transaction_dates_hash', 'most_recent_transaction_date' ]: # Only run for stats/transaction_dates.py
             path = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher', publisher, statname+'.json')

@@ -289,6 +289,48 @@ class ActivityStats(CommonSharedElements):
         else:
             return '4'
 
+    def _incoming_funds_code(self):
+        if self._major_version() == '1':
+            return 'IF'
+        else:
+            return '1'
+
+    def _commitment_code(self):
+        if self._major_version() == '1':
+            return 'C'
+        else:
+            return '2'
+
+    def _disbursement_code(self):
+        if self._major_version() == '1':
+            return 'D'
+        else:
+            return '3'
+
+    def _expenditure_code(self):
+        if self._major_version() == '1':
+            return 'E'
+        else:
+            return '4'
+
+    def _dac_5_code(self):
+        if self._major_version() == '1':
+            return 'DAC'
+        else:
+            return '1'
+
+    def _dac_3_code(self):
+        if self._major_version() == '1':
+            return 'DAC-3'
+        else:
+            return '2'
+
+    def _funding_code(self):
+        if self._major_version() == '1':
+            return 'Funding'
+        else:
+            return '1'
+
     def __get_start_year(self):
         activity_date = self.element.find("activity-date[@type='{}']".format(self._actual_start_code()))
         if activity_date is None:
@@ -418,7 +460,7 @@ class ActivityStats(CommonSharedElements):
         for transaction in transactions:
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
-                    transaction.find('transaction-type').attrib.get('code') in ['D','E']):
+                    transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
                 currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
                 out[self._transaction_year(transaction)][currency] += Decimal(value.text)
         return out
@@ -510,15 +552,15 @@ class ActivityStats(CommonSharedElements):
                          transaction.find('recipient-region') is not None)
                             for transaction in self.element.findall('transaction')
                     )),
-                'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="C"]'),
-                'transaction_spend': self.element.xpath('transaction[transaction-type/@code="D" or transaction-type/@code="E"]'),
+                'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
+                'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
                 'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-                'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="IF"]')),
+                'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))),
                 'budget': self.element.findall('budget'),
                 'contact-info': self.element.findall('contact-info/email'),
                 'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
                 'location_point_pos': self.element.xpath('location/point/pos'),
-                'sector_dac': self.element.xpath('sector[@vocabulary="DAC" or @vocabulary="DAC-3" or not(@vocabulary)]'),
+                'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())),
                 'capital-spend': self.element.xpath('capital-spend/@percentage'),
                 'document-link': self.element.findall('document-link'),
                 'activity-website': self.element.xpath('activity-website|document-link[category/@code="A12"]'),
@@ -556,7 +598,7 @@ class ActivityStats(CommonSharedElements):
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
                 'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
-                'participating-org': bools['participating-org'] and 'Funding' in self.element.xpath('participating-org/@role'),
+                'participating-org': bools['participating-org'] and self._funding_code() in self.element.xpath('participating-org/@role'),
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS[self._major_version()]['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (
                     bools['activity-date'] and
@@ -595,8 +637,8 @@ class ActivityStats(CommonSharedElements):
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (
                     bools['sector_dac'] and
-                    all(x.attrib.get('code') in CODELISTS[self._major_version()]['Sector'] for x in self.element.xpath('sector[@vocabulary="DAC" or not(@vocabulary)]')) and
-                    all(x.attrib.get('code') in CODELISTS[self._major_version()]['SectorCategory'] for x in self.element.xpath('sector[@vocabulary="DAC-3"]'))
+                    all(x.attrib.get('code') in CODELISTS[self._major_version()]['Sector'] for x in self.element.xpath('sector[@vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code()))) and
+                    all(x.attrib.get('code') in CODELISTS[self._major_version()]['SectorCategory'] for x in self.element.xpath('sector[@vocabulary="{}"]'.format(self._dac_3_code())))
                     ),
                 'document-link': all_and_not_empty(
                     valid_url(x) and x.find('category') is not None and x.find('category').attrib.get('code') in CODELISTS[self._major_version()]['DocumentCategory'] for x in bools['document-link']),
@@ -638,7 +680,7 @@ class ActivityStats(CommonSharedElements):
                 start_date = None
             return {
                 'transaction_spend': 1 if start_date and start_date < self.today and self.today - start_date < datetime.timedelta(days=365) else 0,
-                'transaction_traceability': 1 if self.element.xpath('transaction[transaction-type/@code="IF"]') else 0,
+                'transaction_traceability': 1 if self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code())) else 0,
             }
         else:
             return {
@@ -683,7 +725,7 @@ class ActivityStats(CommonSharedElements):
         for transaction in self.element.findall('transaction'):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
-                    transaction.find('transaction-type').attrib.get('code') in ['D','E']):
+                    transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
                 currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
                 out[self._transaction_type_code(transaction)][currency][self._transaction_year(transaction)] += Decimal(value.text)
         return out

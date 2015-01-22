@@ -207,6 +207,10 @@ class CommonSharedElements(object):
     @returns_numberdict
     @memoize
     def _major_version(self):
+        parent = self.element.getparent()
+        if not parent:
+            print('No parent of iati-activity, is this a test? Assuming version 1.xx')
+            return '1'
         version = self.element.getparent().attrib.get('version')
         if version and version.startswith('2.'):
             return '2'
@@ -261,10 +265,34 @@ class ActivityStats(CommonSharedElements):
         currencies = [ c if c else self.element.get('default-currency') for c in currencies ]
         return dict( (c,1) for c in currencies )
         
+    def _planned_start_code(self):
+        if self._major_version() == '1':
+            return 'start-planned'
+        else:
+            return '1'
+
+    def _actual_start_code(self):
+        if self._major_version() == '1':
+            return 'start-actual'
+        else:
+            return '2'
+
+    def _planned_end_code(self):
+        if self._major_version() == '1':
+            return 'end-planned'
+        else:
+            return '3'
+
+    def _actual_end_code(self):
+        if self._major_version() == '1':
+            return 'end-actual'
+        else:
+            return '4'
 
     def __get_start_year(self):
-        activity_date = self.element.find("activity-date[@type='start-actual']")
-        if activity_date is None: activity_date = self.element.find("activity-date[@type='start-planned']")
+        activity_date = self.element.find("activity-date[@type='{}']".format(self._actual_start_code()))
+        if activity_date is None:
+            activity_date = self.element.find("activity-date[@type='{}']".format(self._planned_start_code()))
         if activity_date is not None and activity_date.get('iso-date'):
             try:
                 date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
@@ -410,7 +438,11 @@ class ActivityStats(CommonSharedElements):
         return out
 
     def _forwardlooking_is_current(self, year):
-        activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="end-planned" or @type="end-actual"]') if iso_date(x) ]
+        activity_end_years = [
+            iso_date(x).year
+            for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_end_code(), self._actual_end_code()))
+            if iso_date(x)
+        ]
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
 
     @returns_numberdict
@@ -447,7 +479,7 @@ class ActivityStats(CommonSharedElements):
         if activity_status_code:
             return activity_status_code[0] == '2'
         else:
-            activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="end-planned" or @type="end-actual"]') if iso_date(x) ]
+            activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_end_code(), self._actual_end_code())) if iso_date(x) ]
             return (not activity_end_years) or any(activity_end_year>=self.today.year for activity_end_year in activity_end_years)
 
     @memoize
@@ -528,7 +560,7 @@ class ActivityStats(CommonSharedElements):
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS[self._major_version()]['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (
                     bools['activity-date'] and
-                    self.element.xpath('activity-date[@type="start-planned" or @type="start-actual"]') and
+                    self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_start_code(), self._actual_start_code())) and
                     all_and_not_empty(map(valid_date, self.element.findall('activity-date')))
                     ),
                 'sector': (
@@ -599,7 +631,7 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdict
     def comprehensiveness_denominators(self):
         if self._comprehensiveness_is_current():
-            dates = self.element.xpath('activity-date[@type="start-actual"]') + self.element.xpath('activity-date[@type="start-planned"]')
+            dates = self.element.xpath('activity-date[@type="{}"]'.format(self._actual_start_code())) + self.element.xpath('activity-date[@type="{}"]'.format(self._planned_start_code()))
             if dates:
                 start_date = iso_date(dates[0])
             else:

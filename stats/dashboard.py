@@ -26,10 +26,14 @@ def all_and_not_empty(bool_iterable):
 
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
-codelist_mapping_xml = etree.parse('helpers/mapping.xml')
-codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
-codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
-codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
+def get_codelist_mapping(major_version):
+    codelist_mapping_xml = etree.parse('helpers/mapping-{}.xml'.format(major_version))
+    codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
+    codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
+    codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
+    return codelist_mappings
+
+codelist_mappings = { major_version: get_codelist_mapping(major_version) for major_version in ['1', '2'] }
 
 CODELISTS = {'1':{}, '2':{}}
 for major_version in ['1', '2']:
@@ -203,7 +207,7 @@ class CommonSharedElements(object):
     @returns_numberdict
     @memoize
     def _major_version(self):
-        version = self.element.attrib.get('version')
+        version = self.element.getparent().attrib.get('version')
         if version and version.startswith('2.'):
             return '2'
         else:
@@ -288,7 +292,7 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdictdict
     def codelist_values(self):
         out = defaultdict(lambda: defaultdict(int))
-        for path in codelist_mappings:
+        for path in codelist_mappings[self._major_version()]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
         return out 
@@ -296,7 +300,7 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdictdict
     def codelist_values_by_major_version(self):
         out = defaultdict(lambda: defaultdict(int))
-        for path in codelist_mappings:
+        for path in codelist_mappings[self._major_version()]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
         return { self._major_version(): out  }

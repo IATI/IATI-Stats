@@ -201,6 +201,7 @@ class CommonSharedElements(object):
         return { self.element.attrib.get('version'): 1 }
 
     @returns_numberdict
+    @memoize
     def _major_version(self):
         version = self.element.attrib.get('version')
         if version and version.startswith('2.'):
@@ -291,6 +292,14 @@ class ActivityStats(CommonSharedElements):
             for value in self.element.xpath(path):
                 out[path][value] += 1
         return out 
+
+    @returns_numberdictdict
+    def codelist_values_by_major_version(self):
+        out = defaultdict(lambda: defaultdict(int))
+        for path in codelist_mappings:
+            for value in self.element.xpath(path):
+                out[path][value] += 1
+        return { self._major_version(): out  }
 
     @returns_numberdictdict
     def boolean_values(self):
@@ -788,7 +797,7 @@ class GenericFileStats(object):
                 else:
                     return {'fail':1}
         except IOError:
-            debug(self, 'Unsupported version \'{0}\''.format(version))
+            debug(self, 'Unsupported version \'{0}\' '.format(version))
             return {'fail':1} 
 
     @returns_numberdict

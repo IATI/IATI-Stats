@@ -471,6 +471,9 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdictdict
     def forwardlooking_currency_year(self):
+        # Note this is not currently displayed on the dashboard
+        # As the forwardlooking page now only displays counts,
+        # not the sums that this function calculates.
         out = defaultdict(lambda: defaultdict(Decimal))
         budgets = self.element.findall('budget')
         for budget in budgets:

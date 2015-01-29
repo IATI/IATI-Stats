@@ -56,6 +56,7 @@ Getting started
     cd helpers
     ln -s ../pyenv/src/iatirulesets/rulesets .
     ./get_codelist_mapping.sh
+    ./get_codelists.sh
     ./get_schemas.sh
     wget "http://dashboard.iatistandard.org/stats/ckan.json"
     cd ..

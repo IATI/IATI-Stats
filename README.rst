@@ -54,7 +54,8 @@ Getting started
 
     # Fetch helper data
     cd helpers
-    ln -s ../pyenv/src/iatirulesets/rulesets .
+    git clone https://github.com/IATI/IATI-Rulesets.git
+    ln -s IATI-Rulsets/rulesets .
     ./get_codelist_mapping.sh
     ./get_codelists.sh
     ./get_schemas.sh

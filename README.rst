@@ -18,6 +18,8 @@ IATI-Stats is a python application for generating JSON stats files from IATI dat
 
 These stats are used to build the `IATI Dashboard <http://dashboard.iatistandard.org/>`_, and also to produce some of the stats for the Transparency Indicator and the IATI Annual report.
 
+.. contents::
+
 Requirements
 ------------
 
@@ -117,6 +119,22 @@ WARNING: This takes a long time (hours) and produces a lot of data (GBs)
 
     mkdir gitout
     ./git.sh
+
+Environment variables for git.sh
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The behaviour of `git.sh` can be modified using environment variables. `git_dashboard.sh` contains the two different runs of `git.sh` that are now used to generate data for the dashboard, each run with different environment variables.
+
+The availible environment variables are:
+
+GITOUT_DIR
+    This is the output directory for git.sh (note that it uses the out directory for each commit, and then moves that to the appropriate place). Defaults to "gitout".
+ALL_COMMITS
+    By default git.sh only computes stats for the most recent commit. To override this, set this environment variable to any non-empty value.
+GITOUT_SKIP_INCOMMITSDIR
+    If this evironment variable has a non-empty value, a commit will be skipped if a directory already exists in $GITOUT_DIR/commits
+COMMIT_SKIP_FILE
+    The name of a file that will be grepped for the commit hash. If the hash exists in the file, the commit will be skipped. Defaults to "$GITOUT_DIR/gitaggregate/activities.json".
 
 License
 -------

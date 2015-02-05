@@ -119,12 +119,11 @@ To calculate a new stat, add a function to the appropriate class in
 Running for every commit in the data directory
 ----------------------------------------------
 
-If the data directory is a git repository, you can run the code 
-
-WARNING: This takes a long time (hours) and produces a lot of data (GBs)
+If the data directory is a git repository (e.g. as a result of running `IATI-Registry-Refresher's git.sh <https://github.com/IATI/IATI-Registry-Refresher#creating-a-git-data-snapshot>`__), you can run the code: 
 
 .. code-block:: bash
 
+    # WARNING: This takes a long time (hours) and produces a lot of data (GBs)
     mkdir gitout
     ./git.sh
 

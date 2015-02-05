@@ -33,6 +33,13 @@ Requirements
    requirements.txt using your package manager, and skip the pip install step
    below)
 
+Getting some data to run stats on
+---------------------------------
+
+This stats code expects a `data/` directory containing subdirectories for each publisher, where each subdirectory contains that publisher's XML files. All the data on the registry can be downloaded in this structure using the `IATI-Registry-Refresher <https://github.com/IATI/IATI-Registry-Refresher/>`__.
+
+The IATI Tech Team maintains an archive with a snapshot of this data taken every night, from which aggregate stats are produced for the dashboard, using the code in this repository. For political and security reasons this snapshot archive is not publicly available, but is available on request to others wishing to use it for aggregate calculations. Please email code [at] iatistandard [dot] org
+
 Getting started
 ---------------
 
@@ -43,8 +50,7 @@ Getting started
     cd IATI-Stats
 
     # Put some IATI data in the 'data' directory
-    # For example by running:
-    git clone git://arstneio.com/IATI-Data-Snapshot.git data
+    # (see previous section)
 
     # Create a virtual environment (recommended)
     virtualenv pyenv
@@ -84,8 +90,8 @@ which is the same, but for the entire dataset.
 ``invert`` produces ``inverted.json``, which has a list of publishers
 for each stat.
 
-Structure of stats
-------------------
+Structure of stats functions
+----------------------------
 
 Stats definitions are located in a python module, by default ``stats.dashboard`` (``stats/dashboard.py``). This can be changed with the ``--stats-module`` flag. This module must contain the following classes:
 

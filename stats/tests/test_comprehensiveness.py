@@ -4,9 +4,17 @@ import pytest
 
 from stats.dashboard import ActivityStats
 
+class MockActivityStats(ActivityStats):
+    def __init__(self, major_version):
+        self.major_version = major_version
+        return super(MockActivityStats, self).__init__()
 
-def test_comprehensiveness_is_current():
-    activity_stats = ActivityStats()
+    def _major_version(self):
+        return self.major_version
+
+@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+def test_comprehensiveness_is_current(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
 
     activity_stats.element = etree.fromstring('''
@@ -16,7 +24,7 @@ def test_comprehensiveness_is_current():
     ''')
     assert activity_stats._comprehensiveness_is_current()
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -25,7 +33,7 @@ def test_comprehensiveness_is_current():
     ''')
     assert not activity_stats._comprehensiveness_is_current()
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -34,13 +42,13 @@ def test_comprehensiveness_is_current():
     assert activity_stats._comprehensiveness_is_current()
 
     def end_planned_date(datestring):
-        activity_stats = ActivityStats()
+        activity_stats = MockActivityStats(major_version)
         activity_stats.today = datetime.date(9990, 6, 1)
         activity_stats.element = etree.fromstring('''
             <iati-activity>
-                <activity-date type="end-planned" iso-date="{}"/>
+                <activity-date type="{}" iso-date="{}"/>
             </iati-activity>
-        '''.format(datestring))
+        '''.format('end-planned' if major_version == '1' else '3', datestring))
         return activity_stats
     
     # Any end dates in a year before this year should be current
@@ -62,7 +70,7 @@ def test_comprehensiveness_is_current():
     assert activity_stats._comprehensiveness_is_current()
 
     def datetype(typestring):
-        activity_stats = ActivityStats()
+        activity_stats = MockActivityStats(major_version)
         activity_stats.today = datetime.date(9990, 6, 1)
         activity_stats.element = etree.fromstring('''
             <iati-activity>
@@ -84,7 +92,7 @@ def test_comprehensiveness_is_current():
     assert not activity_stats._comprehensiveness_is_current()
 
     # If there are two end dates, and one of them is in the future, then it is current
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -96,7 +104,7 @@ y
     assert activity_stats._comprehensiveness_is_current()
 
     # Activity status should take priority over activity date
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -107,7 +115,7 @@ y
     ''')
     assert activity_stats._comprehensiveness_is_current()
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -119,8 +127,9 @@ y
     assert not activity_stats._comprehensiveness_is_current()
 
 
-def test_comprehensiveness_empty():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_empty(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -170,8 +179,9 @@ def test_comprehensiveness_empty():
     }
 
 
-def test_comprehensiveness_full():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+def test_comprehensiveness_full(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     root = etree.fromstring('''
         <iati-activities version="1.05">
@@ -259,8 +269,9 @@ def test_comprehensiveness_full():
     assert comprehensiveness['country_or_region'] == 1
 
 
-def test_comprehensiveness_other_passes():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+def test_comprehensiveness_other_passes(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     root = etree.fromstring('''
         <iati-activities>
@@ -308,8 +319,9 @@ def test_comprehensiveness_other_passes():
     }
 
 
-def test_comprehensiveness_location_other_passes():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_location_other_passes(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
@@ -321,7 +333,7 @@ def test_comprehensiveness_location_other_passes():
     assert activity_stats.comprehensiveness()['location'] == 1
     assert activity_stats.comprehensiveness()['location_point_pos'] == 0
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
@@ -333,7 +345,7 @@ def test_comprehensiveness_location_other_passes():
     assert activity_stats.comprehensiveness()['location'] == 1
     assert activity_stats.comprehensiveness()['location_point_pos'] == 0
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
@@ -346,8 +358,9 @@ def test_comprehensiveness_location_other_passes():
     assert activity_stats.comprehensiveness()['location_point_pos'] == 0
 
 
-def test_comprehensiveness_sector_other_passes():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+def test_comprehensiveness_sector_other_passes(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
@@ -357,7 +370,7 @@ def test_comprehensiveness_sector_other_passes():
     assert activity_stats.comprehensiveness()['sector'] == 1
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
@@ -367,7 +380,7 @@ def test_comprehensiveness_sector_other_passes():
     assert activity_stats.comprehensiveness()['sector'] == 1
     assert activity_stats.comprehensiveness()['sector_dac'] == 0
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
@@ -377,7 +390,7 @@ def test_comprehensiveness_sector_other_passes():
     assert activity_stats.comprehensiveness()['sector'] == 1
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
@@ -388,6 +401,7 @@ def test_comprehensiveness_sector_other_passes():
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
 
+@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
 @pytest.mark.parametrize('key', [
     'version', 'iati-identifier', 'participating-org', 'activity-status',
     'activity-date', 'sector', 'country_or_region',
@@ -395,8 +409,8 @@ def test_comprehensiveness_sector_other_passes():
     'budget',
     'location_point_pos', 'sector_dac', 'document-link', 'activity-website'
 ])
-def test_comprehensiveness_with_validation(key):
-    activity_stats = ActivityStats()
+def test_comprehensiveness_with_validation(key, major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(2014, 1, 1)
     root = etree.fromstring('''
         <iati-activities version="9.99">
@@ -439,7 +453,7 @@ def test_comprehensiveness_with_validation(key):
         </iati-activities>
     ''')
     activity_stats.element = root.find('iati-activity')
-    activity_stats_valid = ActivityStats()
+    activity_stats_valid = MockActivityStats(major_version)
     activity_stats_valid.today = datetime.date(2014, 1, 1)
     root_valid = etree.fromstring('''
         <iati-activities version="1.04">
@@ -494,9 +508,10 @@ def test_comprehensiveness_with_validation(key):
     assert valid[key] == 1
 
 
-def test_comprehensiveness_with_validation_transaction_spend():
+@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+def test_comprehensiveness_with_validation_transaction_spend(major_version):
     key = 'transaction_spend'
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     root = etree.fromstring('''
         <iati-activities>
@@ -510,7 +525,7 @@ def test_comprehensiveness_with_validation_transaction_spend():
         </iati-activities>
     ''')
     activity_stats.element = root.find('iati-activity')
-    activity_stats_valid = ActivityStats()
+    activity_stats_valid = MockActivityStats(major_version)
     activity_stats_valid.today = datetime.date(9990, 6, 1)
     root_valid = etree.fromstring('''
         <iati-activities>
@@ -534,8 +549,9 @@ def test_comprehensiveness_with_validation_transaction_spend():
     assert valid[key] == 1
 
 
-def test_valid_single_recipient_country():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_valid_single_recipient_country(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <recipient-country/>
@@ -543,7 +559,7 @@ def test_valid_single_recipient_country():
     ''')
     assert activity_stats.comprehensiveness_with_validation()['country_or_region'] == 1
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <recipient-region/>
@@ -552,8 +568,9 @@ def test_valid_single_recipient_country():
     assert activity_stats.comprehensiveness_with_validation()['country_or_region'] == 1
 
 
-def test_valid_sector_no_vocab():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_valid_sector_no_vocab(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(2014, 1, 1)
     root = etree.fromstring('''
         <iati-activities>
@@ -564,7 +581,7 @@ def test_valid_sector_no_vocab():
         </iati-activities>
     ''')
     activity_stats.element = root.find('iati-activity')
-    activity_stats_valid = ActivityStats()
+    activity_stats_valid = MockActivityStats(major_version)
     activity_stats_valid.today = datetime.date(9990, 6, 1)
     root_valid = etree.fromstring('''
         <iati-activities>
@@ -580,8 +597,9 @@ def test_valid_sector_no_vocab():
     assert activity_stats_valid.comprehensiveness_with_validation()['sector_dac'] == 1
 
 
-def test_valid_location():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_valid_location(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -594,7 +612,7 @@ def test_valid_location():
     ''')
     assert activity_stats.comprehensiveness_with_validation()['location_point_pos'] == 1
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -607,7 +625,7 @@ def test_valid_location():
     ''')
     assert activity_stats.comprehensiveness_with_validation()['location_point_pos'] == 0
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -621,8 +639,9 @@ def test_valid_location():
     assert activity_stats.comprehensiveness_with_validation()['location_point_pos'] == 0
 
 
-def test_comprehensiveness_transaction_level_elements():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_transaction_level_elements(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -637,7 +656,7 @@ def test_comprehensiveness_transaction_level_elements():
     assert comprehensiveness['country_or_region'] == 1
 
     # Check recipient-region too
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -648,7 +667,7 @@ def test_comprehensiveness_transaction_level_elements():
     assert comprehensiveness['country_or_region'] == 1
 
     # If is only at transaction level, but not for all transactions, we should get 0
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -665,9 +684,10 @@ def test_comprehensiveness_transaction_level_elements():
     assert comprehensiveness['country_or_region'] == 0
 
 
+@pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', ['sector', 'country_or_region'])
-def test_comprehensiveness_with_validation_transaction_level_elements(key):
-    activity_stats = ActivityStats()
+def test_comprehensiveness_with_validation_transaction_level_elements(key, major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(2014, 1, 1)
     root = etree.fromstring('''
         <iati-activities version="9.99">
@@ -680,7 +700,7 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key):
         </iati-activities>
     ''')
     activity_stats.element = root.find('iati-activity')
-    activity_stats_valid = ActivityStats()
+    activity_stats_valid = MockActivityStats(major_version)
     root_valid = etree.fromstring('''
         <iati-activities version="1.04">
             <iati-activity>
@@ -704,19 +724,21 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key):
 ## Denominator
 
 
-def test_comprehensivness_denominator_default():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensivness_denominator_default(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats._comprehensiveness_is_current = lambda: True
     assert activity_stats.comprehensiveness_denominator_default() == 1
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats._comprehensiveness_is_current = lambda: False
     assert activity_stats.comprehensiveness_denominator_default() == 0
 
 
-def test_comprehensivness_denominator_empty():
-    activity_stats = ActivityStats()
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensivness_denominator_empty(major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -728,10 +750,11 @@ def test_comprehensivness_denominator_empty():
     }
 
 
+@pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', [
     'transaction_spend', 'transaction_traceability' ])
-def test_transaction_exclusions(key):
-    activity_stats = ActivityStats()
+def test_transaction_exclusions(key, major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -747,7 +770,7 @@ def test_transaction_exclusions(key):
     assert activity_stats.comprehensiveness_denominators()[key] == 0
 
     # Broken activity-date/@iso-date
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -763,10 +786,11 @@ def test_transaction_exclusions(key):
     assert activity_stats.comprehensiveness_denominators()[key] == 0
     
 
+@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
 @pytest.mark.parametrize('key', [
     'transaction_spend', 'transaction_traceability' ])
-def test_transaction_non_exclusions(key):
-    activity_stats = ActivityStats()
+def test_transaction_non_exclusions(key, major_version):
+    activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>

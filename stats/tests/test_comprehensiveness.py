@@ -12,7 +12,7 @@ class MockActivityStats(ActivityStats):
     def _major_version(self):
         return self.major_version
 
-@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+@pytest.mark.parametrize('major_version', ['1', '2'])
 def test_comprehensiveness_is_current(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
@@ -80,15 +80,15 @@ def test_comprehensiveness_is_current(major_version):
         return activity_stats
 
     # Ignore start dates
-    activity_stats = datetype('start-actual')
+    activity_stats = datetype('start-planned' if major_version == '1' else '1')
     assert activity_stats._comprehensiveness_is_current()
-    activity_stats = datetype('start-planned')
+    activity_stats = datetype('start-actual' if major_version == '1' else '2')
     assert activity_stats._comprehensiveness_is_current()
 
     # But use all end dates
-    activity_stats = datetype('end-actual')
+    activity_stats = datetype('end-planned' if major_version == '1' else '3')
     assert not activity_stats._comprehensiveness_is_current()
-    activity_stats = datetype('end-planned')
+    activity_stats = datetype('end-actual' if major_version == '1' else '4')
     assert not activity_stats._comprehensiveness_is_current()
 
     # If there are two end dates, and one of them is in the future, then it is current
@@ -100,6 +100,12 @@ def test_comprehensiveness_is_current(major_version):
             <activity-date type="end-actual" iso-date="9990-12-31"/>
 y
         </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <activity-date type="3" iso-date="9989-06-01"/>
+            <activity-date type="4" iso-date="9990-12-31"/>
+y
+        </iati-activity>
     ''')
     assert activity_stats._comprehensiveness_is_current()
 
@@ -109,10 +115,10 @@ y
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-status code="2"/> 
-            <activity-date type="end-actual" iso-date="9990-12-31"/>
+            <activity-date type="{}" iso-date="9990-12-31"/>
 y
         </iati-activity>
-    ''')
+    '''.format('end-actual' if major_version == '1' else '4'))
     assert activity_stats._comprehensiveness_is_current()
 
     activity_stats = MockActivityStats(major_version)
@@ -120,10 +126,10 @@ y
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-status code="4"/> 
-            <activity-date type="end-actual" iso-date="9990-06-01"/>
+            <activity-date type="{}" iso-date="9990-06-01"/>
 y
         </iati-activity>
-    ''')
+    '''.format('end-actual' if major_version == '1' else '4'))
     assert not activity_stats._comprehensiveness_is_current()
 
 
@@ -179,7 +185,7 @@ def test_comprehensiveness_empty(major_version):
     }
 
 
-@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+@pytest.mark.parametrize('major_version', ['1','2'])
 def test_comprehensiveness_full(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
@@ -220,6 +226,52 @@ def test_comprehensiveness_full(major_version):
                 <capital-spend percentage=""/>
                 <document-link/>
                 <activity-website/>
+                <conditions attached="0"/>
+                <result>
+                    <indicator/>
+                </result>
+            </iati-activity>
+        </iati-activities>
+    ''' if major_version == '1' else '''
+        <iati-activities version="2.01">
+            <iati-activity xml:lang="en">
+                <reporting-org>Reporting ORG Name</reporting-org>
+                <iati-identifier>AA-AAA-1</iati-identifier>
+                <participating-org/>
+                <title>A title</title>
+                <description>A description</description>
+                <activity-status/>
+                <activity-date type="2" iso-date="9990-05-01" />
+                <sector vocabulary="1"/>
+                <recipient-country code="AI"/>
+                <transaction>
+                    <transaction-type code="2"/><!-- Commitment -->
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction>
+                    <transaction-type code="3"/><!-- Expenditure -->
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction>
+                    <provider-org provider-activity-id="AAA"/>
+                    <transaction-type code="1"/><!-- Incoming Funds -->
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <budget/>
+                <contact-info>
+                    <email>test@example.org</email>
+                </contact-info>
+                <location>
+                    <point srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+                        <pos>31.616944 65.716944</pos>
+                    </point>
+                </location>
+                <capital-spend percentage=""/>
+                <document-link/>
+                <document-link>
+                    <!-- Activity website -->
+                    <category code="A12" />
+                </document-link>
                 <conditions attached="0"/>
                 <result>
                     <indicator/>
@@ -269,7 +321,7 @@ def test_comprehensiveness_full(major_version):
     assert comprehensiveness['country_or_region'] == 1
 
 
-@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+@pytest.mark.parametrize('major_version', ['1', '2'])
 def test_comprehensiveness_other_passes(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
@@ -280,6 +332,20 @@ def test_comprehensiveness_other_passes(major_version):
                 <activity-date type="start-planned" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
+                    <value value-date="2014-01-01"/>
+                </transaction>
+                <document-link>
+                    <category code="A12"/>
+                </document-link>
+            </iati-activity>
+        </iati-activities>
+    ''' if major_version == '1' else '''
+        <iati-activities>
+            <iati-activity default-currency="">
+            <!-- default currency can be used instead of at transaction level -->
+                <activity-date type="1" iso-date="9990-05-01" />
+                <transaction>
+                    <transaction-type code="3"/><!-- Disbursement -->
                     <value value-date="2014-01-01"/>
                 </transaction>
                 <document-link>
@@ -358,7 +424,7 @@ def test_comprehensiveness_location_other_passes(major_version):
     assert activity_stats.comprehensiveness()['location_point_pos'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+@pytest.mark.parametrize('major_version', ['1', '2'])
 def test_comprehensiveness_sector_other_passes(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
@@ -384,9 +450,9 @@ def test_comprehensiveness_sector_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
-            <sector vocabulary="DAC"/>
+            <sector vocabulary="{}"/>
         </iati-activity>
-    ''')
+    '''.format('DAC' if major_version == '1' else '1'))
     assert activity_stats.comprehensiveness()['sector'] == 1
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
@@ -394,14 +460,14 @@ def test_comprehensiveness_sector_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
-            <sector vocabulary="DAC-3"/>
+            <sector vocabulary="{}"/>
         </iati-activity>
-    ''')
+    '''.format('DAC-3' if major_version == '1' else '2'))
     assert activity_stats.comprehensiveness()['sector'] == 1
     assert activity_stats.comprehensiveness()['sector_dac'] == 1
 
 
-@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+@pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', [
     'version', 'iati-identifier', 'participating-org', 'activity-status',
     'activity-date', 'sector', 'country_or_region',
@@ -437,6 +503,45 @@ def test_comprehensiveness_with_validation(key, major_version):
                 </transaction>
                 <transaction>
                     <transaction-type code="D"/>
+                    <value value-date="" currency=""/>
+                </transaction>
+                <budget/>
+                <location>
+                    <point>
+                        <pos>1.5,2</pos>
+                    </point>
+                </location>
+                <document-link url="">
+                    <category code="" />
+                </document-link>
+                <activity-website>notaurl</activity-website>
+            </iati-activity>
+        </iati-activities>
+    ''' if major_version == '1' else '''
+        <iati-activities version="9.99">
+            <iati-activity>
+                <reporting-org ref="BBB"/>
+                <iati-identifier>AAA-1</iati-identifier>
+                <participating-org role="4"/><!-- Implementing -->
+                <activity-status/>
+                <activity-date iso-date="9990-05-01" />
+                <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
+                <activity-date type="end-planned" iso-date="2014-01-01" />
+                <activity-date type="start-planned" iso-date="2014-0101" />
+                <sector vocabulary="1" percentage="100" code="a" />
+                <sector vocabulary="1" percentage="100" code="b" />
+                <sector vocabulary="2" percentage="100" code="a" />
+                <sector vocabulary="2" percentage="100" code="b" />
+                <sector vocabulary="99" percentage="100" />
+                <sector vocabulary="99" percentage="100" />
+                <recipient-country percentage="100"/>
+                <recipient-region percentage="100"/>
+                <transaction>
+                    <transaction-type code="2"/>
+                    <value value-date="" currency=""/>
+                </transaction>
+                <transaction>
+                    <transaction-type code="3"/>
                     <value value-date="" currency=""/>
                 </transaction>
                 <budget/>
@@ -498,6 +603,49 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <activity-website>http://example.org/</activity-website>
             </iati-activity>
         </iati-activities>
+    ''' if major_version == '1' else '''
+        <iati-activities version="2.01">
+            <iati-activity>
+                <reporting-org ref="AAA"/>
+                <iati-identifier>AAA-1</iati-identifier>
+                <participating-org role="1"/><!-- Funding -->
+                <activity-status code="2"/>
+                <!-- Must have at least one activity-date of type 1 or 2 with valid date -->
+                <activity-date type="1" iso-date="2014-01-01" />
+                <sector vocabulary="1" percentage="50" code="11220" />
+                <sector vocabulary="1" percentage="50" code="11240" />
+                <sector vocabulary="2" percentage="50" code="111" />
+                <sector vocabulary="2" percentage="50" code="112" />
+                <sector vocabulary="99" percentage="51" />
+                <sector vocabulary="99" percentage="49" />
+                <recipient-country percentage="44.5"/>
+                <recipient-region percentage="55.5"/>
+                <transaction>
+                    <transaction-type code="2"/>
+                    <value value-date="2014-01-01" currency="GBP">1.0</value>
+                    <transaction-date iso-date="2014-01-01" />
+                </transaction>
+                <transaction>
+                    <transaction-type code="3"/>
+                    <value value-date="2014-01-01" currency="GBP">1.0</value>
+                    <transaction-date iso-date="2014-01-01" />
+                </transaction>
+                <budget>
+                    <period-start iso-date="2014-01-01"/>
+                    <period-end iso-date="2014-01-02"/>
+                    <value value-date="2014-01-01">1.0</value>
+                </budget>
+                <location>
+                    <point>
+                        <pos>1.5 2</pos>
+                    </point>
+                </location>
+                <document-link url="http://example.org/">
+                    <category code="A01" />
+                </document-link>
+                <activity-website>http://example.org/</activity-website>
+            </iati-activity>
+        </iati-activities>
     ''')
     activity_stats_valid.element = root_valid.find('iati-activity')
     comprehensiveness = activity_stats.comprehensiveness()
@@ -508,7 +656,7 @@ def test_comprehensiveness_with_validation(key, major_version):
     assert valid[key] == 1
 
 
-@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+@pytest.mark.parametrize('major_version', ['1', '2'])
 def test_comprehensiveness_with_validation_transaction_spend(major_version):
     key = 'transaction_spend'
     activity_stats = MockActivityStats(major_version)
@@ -523,6 +671,16 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
                 </transaction>
             </iati-activity>
         </iati-activities>
+    ''' if major_version == '1' else '''
+        <iati-activities>
+            <iati-activity>
+                <activity-date type="1" iso-date="9990-05-01" />
+                <transaction>
+                    <transaction-type code="3"/>
+                    <value value-date="" currency=""/>
+                </transaction>
+            </iati-activity>
+        </iati-activities>
     ''')
     activity_stats.element = root.find('iati-activity')
     activity_stats_valid = MockActivityStats(major_version)
@@ -533,6 +691,17 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
                 <activity-date type="start-planned" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
+                    <value value-date="2014-01-01" currency="GBP">1.0</value>
+                    <transaction-date iso-date="2014-01-01" />
+                </transaction>
+            </iati-activity>
+        </iati-activities>
+    ''' if major_version == '1' else '''
+        <iati-activities>
+            <iati-activity>
+                <activity-date type="1" iso-date="9990-05-01" />
+                <transaction>
+                    <transaction-type code="3"/>
                     <value value-date="2014-01-01" currency="GBP">1.0</value>
                     <transaction-date iso-date="2014-01-01" />
                 </transaction>
@@ -786,7 +955,7 @@ def test_transaction_exclusions(key, major_version):
     assert activity_stats.comprehensiveness_denominators()[key] == 0
     
 
-@pytest.mark.parametrize('major_version', ['1', pytest.mark.xfail('2')])
+@pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', [
     'transaction_spend', 'transaction_traceability' ])
 def test_transaction_non_exclusions(key, major_version):
@@ -800,6 +969,16 @@ def test_transaction_non_exclusions(key, major_version):
             </transaction>
             <transaction>
                 <transaction-type code="D"/>
+            </transaction>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <activity-date type="1" iso-date="9990-01-01" />
+            <transaction>
+                <transaction-type code="1"/>
+            </transaction>
+            <transaction>
+                <transaction-type code="3"/>
             </transaction>
         </iati-activity>
     ''')

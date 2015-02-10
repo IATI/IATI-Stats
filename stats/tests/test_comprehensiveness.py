@@ -820,19 +820,21 @@ def test_comprehensiveness_transaction_level_elements(major_version):
         </iati-activity>
     ''')
     comprehensiveness = activity_stats.comprehensiveness()
-    assert comprehensiveness['sector'] == 1
-    assert comprehensiveness['country_or_region'] == 1
+    assert comprehensiveness['sector'] == (0 if major_version == '1' else 1)
+    assert comprehensiveness['country_or_region'] == (0 if major_version == '1' else 1)
 
     # Check recipient-region too
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
-            <recipient-region/>
+            <transaction>
+                <recipient-region/>
+            </transaction>
         </iati-activity>
     ''')
     comprehensiveness = activity_stats.comprehensiveness()
-    assert comprehensiveness['country_or_region'] == 1
+    assert comprehensiveness['country_or_region'] == (0 if major_version == '1' else 1)
 
     # If is only at transaction level, but not for all transactions, we should get 0
     activity_stats = MockActivityStats(major_version)
@@ -858,7 +860,7 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key, major
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(2014, 1, 1)
     root = etree.fromstring('''
-        <iati-activities version="9.99">
+        <iati-activities>
             <iati-activity>
                 <sector/>
                 <sector/>
@@ -870,7 +872,7 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key, major
     activity_stats.element = root.find('iati-activity')
     activity_stats_valid = MockActivityStats(major_version)
     root_valid = etree.fromstring('''
-        <iati-activities version="1.04">
+        <iati-activities>
             <iati-activity>
                 <transaction>
                     <sector/>
@@ -885,7 +887,7 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key, major
     valid = activity_stats_valid.comprehensiveness_with_validation()
     assert comprehensiveness[key] == 1
     assert not_valid[key] == 0
-    assert valid[key] == 1
+    assert valid[key] == (0 if major_version == '1' else 1)
     
 
 

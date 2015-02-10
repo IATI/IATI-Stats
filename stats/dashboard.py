@@ -543,18 +543,18 @@ class ActivityStats(CommonSharedElements):
                 'description': nonempty_text_element('description'),
                 'activity-status':self.element.find('activity-status') is not None,
                 'activity-date': self.element.find('activity-date') is not None,
-                'sector': self.element.find('sector') is not None or all_and_not_empty(
+                'sector': self.element.find('sector') is not None or (self._major_version() != '1' and all_and_not_empty(
                         (transaction.find('sector') is not None)
                             for transaction in self.element.findall('transaction')
-                    ),
+                    )),
                 'country_or_region': (
                     self.element.find('recipient-country') is not None
                     or self.element.find('recipient-region') is not None
-                    or all_and_not_empty(
+                    or (self._major_version() != '1' and all_and_not_empty(
                         (transaction.find('recipient-country') is not None or
                          transaction.find('recipient-region') is not None)
                             for transaction in self.element.findall('transaction')
-                    )),
+                    ))),
                 'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
                 'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
                 'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),

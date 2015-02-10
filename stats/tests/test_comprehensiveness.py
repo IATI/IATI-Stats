@@ -334,9 +334,6 @@ def test_comprehensiveness_other_passes(major_version):
                     <transaction-type code="D"/>
                     <value value-date="2014-01-01"/>
                 </transaction>
-                <document-link>
-                    <category code="A12"/>
-                </document-link>
             </iati-activity>
         </iati-activities>
     ''' if major_version == '1' else '''
@@ -348,9 +345,6 @@ def test_comprehensiveness_other_passes(major_version):
                     <transaction-type code="3"/><!-- Disbursement -->
                     <value value-date="2014-01-01"/>
                 </transaction>
-                <document-link>
-                    <category code="A12"/>
-                </document-link>
             </iati-activity>
         </iati-activities>
     ''')
@@ -377,8 +371,8 @@ def test_comprehensiveness_other_passes(major_version):
         'location_point_pos': 0,
         'sector_dac': 0,
         'capital-spend': 0,
-        'document-link': 1,
-        'activity-website': 1,
+        'document-link': 0,
+        'activity-website': 0,
         #'title_recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
@@ -553,6 +547,9 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <document-link url="">
                     <category code="" />
                 </document-link>
+                <document-link url="">
+                    <category code="A12" />
+                </document-link>
                 <activity-website>notaurl</activity-website>
             </iati-activity>
         </iati-activities>
@@ -643,7 +640,9 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <document-link url="http://example.org/">
                     <category code="A01" />
                 </document-link>
-                <activity-website>http://example.org/</activity-website>
+                <document-link url="http://example.org/">
+                    <category code="A12" />
+                </document-link>
             </iati-activity>
         </iati-activities>
     ''')

@@ -566,7 +566,7 @@ class ActivityStats(CommonSharedElements):
                 'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())),
                 'capital-spend': self.element.xpath('capital-spend/@percentage'),
                 'document-link': self.element.findall('document-link'),
-                'activity-website': self.element.xpath('activity-website|document-link[category/@code="A12"]'),
+                'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),
                 #'title_recipient_language': ,
                 'conditions_attached': self.element.xpath('conditions/@attached'),
                 'result_indicator': self.element.xpath('result/indicator')

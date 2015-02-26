@@ -125,7 +125,7 @@ If the data directory is a git repository (e.g. as a result of running `IATI-Reg
 
     # WARNING: This takes a long time (hours) and produces a lot of data (GBs)
     mkdir gitout
-    ./git.sh
+    ALL_COMMITS=1 ./git.sh
 
 Environment variables for git.sh
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -61,7 +61,7 @@ Getting started
     # Fetch helper data
     cd helpers
     git clone https://github.com/IATI/IATI-Rulesets.git
-    ln -s IATI-Rulsets/rulesets .
+    ln -s IATI-Rulesets/rulesets .
     ./get_codelist_mapping.sh
     ./get_codelists.sh
     ./get_schemas.sh

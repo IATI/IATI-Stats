@@ -20,9 +20,19 @@ from stats.common import *
 
 import iatirulesets
 
+
 def all_and_not_empty(bool_iterable):
+    """ For a given list, check that all elements return true and that the list is not empty """
+
+    # Ensure that the given list is indeed a simple list
     bool_list = list(bool_iterable)
-    return all(bool_list) and len(bool_list)
+
+    # Perform logic. Check that all elements return true and that the list is not empty
+    if (all(bool_list)) and (len(bool_list) > 0):
+        return True
+    else:
+        return False
+
 
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
@@ -172,11 +182,24 @@ def valid_coords(x):
         return False
 
 
+def get_currency(xml_file, budget):
+    """ Returns the currency used for a budget, based on either the currency specified at the transaction level, or the default current (specified in the file) """
+
+    if budget.find('value') is not None:
+        value = budget.find('value')
+        currency = value.attrib.get('currency')
+    else:
+        currency = xml_file.element.attrib.get('default-currency')
+
+    # Return the currency as a string
+    return currency
+
+
 
 #Deals with elements that are in both organisation and activity files
 class CommonSharedElements(object):
     blank = False
-    
+
     @no_aggregation
     def iati_identifier(self):
         try:
@@ -208,7 +231,7 @@ class CommonSharedElements(object):
     @memoize
     def _major_version(self):
         parent = self.element.getparent()
-        if not parent:
+        if parent is None:
             print('No parent of iati-activity, is this a test? Assuming version 1.xx')
             return '1'
         version = self.element.getparent().attrib.get('version')
@@ -461,13 +484,17 @@ class ActivityStats(CommonSharedElements):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
                     transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
-                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-                out[self._transaction_year(transaction)][currency] += Decimal(value.text)
+
+                # Set transaction_value if a value exists for this transaction. Else set to 0
+                transaction_value = 0 if value is None else Decimal(value.text)
+
+                out[self._transaction_year(transaction)][get_currency(self, transaction)] += transaction_value
         return out
 
     @returns_numberdictdict
     def spend_currency_year(self):
         return self._spend_currency_year(self.element.findall('transaction'))
+
 
     @returns_numberdictdict
     def forwardlooking_currency_year(self):
@@ -478,8 +505,11 @@ class ActivityStats(CommonSharedElements):
         budgets = self.element.findall('budget')
         for budget in budgets:
             value = budget.find('value')
-            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-            out[budget_year(budget)][currency] += Decimal(value.text)
+
+            # Set budget_value if a value exists for this budget. Else set to 0
+            budget_value = 0 if value is None else Decimal(value.text)
+            
+            out[budget_year(budget)][get_currency(self, budget)] += budget_value
         return out
 
     def _forwardlooking_is_current(self, year):
@@ -529,19 +559,44 @@ class ActivityStats(CommonSharedElements):
 
     @memoize
     def _comprehensiveness_bools(self):
-            def nonempty_text_element(tagname):
-                element = self.element.find(tagname)
-                return element is not None and element.text
+
+            def is_text_in_element(elementName):
+                """ Determine if an element with the specified tagname contains any text.
+
+                Keyword arguments:
+                elementName - The name of the element to be checked
+
+                If text is present return true, else false.
+                """
+                
+                # Use xpath to return a list of found text within the specified element name
+                # The precise xpath needed will vary depending on the version
+                if self._major_version() == '2':
+                    # In v2, textual elements must be contained within child <narrative> elements
+                    textFound = self.element.xpath('{}/narrative/text()'.format(elementName))
+
+                elif self._major_version() == '1':
+                    # In v1, free text is allowed without the need for child elements
+                    textFound = self.element.xpath('{}/text()'.format(elementName))
+
+                else:
+                    # This is not a valid version
+                    textFound = []
+
+                # Perform logic. If the list is not empty, return true. Otherwise false
+                return True if textFound else False
+
+            
 
             return {
                 'version': (self.element.getparent() is not None
                             and 'version' in self.element.getparent().attrib),
-                'reporting-org': nonempty_text_element('reporting-org'),
-                'iati-identifier': nonempty_text_element('iati-identifier'),
+                'reporting-org': is_text_in_element('reporting-org'),
+                'iati-identifier': self.element.xpath('iati-identifier/text()'),
                 'participating-org': self.element.find('participating-org') is not None,
-                'title': nonempty_text_element('title'),
-                'description': nonempty_text_element('description'),
-                'activity-status':self.element.find('activity-status') is not None,
+                'title': is_text_in_element('title'),
+                'description': is_text_in_element('description'),
+                'activity-status': self.element.find('activity-status') is not None,
                 'activity-date': self.element.find('activity-date') is not None,
                 'sector': self.element.find('sector') is not None or (self._major_version() != '1' and all_and_not_empty(
                         (transaction.find('sector') is not None)
@@ -729,8 +784,11 @@ class ActivityStats(CommonSharedElements):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
                     transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
-                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-                out[self._transaction_type_code(transaction)][currency][self._transaction_year(transaction)] += Decimal(value.text)
+
+                # Set transaction_value if a value exists for this transaction. Else set to 0
+                transaction_value = 0 if value is None else Decimal(value.text)
+
+                out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
         return out
 
     @returns_numberdictdict
@@ -745,8 +803,11 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
         for budget in self.element.findall('budget'):
             value = budget.find('value')
-            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-            out[budget.attrib.get('type')][currency][budget_year(budget)] += Decimal(value.text)
+
+            # Set budget_value if a value exists for this budget. Else set to 0
+            budget_value = 0 if value is None else Decimal(value.text)
+
+            out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
         return out
 
     @returns_numberdict
@@ -761,9 +822,14 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(Decimal))
         for pd in self.element.findall('planned-disbursement'):
             value = pd.find('value')
-            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-            out[currency][planned_disbursement_year(pd)] += Decimal(value.text)
+
+            # Set disbursement_value if a value exists for this disbursement. Else set to 0
+            disbursement_value = 0 if value is None else Decimal(value.text)
+
+            out[get_currency(self, pd)][planned_disbursement_year(pd)] += disbursement_value
         return out
+
+
 
 import json
 ckan = json.load(open('helpers/ckan.json'))

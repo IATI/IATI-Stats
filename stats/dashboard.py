@@ -20,9 +20,19 @@ from stats.common import *
 
 import iatirulesets
 
+
 def all_and_not_empty(bool_iterable):
+    """ For a given list, check that all elements return true and that the list is not empty """
+
+    # Ensure that the given list is indeed a simple list
     bool_list = list(bool_iterable)
-    return all(bool_list) and len(bool_list)
+
+    # Perform logic. Check that all elements return true and that the list is not empty
+    if (all(bool_list)) and (len(bool_list) > 0):
+        return True
+    else:
+        return False
+
 
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
@@ -208,7 +218,7 @@ class CommonSharedElements(object):
     @memoize
     def _major_version(self):
         parent = self.element.getparent()
-        if not parent:
+        if parent is None:
             print('No parent of iati-activity, is this a test? Assuming version 1.xx')
             return '1'
         version = self.element.getparent().attrib.get('version')
@@ -529,19 +539,44 @@ class ActivityStats(CommonSharedElements):
 
     @memoize
     def _comprehensiveness_bools(self):
-            def nonempty_text_element(tagname):
-                element = self.element.find(tagname)
-                return element is not None and element.text
+
+            def is_text_in_element(elementName):
+                """ Determine if an element with the specified tagname contains any text.
+
+                Keyword arguments:
+                elementName - The name of the element to be checked
+
+                If text is present return true, else false.
+                """
+                
+                # Use xpath to return a list of found text within the specified element name
+                # The precise xpath needed will vary depending on the version
+                if self._major_version() == '2':
+                    # In v2, textual elements must be contained within child <narrative> elements
+                    textFound = self.element.xpath('{}/narrative/text()'.format(elementName))
+
+                elif self._major_version() == '1':
+                    # In v1, free text is allowed without the need for child elements
+                    textFound = self.element.xpath('{}/text()'.format(elementName)) is not None
+
+                else:
+                    # This is not a valid version
+                    textFound = []
+
+                # Perform logic. If the list is not empty, return true. Otherwise false
+                return True if textFound else False
+
+            
 
             return {
                 'version': (self.element.getparent() is not None
                             and 'version' in self.element.getparent().attrib),
-                'reporting-org': nonempty_text_element('reporting-org'),
+                'reporting-org': is_text_in_element('reporting-org'),
                 'iati-identifier': nonempty_text_element('iati-identifier'),
                 'participating-org': self.element.find('participating-org') is not None,
-                'title': nonempty_text_element('title'),
-                'description': nonempty_text_element('description'),
-                'activity-status':self.element.find('activity-status') is not None,
+                'title': is_text_in_element('title'),
+                'description': is_text_in_element('description'),
+                'activity-status': self.element.find('activity-status') is not None,
                 'activity-date': self.element.find('activity-date') is not None,
                 'sector': self.element.find('sector') is not None or (self._major_version() != '1' and all_and_not_empty(
                         (transaction.find('sector') is not None)

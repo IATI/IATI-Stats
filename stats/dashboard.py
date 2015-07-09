@@ -182,11 +182,24 @@ def valid_coords(x):
         return False
 
 
+def get_currency(xml_file, budget):
+    """ Returns the currency used for a budget, based on either the currency specified at the transaction level, or the default current (specified in the file) """
+
+    if budget.find('value') is not None:
+        value = budget.find('value')
+        currency = value.attrib.get('currency')
+    else:
+        currency = xml_file.element.attrib.get('default-currency')
+
+    # Return the currency as a string
+    return currency
+
+
 
 #Deals with elements that are in both organisation and activity files
 class CommonSharedElements(object):
     blank = False
-    
+
     @no_aggregation
     def iati_identifier(self):
         try:
@@ -471,13 +484,18 @@ class ActivityStats(CommonSharedElements):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
                     transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
-                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-                out[self._transaction_year(transaction)][currency] += Decimal(value.text)
+                # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+
+                # Set transaction_value if a value exists for this transaction. Else set to 0
+                transaction_value = 0 if value is None else Decimal(value.text)
+
+                out[self._transaction_year(transaction)][get_currency(self, transaction)] += transaction_value
         return out
 
     @returns_numberdictdict
     def spend_currency_year(self):
         return self._spend_currency_year(self.element.findall('transaction'))
+
 
     @returns_numberdictdict
     def forwardlooking_currency_year(self):
@@ -488,8 +506,12 @@ class ActivityStats(CommonSharedElements):
         budgets = self.element.findall('budget')
         for budget in budgets:
             value = budget.find('value')
-            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-            out[budget_year(budget)][currency] += Decimal(value.text)
+            # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+
+            # Set budget_value if a value exists for this budget. Else set to 0
+            budget_value = 0 if value is None else Decimal(value.text)
+            
+            out[budget_year(budget)][get_currency(self, budget)] += budget_value
         return out
 
     def _forwardlooking_is_current(self, year):
@@ -764,8 +786,12 @@ class ActivityStats(CommonSharedElements):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
                     transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
-                currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-                out[self._transaction_type_code(transaction)][currency][self._transaction_year(transaction)] += Decimal(value.text)
+                # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+
+                # Set transaction_value if a value exists for this transaction. Else set to 0
+                transaction_value = 0 if value is None else Decimal(value.text)
+
+                out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
         return out
 
     @returns_numberdictdict
@@ -780,8 +806,12 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
         for budget in self.element.findall('budget'):
             value = budget.find('value')
-            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-            out[budget.attrib.get('type')][currency][budget_year(budget)] += Decimal(value.text)
+            # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+
+            # Set budget_value if a value exists for this budget. Else set to 0
+            budget_value = 0 if value is None else Decimal(value.text)
+
+            out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
         return out
 
     @returns_numberdict
@@ -796,9 +826,15 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(Decimal))
         for pd in self.element.findall('planned-disbursement'):
             value = pd.find('value')
-            currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
-            out[currency][planned_disbursement_year(pd)] += Decimal(value.text)
+            # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
+
+            # Set disbursement_value if a value exists for this disbursement. Else set to 0
+            disbursement_value = 0 if value is None else Decimal(value.text)
+
+            out[get_currency(self, pd)][planned_disbursement_year(pd)] += disbursement_value
         return out
+
+
 
 import json
 ckan = json.load(open('helpers/ckan.json'))

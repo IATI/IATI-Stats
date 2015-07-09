@@ -577,7 +577,7 @@ class ActivityStats(CommonSharedElements):
 
                 elif self._major_version() == '1':
                     # In v1, free text is allowed without the need for child elements
-                    textFound = self.element.xpath('{}/text()'.format(elementName)) is not None
+                    textFound = self.element.xpath('{}/text()'.format(elementName))
 
                 else:
                     # This is not a valid version

@@ -484,7 +484,6 @@ class ActivityStats(CommonSharedElements):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
                     transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
-                # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
 
                 # Set transaction_value if a value exists for this transaction. Else set to 0
                 transaction_value = 0 if value is None else Decimal(value.text)
@@ -506,7 +505,6 @@ class ActivityStats(CommonSharedElements):
         budgets = self.element.findall('budget')
         for budget in budgets:
             value = budget.find('value')
-            # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
 
             # Set budget_value if a value exists for this budget. Else set to 0
             budget_value = 0 if value is None else Decimal(value.text)
@@ -786,7 +784,6 @@ class ActivityStats(CommonSharedElements):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
                     transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
-                # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
 
                 # Set transaction_value if a value exists for this transaction. Else set to 0
                 transaction_value = 0 if value is None else Decimal(value.text)
@@ -806,7 +803,6 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
         for budget in self.element.findall('budget'):
             value = budget.find('value')
-            # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
 
             # Set budget_value if a value exists for this budget. Else set to 0
             budget_value = 0 if value is None else Decimal(value.text)
@@ -826,7 +822,6 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(Decimal))
         for pd in self.element.findall('planned-disbursement'):
             value = pd.find('value')
-            # currency = value.attrib.get('currency') or self.element.attrib.get('default-currency')
 
             # Set disbursement_value if a value exists for this disbursement. Else set to 0
             disbursement_value = 0 if value is None else Decimal(value.text)

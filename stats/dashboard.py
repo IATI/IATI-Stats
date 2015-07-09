@@ -572,7 +572,7 @@ class ActivityStats(CommonSharedElements):
                 'version': (self.element.getparent() is not None
                             and 'version' in self.element.getparent().attrib),
                 'reporting-org': is_text_in_element('reporting-org'),
-                'iati-identifier': nonempty_text_element('iati-identifier'),
+                'iati-identifier': is_text_in_element('iati-identifier'),
                 'participating-org': self.element.find('participating-org') is not None,
                 'title': is_text_in_element('title'),
                 'description': is_text_in_element('description'),

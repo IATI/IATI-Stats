@@ -235,11 +235,17 @@ def test_comprehensiveness_full(major_version):
     ''' if major_version == '1' else '''
         <iati-activities version="2.01">
             <iati-activity xml:lang="en">
-                <reporting-org>Reporting ORG Name</reporting-org>
+                <reporting-org>
+                    <narrative>Reporting ORG Name</narrative>
+                </reporting-org>
                 <iati-identifier>AA-AAA-1</iati-identifier>
                 <participating-org/>
-                <title>A title</title>
-                <description>A description</description>
+                <title>
+                    <narrative>A title</narrative>
+                </title>
+                <description>
+                    <narrative>A description</narrative>
+                </description>
                 <activity-status/>
                 <activity-date type="2" iso-date="9990-05-01" />
                 <sector vocabulary="1"/>

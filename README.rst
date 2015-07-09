@@ -61,7 +61,7 @@ Getting started
     # Fetch helper data
     cd helpers
     git clone https://github.com/IATI/IATI-Rulesets.git
-    ln -s IATI-Rulsets/rulesets .
+    ln -s IATI-Rulesets/rulesets .
     ./get_codelist_mapping.sh
     ./get_codelists.sh
     ./get_schemas.sh
@@ -70,7 +70,7 @@ Getting started
 
     # Calculate some stats 
     python calculate_stats.py loop [--folder publisher-registry-id]
-    python calculate_stats.py aggreagate
+    python calculate_stats.py aggregate
     python calculate_stats.py invert
     # You will now have some JSON stats in the out/ directory
 
@@ -125,7 +125,7 @@ If the data directory is a git repository (e.g. as a result of running `IATI-Reg
 
     # WARNING: This takes a long time (hours) and produces a lot of data (GBs)
     mkdir gitout
-    ./git.sh
+    ALL_COMMITS=1 ./git.sh
 
 Environment variables for git.sh
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

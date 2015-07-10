@@ -560,32 +560,31 @@ class ActivityStats(CommonSharedElements):
     @memoize
     def _comprehensiveness_bools(self):
 
-            def is_text_in_element(elementName):
-                """ Determine if an element with the specified tagname contains any text.
+        def is_text_in_element(elementName):
+            """ Determine if an element with the specified tagname contains any text.
 
-                Keyword arguments:
-                elementName - The name of the element to be checked
+            Keyword arguments:
+            elementName - The name of the element to be checked
 
-                If text is present return true, else false.
-                """
+            If text is present return true, else false.
+            """
                 
-                # Use xpath to return a list of found text within the specified element name
-                # The precise xpath needed will vary depending on the version
-                if self._major_version() == '2':
-                    # In v2, textual elements must be contained within child <narrative> elements
-                    textFound = self.element.xpath('{}/narrative/text()'.format(elementName))
+            # Use xpath to return a list of found text within the specified element name
+            # The precise xpath needed will vary depending on the version
+            if self._major_version() == '2':
+                # In v2, textual elements must be contained within child <narrative> elements
+                textFound = self.element.xpath('{}/narrative/text()'.format(elementName))
 
-                elif self._major_version() == '1':
-                    # In v1, free text is allowed without the need for child elements
-                    textFound = self.element.xpath('{}/text()'.format(elementName))
+            elif self._major_version() == '1':
+                # In v1, free text is allowed without the need for child elements
+                textFound = self.element.xpath('{}/text()'.format(elementName))
 
-                else:
-                    # This is not a valid version
-                    textFound = []
+            else:
+                # This is not a valid version
+                textFound = []
 
-                # Perform logic. If the list is not empty, return true. Otherwise false
-                return True if textFound else False
-
+            # Perform logic. If the list is not empty, return true. Otherwise false
+            return True if textFound else False
             
 
             return {

@@ -21,6 +21,23 @@ from stats.common import *
 import iatirulesets
 
 
+def add_years(d, years):
+    """Return a date that's `years` years before/after the date (or datetime)
+    object `d`. Return the same calendar date (month and day) in the
+    destination year, if it exists, otherwise use the following day
+    (thus changing February 29 to March 1).
+
+    Keyword arguments:
+    d -- a date (or datetime) object
+    years -- number of years to increment the date. Accepts negative numbers
+
+    """
+    try:
+        return d.replace(year = d.year + years)
+    except ValueError:
+        return d + (date(d.year + years, 1, 1) - date(d.year, 1, 1))
+
+
 def all_and_not_empty(bool_iterable):
     """ For a given list, check that all elements return true and that the list is not empty """
 
@@ -550,12 +567,34 @@ class ActivityStats(CommonSharedElements):
 
     @memoize
     def _comprehensiveness_is_current(self):
+        # Get the activity-code value for this activity
         activity_status_code = self.element.xpath('activity-status/@code')
-        if activity_status_code:
-            return activity_status_code[0] == '2'
-        else:
-            activity_end_years = [ iso_date(x).year for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_end_code(), self._actual_end_code())) if iso_date(x) ]
-            return (not activity_end_years) or any(activity_end_year>=self.today.year for activity_end_year in activity_end_years)
+
+        # Get the end dates for this activity as lists
+        activity_planned_end_dates = [ iso_date(x) for x in self.element.xpath('activity-date[@type="{}"]'.format(self._planned_end_code())) if iso_date(x) ]
+        activity_actual_end_dates = [ iso_date(x) for x in self.element.xpath('activity-date[@type="{}"]'.format(self._actual_end_code())) if iso_date(x) ]
+
+        # If the actual end date is within the last year, then this is a current activity
+        for actual_end_date in activity_actual_end_dates: 
+            if actual_end_date>=add_years(self.today, -1):
+                return True
+            else:
+                return False
+        
+        # If the planned end date is greater than today, then this is a current activity
+        for planned_end_date in activity_planned_end_dates: 
+            if planned_end_date>=self.today:
+                return True
+            else:
+                return False
+
+        # If there is no planned end date AND activity-status/@code is 2 (implementing) or 4 (post-completion), then this is a current activity
+        if not(activity_planned_end_dates) and activity_status_code:
+            if activity_status_code[0] == '2' or activity_status_code[0] == '4':
+                return True
+        
+        # If got this far and not met one of the conditions to qualify as a currnet activity, return false
+        return False
 
     @memoize
     def _comprehensiveness_bools(self):

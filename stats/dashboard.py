@@ -446,6 +446,21 @@ class ActivityStats(CommonSharedElements):
                 out[receiver_org.attrib.get('ref')] += 1
         return out
 
+    @returns_number
+    def transactions_incoming_funds(self):
+        """
+        Counts the number of transactions within this activity which are incoming funds
+        """
+        # Set default output
+        out = 0
+
+        # Loop over each tranaction
+        for transaction in self.element.findall('transaction'):
+            # If the transaction-type element has a code of 'IF' (v1) or 1 (v2), increment the output counter
+            if transaction.xpath('transaction-type/@code="{}"'.format(self._incoming_funds_code())):
+                out += 1
+        return out
+
     @returns_numberdict
     def transaction_timing(self):
         today = self.now.date()

@@ -446,19 +446,25 @@ class ActivityStats(CommonSharedElements):
                 out[receiver_org.attrib.get('ref')] += 1
         return out
 
-    @returns_number
+    @returns_numberdict
     def transactions_incoming_funds(self):
         """
-        Counts the number of transactions within this activity which are incoming funds
+        Counts the number of activities which contain at least one transaction with incoming funds. 
+        Also counts the number of transactions where the type is incoming funds
         """
         # Set default output
-        out = 0
+        out = defaultdict(int)
 
         # Loop over each tranaction
         for transaction in self.element.findall('transaction'):
             # If the transaction-type element has a code of 'IF' (v1) or 1 (v2), increment the output counter
             if transaction.xpath('transaction-type/@code="{}"'.format(self._incoming_funds_code())):
-                out += 1
+                out['transactions_with_incoming_funds'] += 1
+
+        # If there is at least one transaction within this activity with an incoming funds transaction, then increment the number of activities with incoming funds
+        if out['transactions_with_incoming_funds'] > 0:
+            out['activities_with_incoming_funds'] += 1
+
         return out
 
     @returns_numberdict

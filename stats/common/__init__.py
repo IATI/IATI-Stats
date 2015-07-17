@@ -6,7 +6,13 @@ def debug(stats, error):
     print unicode(error)+stats.context 
 
 xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')
+
 def iso_date_match(raw_date):
+    """Return a datetime object for a given textual ISO date string
+
+    Keyword arguments:
+    raw_date -- an ISO date as text
+    """
     if raw_date:
         m1 = xsDateRegex.match(raw_date)
         if m1:
@@ -15,6 +21,11 @@ def iso_date_match(raw_date):
             return None
 
 def iso_date(element):
+    """Return a datetime object for a given XML element either i) an 'iso-date' attribute or ii) an iso date as text
+
+    Keyword arguments:
+    element -- an XML element containing either i) an 'iso-date' attribute or ii) an iso date as text
+    """
     if element is None:
         return None
     raw_date = element.attrib.get('iso-date')

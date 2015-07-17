@@ -587,44 +587,44 @@ class ActivityStats(CommonSharedElements):
             return True if textFound else False
             
 
-            return {
-                'version': (self.element.getparent() is not None
-                            and 'version' in self.element.getparent().attrib),
-                'reporting-org': is_text_in_element('reporting-org'),
-                'iati-identifier': self.element.xpath('iati-identifier/text()'),
-                'participating-org': self.element.find('participating-org') is not None,
-                'title': is_text_in_element('title'),
-                'description': is_text_in_element('description'),
-                'activity-status': self.element.find('activity-status') is not None,
-                'activity-date': self.element.find('activity-date') is not None,
-                'sector': self.element.find('sector') is not None or (self._major_version() != '1' and all_and_not_empty(
-                        (transaction.find('sector') is not None)
-                            for transaction in self.element.findall('transaction')
-                    )),
-                'country_or_region': (
-                    self.element.find('recipient-country') is not None
-                    or self.element.find('recipient-region') is not None
-                    or (self._major_version() != '1' and all_and_not_empty(
-                        (transaction.find('recipient-country') is not None or
-                         transaction.find('recipient-region') is not None)
-                            for transaction in self.element.findall('transaction')
-                    ))),
-                'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
-                'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
-                'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-                'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))),
-                'budget': self.element.findall('budget'),
-                'contact-info': self.element.findall('contact-info/email'),
-                'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
-                'location_point_pos': self.element.xpath('location/point/pos'),
-                'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())),
-                'capital-spend': self.element.xpath('capital-spend/@percentage'),
-                'document-link': self.element.findall('document-link'),
-                'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),
-                #'title_recipient_language': ,
-                'conditions_attached': self.element.xpath('conditions/@attached'),
-                'result_indicator': self.element.xpath('result/indicator')
-            }
+        return {
+            'version': (self.element.getparent() is not None
+                        and 'version' in self.element.getparent().attrib),
+            'reporting-org': is_text_in_element('reporting-org'),
+            'iati-identifier': self.element.xpath('iati-identifier/text()'),
+            'participating-org': self.element.find('participating-org') is not None,
+            'title': is_text_in_element('title'),
+            'description': is_text_in_element('description'),
+            'activity-status': self.element.find('activity-status') is not None,
+            'activity-date': self.element.find('activity-date') is not None,
+            'sector': self.element.find('sector') is not None or (self._major_version() != '1' and all_and_not_empty(
+                    (transaction.find('sector') is not None)
+                        for transaction in self.element.findall('transaction')
+                )),
+            'country_or_region': (
+                self.element.find('recipient-country') is not None
+                or self.element.find('recipient-region') is not None
+                or (self._major_version() != '1' and all_and_not_empty(
+                    (transaction.find('recipient-country') is not None or
+                     transaction.find('recipient-region') is not None)
+                        for transaction in self.element.findall('transaction')
+                ))),
+            'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
+            'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
+            'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
+            'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))),
+            'budget': self.element.findall('budget'),
+            'contact-info': self.element.findall('contact-info/email'),
+            'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
+            'location_point_pos': self.element.xpath('location/point/pos'),
+            'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())),
+            'capital-spend': self.element.xpath('capital-spend/@percentage'),
+            'document-link': self.element.findall('document-link'),
+            'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),
+            #'title_recipient_language': ,
+            'conditions_attached': self.element.xpath('conditions/@attached'),
+            'result_indicator': self.element.xpath('result/indicator')
+        }
 
     def _comprehensiveness_with_validation_bools(self):
             reporting_org_ref = self.element.find('reporting-org').attrib.get('ref') if self.element.find('reporting-org') is not None else None

@@ -106,7 +106,7 @@ def test_comprehensiveness_is_current(major_version):
     activity_stats = datetype('end-actual' if major_version == '1' else '4')
     assert activity_stats._comprehensiveness_is_current()
 
-    # If there are two end dates, and one of them is in the future, then the activity is current
+    # If there are two end dates, 'end-planned' must be in the future, for the activity to be counted as current
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
@@ -175,7 +175,7 @@ def test_comprehensiveness_empty(major_version):
         'participating-org': 0,
         'title': 0,
         'description': 0,
-        'activity-status': 0,
+        'activity-status': 1,
         'activity-date': 0,
         'sector': 0,
         'country_or_region': 0,
@@ -377,7 +377,7 @@ def test_comprehensiveness_other_passes(major_version):
         'participating-org': 0,
         'title': 0,
         'description': 0,
-        'activity-status': 0,
+        'activity-status': 1,
         'activity-date': 1,
         'sector': 0,
         'country_or_region': 0,
@@ -431,6 +431,7 @@ def test_comprehensiveness_location_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
+            <activity-status code="2"/>
             <location>
                 <location-administrative>Name</location-administrative>
             </location>
@@ -589,7 +590,6 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <reporting-org ref="AAA"/>
                 <iati-identifier>AAA-1</iati-identifier>
                 <participating-org role="Funding"/>
-                <activity-status code="2"/>
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="start-planned" iso-date="2014-01-01" />
                 <sector vocabulary="DAC" percentage="50" code="11220" />
@@ -632,7 +632,6 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <reporting-org ref="AAA"/>
                 <iati-identifier>AAA-1</iati-identifier>
                 <participating-org role="1"/><!-- Funding -->
-                <activity-status code="2"/>
                 <!-- Must have at least one activity-date of type 1 or 2 with valid date -->
                 <activity-date type="1" iso-date="2014-01-01" />
                 <sector vocabulary="1" percentage="50" code="11220" />

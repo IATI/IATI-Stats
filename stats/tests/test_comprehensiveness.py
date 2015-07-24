@@ -60,17 +60,17 @@ def test_comprehensiveness_is_current(major_version):
         '''.format('end-planned' if major_version == '1' else '3', datestring))
         return activity_stats
     
-    # Any planned end dates before the current data should not be calculated as current
+    # Any planned end dates before the current date should not be calculated as current
     activity_stats = end_planned_date('9989-06-01')
     assert not activity_stats._comprehensiveness_is_current()
     activity_stats = end_planned_date('9989-12-31')
     assert not activity_stats._comprehensiveness_is_current()
+    activity_stats = end_planned_date('9990-01-01')
+    assert activity_stats._comprehensiveness_is_current()
+    activity_stats = end_planned_date('9990-01-01')
+    assert activity_stats._comprehensiveness_is_current()
 
-    # Any end dates greater than the current data should be calculated as current
-    activity_stats = end_planned_date('9990-01-01')
-    assert activity_stats._comprehensiveness_is_current()
-    activity_stats = end_planned_date('9990-01-01')
-    assert activity_stats._comprehensiveness_is_current()
+    # Any end dates greater than the current date should be calculated as current
     activity_stats = end_planned_date('9990-06-01')
     assert activity_stats._comprehensiveness_is_current()
     activity_stats = end_planned_date('9990-06-02')
@@ -152,10 +152,11 @@ def test_comprehensiveness_empty(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
-            <reporting-org></reporting-org>
             <iati-identifier></iati-identifier>
+            <reporting-org></reporting-org>
             <title/>
             <description/>
+            <activity-status code="2"/>
             <transaction>
                 <transaction-type/>
             </transaction>
@@ -210,7 +211,7 @@ def test_comprehensiveness_full(major_version):
                 <participating-org/>
                 <title>A title</title>
                 <description>A description</description>
-                <activity-status/>
+                <activity-status code="2"/> 
                 <activity-date type="start-actual" iso-date="9990-05-01" />
                 <sector vocabulary="DAC"/>
                 <recipient-country code="AI"/>
@@ -259,7 +260,7 @@ def test_comprehensiveness_full(major_version):
                 <description>
                     <narrative>A description</narrative>
                 </description>
-                <activity-status/>
+                <activity-status code="2"/>
                 <activity-date type="2" iso-date="9990-05-01" />
                 <sector vocabulary="1"/>
                 <recipient-country code="AI"/>
@@ -348,6 +349,7 @@ def test_comprehensiveness_other_passes(major_version):
         <iati-activities>
             <iati-activity default-currency="">
             <!-- default currency can be used instead of at transaction level -->
+                <activity-status code="2"/> 
                 <activity-date type="start-planned" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
@@ -359,6 +361,7 @@ def test_comprehensiveness_other_passes(major_version):
         <iati-activities>
             <iati-activity default-currency="">
             <!-- default currency can be used instead of at transaction level -->
+                <activity-status code="2"/> 
                 <activity-date type="1" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="3"/><!-- Disbursement -->
@@ -404,6 +407,7 @@ def test_comprehensiveness_location_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
+            <activity-status code="2"/> 
             <location>
                 <name>Name</name>
             </location>
@@ -416,6 +420,7 @@ def test_comprehensiveness_location_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
+            <activity-status code="2"/> 
             <location>
                 <description>Name</description>
             </location>
@@ -443,6 +448,7 @@ def test_comprehensiveness_sector_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
+            <activity-status code="2"/> 
             <sector/>
         </iati-activity>
     ''')
@@ -453,6 +459,7 @@ def test_comprehensiveness_sector_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
+            <activity-status code="2"/> 
             <sector vocabulary="test"/>
         </iati-activity>
     ''')
@@ -463,6 +470,7 @@ def test_comprehensiveness_sector_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
+            <activity-status code="2"/> 
             <sector vocabulary="{}"/>
         </iati-activity>
     '''.format('DAC' if major_version == '1' else '1'))
@@ -473,6 +481,7 @@ def test_comprehensiveness_sector_other_passes(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity default-currency="">
+            <activity-status code="2"/> 
             <sector vocabulary="{}"/>
         </iati-activity>
     '''.format('DAC-3' if major_version == '1' else '2'))
@@ -497,7 +506,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <reporting-org ref="BBB"/>
                 <iati-identifier>AAA-1</iati-identifier>
                 <participating-org role="Implementing"/>
-                <activity-status/>
+                <activity-status code="2"/>
                 <activity-date iso-date="9990-05-01" />
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="end-planned" iso-date="2014-01-01" />
@@ -536,7 +545,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <reporting-org ref="BBB"/>
                 <iati-identifier>AAA-1</iati-identifier>
                 <participating-org role="4"/><!-- Implementing -->
-                <activity-status/>
+                <activity-status code="2"/>
                 <activity-date iso-date="9990-05-01" />
                 <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
                 <activity-date type="end-planned" iso-date="2014-01-01" />
@@ -682,6 +691,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
     root = etree.fromstring('''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <activity-date type="start-planned" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
@@ -692,6 +702,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
     ''' if major_version == '1' else '''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <activity-date type="1" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="3"/>
@@ -706,6 +717,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
     root_valid = etree.fromstring('''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <activity-date type="start-planned" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
@@ -717,6 +729,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
     ''' if major_version == '1' else '''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <activity-date type="1" iso-date="9990-05-01" />
                 <transaction>
                     <transaction-type code="3"/>
@@ -741,6 +754,7 @@ def test_valid_single_recipient_country(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <recipient-country/>
         </iati-activity>
     ''')
@@ -749,6 +763,7 @@ def test_valid_single_recipient_country(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <recipient-region/>
         </iati-activity>
     ''')
@@ -762,6 +777,7 @@ def test_valid_sector_no_vocab(major_version):
     root = etree.fromstring('''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <sector code="a" />
                 <sector code="b" />
             </iati-activity>
@@ -773,6 +789,7 @@ def test_valid_sector_no_vocab(major_version):
     root_valid = etree.fromstring('''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <sector code="11220" />
                 <sector code="11240" />
             </iati-activity>
@@ -790,6 +807,7 @@ def test_valid_location(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <location>
                 <point>
                     <pos>+1.5 -2</pos>
@@ -803,6 +821,7 @@ def test_valid_location(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <location>
                 <point>
                     <pos>x1.5 -2</pos>
@@ -816,6 +835,7 @@ def test_valid_location(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <location>
                 <point>
                     <pos>1,5 2,5</pos>
@@ -832,6 +852,7 @@ def test_comprehensiveness_transaction_level_elements(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <transaction>
                 <sector/>
                 <recipient-country/>
@@ -847,6 +868,7 @@ def test_comprehensiveness_transaction_level_elements(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <transaction>
                 <recipient-region/>
             </transaction>
@@ -860,6 +882,7 @@ def test_comprehensiveness_transaction_level_elements(major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <transaction>
                 <sector/>
                 <recipient-country/>
@@ -881,6 +904,7 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key, major
     root = etree.fromstring('''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <sector/>
                 <sector/>
                 <recipient-country/>
@@ -893,6 +917,7 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key, major
     root_valid = etree.fromstring('''
         <iati-activities>
             <iati-activity>
+                <activity-status code="2"/> 
                 <transaction>
                     <sector/>
                     <recipient-country/>
@@ -983,6 +1008,7 @@ def test_transaction_non_exclusions(key, major_version):
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
+            <activity-status code="2"/> 
             <activity-date type="start-planned" iso-date="9990-01-01" />
             <transaction>
                 <transaction-type code="IF"/>
@@ -993,6 +1019,7 @@ def test_transaction_non_exclusions(key, major_version):
         </iati-activity>
     ''' if major_version == '1' else '''
         <iati-activity>
+            <activity-status code="2"/> 
             <activity-date type="1" iso-date="9990-01-01" />
             <transaction>
                 <transaction-type code="1"/>

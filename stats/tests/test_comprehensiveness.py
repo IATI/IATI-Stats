@@ -39,9 +39,18 @@ def test_comprehensiveness_is_current(major_version):
         <iati-activity>
         </iati-activity>
     ''')
-    assert activity_stats._comprehensiveness_is_current()
+    assert not activity_stats._comprehensiveness_is_current()
+
 
     def end_planned_date(datestring):
+        """
+        Create an activity_stats element with a specified 'end-planned' date.  
+        Also sets the current date to 9990-06-01
+
+        Keyword arguments:
+        datestring -- An ISO date to be used as the 'end-planned' date for the 
+            activity_stats element to be returned.
+        """
         activity_stats = MockActivityStats(major_version)
         activity_stats.today = datetime.date(9990, 6, 1)
         activity_stats.element = etree.fromstring('''
@@ -51,13 +60,13 @@ def test_comprehensiveness_is_current(major_version):
         '''.format('end-planned' if major_version == '1' else '3', datestring))
         return activity_stats
     
-    # Any end dates in a year before this year should be current
+    # Any planned end dates before the current data should not be calculated as current
     activity_stats = end_planned_date('9989-06-01')
     assert not activity_stats._comprehensiveness_is_current()
     activity_stats = end_planned_date('9989-12-31')
     assert not activity_stats._comprehensiveness_is_current()
 
-    # Any end dates in a year after this year should be current
+    # Any end dates greater than the current data should be calculated as current
     activity_stats = end_planned_date('9990-01-01')
     assert activity_stats._comprehensiveness_is_current()
     activity_stats = end_planned_date('9990-01-01')
@@ -69,7 +78,15 @@ def test_comprehensiveness_is_current(major_version):
     activity_stats = end_planned_date('9991-06-01')
     assert activity_stats._comprehensiveness_is_current()
 
+
     def datetype(typestring):
+        """
+        Create an activity_stats element with a specified 'activity-date/@type' value and corresponding 
+        date of 9989-06-01.  Also sets the current date to 9990-06-01
+
+        Keyword arguments:
+        typestring -- An 'activity-date/@type' value for the activity_stats element to be returned.
+        """
         activity_stats = MockActivityStats(major_version)
         activity_stats.today = datetime.date(9990, 6, 1)
         activity_stats.element = etree.fromstring('''
@@ -79,35 +96,33 @@ def test_comprehensiveness_is_current(major_version):
         '''.format(typestring))
         return activity_stats
 
-    # Ignore start dates
+    # Ignore start dates in computation to determine if an activity is current
     activity_stats = datetype('start-planned' if major_version == '1' else '1')
-    assert activity_stats._comprehensiveness_is_current()
+    assert not activity_stats._comprehensiveness_is_current()
     activity_stats = datetype('start-actual' if major_version == '1' else '2')
-    assert activity_stats._comprehensiveness_is_current()
+    assert not activity_stats._comprehensiveness_is_current()
 
-    # But use all end dates
+    # But use all end dates in computation to determine if an activity is current
     activity_stats = datetype('end-planned' if major_version == '1' else '3')
     assert not activity_stats._comprehensiveness_is_current()
     activity_stats = datetype('end-actual' if major_version == '1' else '4')
-    assert not activity_stats._comprehensiveness_is_current()
+    assert activity_stats._comprehensiveness_is_current()
 
-    # If there are two end dates, and one of them is in the future, then it is current
+    # If there are two end dates, and one of them is in the future, then the activity is current
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-date type="end-planned" iso-date="9989-06-01"/>
             <activity-date type="end-actual" iso-date="9990-12-31"/>
-y
         </iati-activity>
     ''' if major_version == '1' else '''
         <iati-activity>
             <activity-date type="3" iso-date="9989-06-01"/>
             <activity-date type="4" iso-date="9990-12-31"/>
-y
         </iati-activity>
     ''')
-    assert activity_stats._comprehensiveness_is_current()
+    assert not activity_stats._comprehensiveness_is_current()
 
     # Activity status should take priority over activity date
     activity_stats = MockActivityStats(major_version)
@@ -116,7 +131,6 @@ y
         <iati-activity>
             <activity-status code="2"/> 
             <activity-date type="{}" iso-date="9990-12-31"/>
-y
         </iati-activity>
     '''.format('end-actual' if major_version == '1' else '4'))
     assert activity_stats._comprehensiveness_is_current()
@@ -127,10 +141,9 @@ y
         <iati-activity>
             <activity-status code="4"/> 
             <activity-date type="{}" iso-date="9990-06-01"/>
-y
         </iati-activity>
     '''.format('end-actual' if major_version == '1' else '4'))
-    assert not activity_stats._comprehensiveness_is_current()
+    assert activity_stats._comprehensiveness_is_current()
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])

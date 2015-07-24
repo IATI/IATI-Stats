@@ -595,6 +595,11 @@ class ActivityStats(CommonSharedElements):
         activity_planned_end_dates = [ iso_date(x) for x in self.element.xpath('activity-date[@type="{}"]'.format(self._planned_end_code())) if iso_date(x) ]
         activity_actual_end_dates = [ iso_date(x) for x in self.element.xpath('activity-date[@type="{}"]'.format(self._actual_end_code())) if iso_date(x) ]
 
+        # If there is no planned end date AND activity-status/@code is 2 (implementing) or 4 (post-completion), then this is a current activity
+        if not(activity_planned_end_dates) and activity_status_code:
+            if activity_status_code[0] == '2' or activity_status_code[0] == '4':
+                return True
+        
         # If the actual end date is within the last year, then this is a current activity
         for actual_end_date in activity_actual_end_dates: 
             if actual_end_date>=add_years(self.today, -1):
@@ -608,11 +613,6 @@ class ActivityStats(CommonSharedElements):
                 return True
             else:
                 return False
-
-        # If there is no planned end date AND activity-status/@code is 2 (implementing) or 4 (post-completion), then this is a current activity
-        if not(activity_planned_end_dates) and activity_status_code:
-            if activity_status_code[0] == '2' or activity_status_code[0] == '4':
-                return True
         
         # If got this far and not met one of the conditions to qualify as a currnet activity, return false
         return False

@@ -66,9 +66,7 @@ def test_comprehensiveness_is_current(major_version):
     activity_stats = end_planned_date('9989-12-31')
     assert not activity_stats._comprehensiveness_is_current()
     activity_stats = end_planned_date('9990-01-01')
-    assert activity_stats._comprehensiveness_is_current()
-    activity_stats = end_planned_date('9990-01-01')
-    assert activity_stats._comprehensiveness_is_current()
+    assert not activity_stats._comprehensiveness_is_current()
 
     # Any end dates greater than the current date should be calculated as current
     activity_stats = end_planned_date('9990-06-01')

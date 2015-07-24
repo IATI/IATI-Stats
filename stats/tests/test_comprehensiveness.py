@@ -590,8 +590,8 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <reporting-org ref="AAA"/>
                 <iati-identifier>AAA-1</iati-identifier>
                 <participating-org role="Funding"/>
-                <!-- Must have at least one activity-date of type start-planned or start-actual with valid date -->
-                <activity-date type="start-planned" iso-date="2014-01-01" />
+                <!-- Must have at least one activity-date in the past year (if 'end-actual') or in the future (if type 'end-planned') -->
+                <activity-date type="end-planned" iso-date="2015-06-01" />
                 <sector vocabulary="DAC" percentage="50" code="11220" />
                 <sector vocabulary="DAC" percentage="50" code="11240" />
                 <sector vocabulary="DAC-3" percentage="50" code="111" />
@@ -632,8 +632,8 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <reporting-org ref="AAA"/>
                 <iati-identifier>AAA-1</iati-identifier>
                 <participating-org role="1"/><!-- Funding -->
-                <!-- Must have at least one activity-date of type 1 or 2 with valid date -->
-                <activity-date type="1" iso-date="2014-01-01" />
+                <!-- Must have at least one activity-date in the past year (if '4') or in the future (if type '3') -->
+                <activity-date type="3" iso-date="2015-06-01" />
                 <sector vocabulary="1" percentage="50" code="11220" />
                 <sector vocabulary="1" percentage="50" code="11240" />
                 <sector vocabulary="2" percentage="50" code="111" />

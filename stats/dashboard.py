@@ -610,7 +610,7 @@ class ActivityStats(CommonSharedElements):
             if planned_end_date>=self.today:
                 return True
         
-        # If got this far and not met one of the conditions to qualify as a currnet activity, return false
+        # If got this far and not met one of the conditions to qualify as a current activity, return false
         return False
 
     @memoize

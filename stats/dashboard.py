@@ -595,97 +595,92 @@ class ActivityStats(CommonSharedElements):
         activity_planned_end_dates = [ iso_date(x) for x in self.element.xpath('activity-date[@type="{}"]'.format(self._planned_end_code())) if iso_date(x) ]
         activity_actual_end_dates = [ iso_date(x) for x in self.element.xpath('activity-date[@type="{}"]'.format(self._actual_end_code())) if iso_date(x) ]
 
+        # If there is no planned end date AND activity-status/@code is 2 (implementing) or 4 (post-completion), then this is a current activity
+        if not(activity_planned_end_dates) and activity_status_code:
+            if activity_status_code[0] == '2' or activity_status_code[0] == '4':
+                return True
+
         # If the actual end date is within the last year, then this is a current activity
         for actual_end_date in activity_actual_end_dates: 
-            if actual_end_date>=add_years(self.today, -1):
+            if (actual_end_date>=add_years(self.today, -1)) and (actual_end_date <= self.today):
                 return True
-            else:
-                return False
         
         # If the planned end date is greater than today, then this is a current activity
         for planned_end_date in activity_planned_end_dates: 
             if planned_end_date>=self.today:
                 return True
-            else:
-                return False
-
-        # If there is no planned end date AND activity-status/@code is 2 (implementing) or 4 (post-completion), then this is a current activity
-        if not(activity_planned_end_dates) and activity_status_code:
-            if activity_status_code[0] == '2' or activity_status_code[0] == '4':
-                return True
         
-        # If got this far and not met one of the conditions to qualify as a currnet activity, return false
+        # If got this far and not met one of the conditions to qualify as a current activity, return false
         return False
 
     @memoize
     def _comprehensiveness_bools(self):
 
-            def is_text_in_element(elementName):
-                """ Determine if an element with the specified tagname contains any text.
+        def is_text_in_element(elementName):
+            """ Determine if an element with the specified tagname contains any text.
 
-                Keyword arguments:
-                elementName - The name of the element to be checked
+            Keyword arguments:
+            elementName - The name of the element to be checked
 
-                If text is present return true, else false.
-                """
+            If text is present return true, else false.
+            """
                 
-                # Use xpath to return a list of found text within the specified element name
-                # The precise xpath needed will vary depending on the version
-                if self._major_version() == '2':
-                    # In v2, textual elements must be contained within child <narrative> elements
-                    textFound = self.element.xpath('{}/narrative/text()'.format(elementName))
+            # Use xpath to return a list of found text within the specified element name
+            # The precise xpath needed will vary depending on the version
+            if self._major_version() == '2':
+                # In v2, textual elements must be contained within child <narrative> elements
+                textFound = self.element.xpath('{}/narrative/text()'.format(elementName))
 
-                elif self._major_version() == '1':
-                    # In v1, free text is allowed without the need for child elements
-                    textFound = self.element.xpath('{}/text()'.format(elementName))
+            elif self._major_version() == '1':
+                # In v1, free text is allowed without the need for child elements
+                textFound = self.element.xpath('{}/text()'.format(elementName))
 
-                else:
-                    # This is not a valid version
-                    textFound = []
+            else:
+                # This is not a valid version
+                textFound = []
 
-                # Perform logic. If the list is not empty, return true. Otherwise false
-                return True if textFound else False
-
+            # Perform logic. If the list is not empty, return true. Otherwise false
+            return True if textFound else False
             
 
-            return {
-                'version': (self.element.getparent() is not None
-                            and 'version' in self.element.getparent().attrib),
-                'reporting-org': is_text_in_element('reporting-org'),
-                'iati-identifier': self.element.xpath('iati-identifier/text()'),
-                'participating-org': self.element.find('participating-org') is not None,
-                'title': is_text_in_element('title'),
-                'description': is_text_in_element('description'),
-                'activity-status': self.element.find('activity-status') is not None,
-                'activity-date': self.element.find('activity-date') is not None,
-                'sector': self.element.find('sector') is not None or (self._major_version() != '1' and all_and_not_empty(
-                        (transaction.find('sector') is not None)
-                            for transaction in self.element.findall('transaction')
-                    )),
-                'country_or_region': (
-                    self.element.find('recipient-country') is not None
-                    or self.element.find('recipient-region') is not None
-                    or (self._major_version() != '1' and all_and_not_empty(
-                        (transaction.find('recipient-country') is not None or
-                         transaction.find('recipient-region') is not None)
-                            for transaction in self.element.findall('transaction')
-                    ))),
-                'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
-                'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
-                'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-                'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))),
-                'budget': self.element.findall('budget'),
-                'contact-info': self.element.findall('contact-info/email'),
-                'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
-                'location_point_pos': self.element.xpath('location/point/pos'),
-                'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())),
-                'capital-spend': self.element.xpath('capital-spend/@percentage'),
-                'document-link': self.element.findall('document-link'),
-                'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),
-                #'title_recipient_language': ,
-                'conditions_attached': self.element.xpath('conditions/@attached'),
-                'result_indicator': self.element.xpath('result/indicator')
-            }
+        return {
+            'version': (self.element.getparent() is not None
+                        and 'version' in self.element.getparent().attrib),
+            'reporting-org': is_text_in_element('reporting-org'),
+            'iati-identifier': self.element.xpath('iati-identifier/text()'),
+            'participating-org': self.element.find('participating-org') is not None,
+            'title': is_text_in_element('title'),
+            'description': is_text_in_element('description'),
+            'activity-status': self.element.find('activity-status') is not None,
+            'activity-date': self.element.find('activity-date') is not None,
+            'sector': self.element.find('sector') is not None or (self._major_version() != '1' and all_and_not_empty(
+                    (transaction.find('sector') is not None)
+                        for transaction in self.element.findall('transaction')
+                )),
+            'country_or_region': (
+                self.element.find('recipient-country') is not None
+                or self.element.find('recipient-region') is not None
+                or (self._major_version() != '1' and all_and_not_empty(
+                    (transaction.find('recipient-country') is not None or
+                     transaction.find('recipient-region') is not None)
+                        for transaction in self.element.findall('transaction')
+                ))),
+            'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
+            'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
+            'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
+            'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))),
+            'budget': self.element.findall('budget'),
+            'contact-info': self.element.findall('contact-info/email'),
+            'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
+            'location_point_pos': self.element.xpath('location/point/pos'),
+            'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())),
+            'capital-spend': self.element.xpath('capital-spend/@percentage'),
+            'document-link': self.element.findall('document-link'),
+            'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),
+            #'title_recipient_language': ,
+            'conditions_attached': self.element.xpath('conditions/@attached'),
+            'result_indicator': self.element.xpath('result/indicator')
+        }
 
     def _comprehensiveness_with_validation_bools(self):
             reporting_org_ref = self.element.find('reporting-org').attrib.get('ref') if self.element.find('reporting-org') is not None else None
@@ -712,6 +707,7 @@ class ActivityStats(CommonSharedElements):
                             for es in elements_by_vocab.values())
                     else:
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
+
 
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],

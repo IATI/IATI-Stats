@@ -599,20 +599,16 @@ class ActivityStats(CommonSharedElements):
         if not(activity_planned_end_dates) and activity_status_code:
             if activity_status_code[0] == '2' or activity_status_code[0] == '4':
                 return True
-        
+
         # If the actual end date is within the last year, then this is a current activity
         for actual_end_date in activity_actual_end_dates: 
-            if actual_end_date>=add_years(self.today, -1):
+            if (actual_end_date>=add_years(self.today, -1)) and (actual_end_date <= self.today):
                 return True
-            else:
-                return False
         
         # If the planned end date is greater than today, then this is a current activity
         for planned_end_date in activity_planned_end_dates: 
             if planned_end_date>=self.today:
                 return True
-            else:
-                return False
         
         # If got this far and not met one of the conditions to qualify as a currnet activity, return false
         return False
@@ -711,6 +707,7 @@ class ActivityStats(CommonSharedElements):
                             for es in elements_by_vocab.values())
                     else:
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
+
 
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],

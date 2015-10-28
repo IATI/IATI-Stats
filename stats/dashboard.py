@@ -1032,6 +1032,11 @@ class PublisherStats(object):
     def publishers(self):
         return 1
 
+    @returns_number
+    def coverage(self):
+        # Coverage data manually set at 100% for now. Likely to change to reflect publisher reporting levels in the future
+        return 100
+
     @returns_numberdict
     def publishers_validation(self):
         if 'fail' in self.aggregated['validation']:

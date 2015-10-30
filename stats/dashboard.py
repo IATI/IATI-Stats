@@ -199,14 +199,19 @@ def valid_coords(x):
         return False
 
 
-def get_currency(xml_file, budget):
-    """ Returns the currency used for a budget, based on either the currency specified at the transaction level, or the default current (specified in the file) """
+def get_currency(iati_activity_object, budget_pd_transaction):
+    """ Returns the currency used for a budget, planned disbursement or transaction value. This is based 
+    on either the currency specified in value/@currency, or the default currency specified in 
+    iati-activity/@default-currency) """
 
-    if budget.find('value') is not None:
-        value = budget.find('value')
+    # Find the currency in the value element as part of this budget, planned disbursement or transaction
+    if budget_pd_transaction.find('value') is not None:
+        value = budget_pd_transaction.find('value')
         currency = value.attrib.get('currency')
-    else:
-        currency = xml_file.element.attrib.get('default-currency')
+
+    # If the currency in value/@currency does not exist, use the currency in iati-activity/@default-currency instead
+    if currency is None:
+        currency = iati_activity_object.element.attrib.get('default-currency')
 
     # Return the currency as a string
     return currency

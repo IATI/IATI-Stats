@@ -19,6 +19,7 @@ from stats.common.decorators import *
 from stats.common import *
 
 import iatirulesets
+from helpers.currency_conversion import get_USD_value
 
 
 def add_years(d, years):
@@ -850,6 +851,20 @@ class ActivityStats(CommonSharedElements):
                 transaction_value = 0 if value is None else Decimal(value.text)
 
                 out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
+        return out
+
+    @returns_numberdictdictdict
+    def sum_transactions_by_type_by_year_usd(self):
+        out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
+        for transaction in self.element.findall('transaction'):
+            value = transaction.find('value')
+            if (transaction.find('transaction-type') is not None and
+                    transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
+
+                # Set transaction_value if a value exists for this transaction. Else set to 0
+                transaction_value = 0 if value is None else Decimal(value.text)
+
+                out[self._transaction_type_code(transaction)]['USD'][self._transaction_year(transaction)] += get_USD_value(get_currency(self, transaction), transaction_value, self._transaction_year(transaction))
         return out
 
     @returns_numberdictdict

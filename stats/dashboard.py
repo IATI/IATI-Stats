@@ -799,7 +799,7 @@ class ActivityStats(CommonSharedElements):
             else:
                 start_date = None
             return {
-                'transaction_spend': 1 if start_date and start_date < self.today and self.today - start_date < datetime.timedelta(days=365) else 0,
+                'transaction_spend': 1 if start_date and start_date < self.today and (self.today - start_date) > datetime.timedelta(days=365) else 0,
                 'transaction_traceability': 1 if self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code())) else 0,
             }
         else:

@@ -210,7 +210,7 @@ def test_comprehensiveness_full(major_version):
                 <title>A title</title>
                 <description>A description</description>
                 <activity-status code="2"/> 
-                <activity-date type="start-actual" iso-date="9990-05-01" />
+                <activity-date type="start-actual" iso-date="9989-05-01" />
                 <sector vocabulary="DAC"/>
                 <recipient-country code="AI"/>
                 <transaction>
@@ -259,7 +259,7 @@ def test_comprehensiveness_full(major_version):
                     <narrative>A description</narrative>
                 </description>
                 <activity-status code="2"/>
-                <activity-date type="2" iso-date="9990-05-01" />
+                <activity-date type="2" iso-date="9989-05-01" />
                 <sector vocabulary="1"/>
                 <recipient-country code="AI"/>
                 <transaction>
@@ -348,7 +348,7 @@ def test_comprehensiveness_other_passes(major_version):
             <iati-activity default-currency="">
             <!-- default currency can be used instead of at transaction level -->
                 <activity-status code="2"/> 
-                <activity-date type="start-planned" iso-date="9990-05-01" />
+                <activity-date type="start-planned" iso-date="9989-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
                     <value value-date="2014-01-01"/>
@@ -360,7 +360,7 @@ def test_comprehensiveness_other_passes(major_version):
             <iati-activity default-currency="">
             <!-- default currency can be used instead of at transaction level -->
                 <activity-status code="2"/> 
-                <activity-date type="1" iso-date="9990-05-01" />
+                <activity-date type="1" iso-date="9989-05-01" />
                 <transaction>
                     <transaction-type code="3"/><!-- Disbursement -->
                     <value value-date="2014-01-01"/>
@@ -693,7 +693,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
         <iati-activities>
             <iati-activity>
                 <activity-status code="2"/> 
-                <activity-date type="start-planned" iso-date="9990-05-01" />
+                <activity-date type="start-planned" iso-date="9989-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
                     <value value-date="" currency=""/>
@@ -704,7 +704,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
         <iati-activities>
             <iati-activity>
                 <activity-status code="2"/> 
-                <activity-date type="1" iso-date="9990-05-01" />
+                <activity-date type="1" iso-date="9989-05-01" />
                 <transaction>
                     <transaction-type code="3"/>
                     <value value-date="" currency=""/>
@@ -719,7 +719,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
         <iati-activities>
             <iati-activity>
                 <activity-status code="2"/> 
-                <activity-date type="start-planned" iso-date="9990-05-01" />
+                <activity-date type="start-planned" iso-date="9989-05-01" />
                 <transaction>
                     <transaction-type code="D"/>
                     <value value-date="2014-01-01" currency="GBP">1.0</value>
@@ -731,7 +731,7 @@ def test_comprehensiveness_with_validation_transaction_spend(major_version):
         <iati-activities>
             <iati-activity>
                 <activity-status code="2"/> 
-                <activity-date type="1" iso-date="9990-05-01" />
+                <activity-date type="1" iso-date="9989-05-01" />
                 <transaction>
                     <transaction-type code="3"/>
                     <value value-date="2014-01-01" currency="GBP">1.0</value>
@@ -1010,7 +1010,7 @@ def test_transaction_non_exclusions(key, major_version):
     activity_stats.element = etree.fromstring('''
         <iati-activity>
             <activity-status code="2"/> 
-            <activity-date type="start-planned" iso-date="9990-01-01" />
+            <activity-date type="start-planned" iso-date="9989-01-01" />
             <transaction>
                 <transaction-type code="IF"/>
             </transaction>
@@ -1021,7 +1021,7 @@ def test_transaction_non_exclusions(key, major_version):
     ''' if major_version == '1' else '''
         <iati-activity>
             <activity-status code="2"/> 
-            <activity-date type="1" iso-date="9990-01-01" />
+            <activity-date type="1" iso-date="9989-01-01" />
             <transaction>
                 <transaction-type code="1"/>
             </transaction>

@@ -652,7 +652,8 @@ class ActivityStats(CommonSharedElements):
         return {
             'version': (self.element.getparent() is not None
                         and 'version' in self.element.getparent().attrib),
-            'reporting-org': is_text_in_element('reporting-org'),
+            'reporting-org': (self.element.xpath('reporting-org/@ref') 
+                        and is_text_in_element('reporting-org')),
             'iati-identifier': self.element.xpath('iati-identifier/text()'),
             'participating-org': self.element.find('participating-org') is not None,
             'title': is_text_in_element('title'),

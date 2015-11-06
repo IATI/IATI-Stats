@@ -33,7 +33,7 @@ def get_USD_value(input_currency, input_value, year):
     """ Returns a USD value based on an inputted ISO currency, an inputted value and a year """
 
     try:
-        usd_value = currency_values[input_currency][int(year)] * float(input_value)
+        usd_value = (1 / currency_values[input_currency][int(year)]) * float(input_value)
     except KeyError:
         usd_value = 0
 

@@ -204,7 +204,7 @@ def test_comprehensiveness_full(major_version):
     root = etree.fromstring('''
         <iati-activities version="1.05">
             <iati-activity xml:lang="en">
-                <reporting-org>Reporting ORG Name</reporting-org>
+                <reporting-org ref="AA-AAA">Reporting ORG Name</reporting-org>
                 <iati-identifier>AA-AAA-1</iati-identifier>
                 <participating-org/>
                 <title>A title</title>
@@ -247,7 +247,7 @@ def test_comprehensiveness_full(major_version):
     ''' if major_version == '1' else '''
         <iati-activities version="2.01">
             <iati-activity xml:lang="en">
-                <reporting-org>
+                <reporting-org ref="AA-AAA">
                     <narrative>Reporting ORG Name</narrative>
                 </reporting-org>
                 <iati-identifier>AA-AAA-1</iati-identifier>

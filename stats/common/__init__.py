@@ -61,7 +61,7 @@ def planned_disbursement_year(planned_disbursement):
     if start and end:
         return budget_year(planned_disbursement)
     elif start:
-        return start
+        return start.year
     else:
         return None
 

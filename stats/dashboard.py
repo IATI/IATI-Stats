@@ -278,6 +278,7 @@ class ActivityStats(CommonSharedElements):
     blank = False
     strict = False # (Setting this to true will ignore values that don't follow the schema)
     context = ''
+    comprehensiveness_current_activity_status = None
     now = datetime.datetime.now() # TODO Add option to set this to date of git commit
 
     @returns_numberdict
@@ -604,20 +605,29 @@ class ActivityStats(CommonSharedElements):
         # If there is no planned end date AND activity-status/@code is 2 (implementing) or 4 (post-completion), then this is a current activity
         if not(activity_planned_end_dates) and activity_status_code:
             if activity_status_code[0] == '2' or activity_status_code[0] == '4':
+                self.comprehensiveness_current_activity_status = 1
                 return True
 
         # If the actual end date is within the last year, then this is a current activity
         for actual_end_date in activity_actual_end_dates: 
             if (actual_end_date>=add_years(self.today, -1)) and (actual_end_date <= self.today):
+                self.comprehensiveness_current_activity_status = 2
                 return True
         
         # If the planned end date is greater than today, then this is a current activity
         for planned_end_date in activity_planned_end_dates: 
             if planned_end_date>=self.today:
+                self.comprehensiveness_current_activity_status = 3
                 return True
         
         # If got this far and not met one of the conditions to qualify as a current activity, return false
+        self.comprehensiveness_current_activity_status = 0
         return False
+
+    @returns_dict
+    def comprehensiveness_current_activities(self):
+        """Outputs the whether each activity is considered current for the purposes of comprehensiveness calculations"""
+        return {self.element.find('iati-identifier').text:self.comprehensiveness_current_activity_status}
 
     @memoize
     def _comprehensiveness_bools(self):

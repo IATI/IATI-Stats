@@ -581,6 +581,11 @@ class ActivityStats(CommonSharedElements):
         """Returns True if this activity is deemed to be reported by a donor publisher.
            Methodology descibed in https://github.com/IATI/IATI-Dashboard/issues/377
         """
+        # If there is no 'reporting-org/@ref' element, return False to avoid a 'list index out of range' 
+        # error in the statement that follows
+        if len(self.element.xpath('reporting-org/@ref')) < 1:
+            return False
+
         return ((self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(self._funding_code(), self._OrganisationRole_Extending_code()))) 
             and (self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(self._OrganisationRole_Implementing_code()))))
 

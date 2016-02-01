@@ -378,6 +378,18 @@ class ActivityStats(CommonSharedElements):
         else:
             return '1'
 
+    def _OrganisationRole_Extending_code(self):
+        if self._major_version() == '1':
+            return 'Extending'
+        else:
+            return '3'
+
+    def _OrganisationRole_Implementing_code(self):
+        if self._major_version() == '1':
+            return 'Implementing'
+        else:
+            return '4'
+
     def __get_start_year(self):
         activity_date = self.element.find("activity-date[@type='{}']".format(self._actual_start_code()))
         if activity_date is None:
@@ -565,6 +577,13 @@ class ActivityStats(CommonSharedElements):
         ]
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
 
+    def _is_donor_publisher(self):
+        """Returns True if this activity is deemed to be reported by a donor publisher.
+           Methodology descibed in https://github.com/IATI/IATI-Dashboard/issues/377
+        """
+        return ((self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(self._funding_code(), self._OrganisationRole_Extending_code()))) 
+            and (self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(self._OrganisationRole_Implementing_code()))))
+
     @returns_numberdict
     def forwardlooking_activities_current(self):
         """
@@ -658,7 +677,6 @@ class ActivityStats(CommonSharedElements):
             # Perform logic. If the list is not empty, return true. Otherwise false
             return True if textFound else False
             
-
         return {
             'version': (self.element.getparent() is not None
                         and 'version' in self.element.getparent().attrib),
@@ -685,7 +703,8 @@ class ActivityStats(CommonSharedElements):
             'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
             'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
             'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-            'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))),
+            'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) 
+                                        or self._is_donor_publisher(),
             'budget': self.element.findall('budget'),
             'contact-info': self.element.findall('contact-info/email'),
             'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
@@ -811,7 +830,7 @@ class ActivityStats(CommonSharedElements):
                 start_date = None
             return {
                 'transaction_spend': 1 if start_date and start_date < self.today and (self.today - start_date) > datetime.timedelta(days=365) else 0,
-                'transaction_traceability': 1 if self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code())) else 0,
+                'transaction_traceability': 1 if (self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) or self._is_donor_publisher() else 0,
             }
         else:
             return {

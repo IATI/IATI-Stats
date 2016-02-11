@@ -14,6 +14,7 @@ import re
 import json
 import subprocess
 import copy
+import csv
 
 from stats.common.decorators import *
 from stats.common import *
@@ -51,7 +52,34 @@ def all_and_not_empty(bool_iterable):
     else:
         return False
 
+def is_number(v):
+    """ Tests if a variable is a number.
+        Input: s - a variable
+        Return: True if v is a number
+                False if v is not a number
+        NOTE: Any changes to this function should be replicated in:
+              https://github.com/IATI/IATI-Dashboard/blob/master/coverage.py#L7
+    """
+    try:
+        float(v)
+        return True
+    except ValueError:
+        return False
 
+def convert_to_float(x):
+    """ Converts a variable to a float value, or 0 if it cannot be converted to a float.
+        Input: x - a variable
+        Return: x as a float, or zero if x is not a number
+        NOTE: Any changes to this function should be replicated in:
+              https://github.com/IATI/IATI-Dashboard/blob/master/coverage.py#L19
+    """
+    if is_number(x):
+        return float(x)
+    else:
+        return 0
+
+
+# Import codelists
 ## In order to test whether or not correct codelist values are being used in the data 
 ## we need to pull in data about how codelists map to elements
 def get_codelist_mapping(major_version):
@@ -68,9 +96,29 @@ for major_version in ['1', '2']:
     for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory']:
         CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data']) 
 
-import csv
+
+# Import country language mappings, and save as a dictionary
 reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
 country_lang_map = dict((row[0], row[2]) for row in reader)
+
+
+# Import reference spending data, and save as a dictionary
+reference_spend_data = {}
+with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv_file:
+    reader = csv.reader(csv_file, delimiter=',')
+    for line in reader: 
+        pub_registry_id = line[1]
+
+        # Update the publisher registry ID, if this publisher has since updated their registry ID
+        if pub_registry_id in get_registry_id_matches().keys():
+            pub_registry_id = get_registry_id_matches()[pub_registry_id]
+        
+        reference_spend_data[pub_registry_id] = { 'publisher_name': line[0], 
+                                                  '2014_ref_spend': line[4],
+                                                  '2015_ref_spend': line[7],
+                                                  '2015_official_forecast': line[10],
+                                                  'currency': line[13] }
+
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """
@@ -1108,6 +1156,31 @@ class PublisherStats(object):
     @memoize
     def publisher_unique_identifiers(self):
         return len(self.aggregated['iati_identifiers'])
+
+    @returns_numberdict
+    def reference_spend_data(self):
+        """Lookup the reference spend data (value and currency) for this publisher (obtained by using the 
+           name of the folder), for years 2014 and 2015.
+        """
+        if self.folder in reference_spend_data.keys():
+            # Note that the values may be strings or human-readable numbers (i.e. with commas to seperate thousands) 
+            return { '2014': { 'ref_spend': convert_to_float(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')), 'currency': reference_spend_data[self.folder]['currency'], 'official_forecast_usd': 0 }, 
+                     '2015': { 'ref_spend': convert_to_float(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')), 'currency': reference_spend_data[self.folder]['currency'], 'official_forecast_usd': convert_to_float(reference_spend_data[self.folder]['2015_official_forecast'].replace(',',''))}  }
+        else:
+            return {}
+
+    @returns_dict
+    def reference_spend_data_usd(self):
+        """For each year that there is reference spend data for this publisher, convert this 
+           to the USD value for the given year
+        """
+        output = {}
+        for year, data in self.reference_spend_data().items():
+            output[year] = {}
+            output[year]['ref_spend'] = get_USD_value(data['currency'], data['ref_spend'], year)
+            output[year]['official_forecast'] = data['official_forecast_usd']
+
+        return output
 
     @returns_numberdict
     def publisher_duplicate_identifiers(self):

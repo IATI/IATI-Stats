@@ -66,6 +66,7 @@ Getting started
     ./get_codelists.sh
     ./get_schemas.sh
     wget "http://dashboard.iatistandard.org/stats/ckan.json"
+    wget "https://raw.githubusercontent.com/IATI/IATI-Dashboard/live/registry_id_relationships.csv"
     cd ..
 
     # Calculate some stats 

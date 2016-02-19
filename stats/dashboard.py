@@ -98,8 +98,14 @@ for major_version in ['1', '2']:
 
 
 # Import country language mappings, and save as a dictionary
-reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=';')
-country_lang_map = dict((row[0], row[2]) for row in reader)
+# Contains a dictionary of ISO 3166-1 country codes (as key) with a list of ISO 639-1 language codes (as value) 
+reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=',')
+country_lang_map = {}
+for row in reader:
+    if row[0] not in country_lang_map.keys():
+        country_lang_map[row[0]] = [row[2]]
+    else:
+        country_lang_map[row[0]].append(row[2])
 
 
 # Import reference spending data, and save as a dictionary
@@ -250,8 +256,9 @@ def valid_coords(x):
 
 def get_currency(iati_activity_object, budget_pd_transaction):
     """ Returns the currency used for a budget, planned disbursement or transaction value. This is based 
-    on either the currency specified in value/@currency, or the default currency specified in 
-    iati-activity/@default-currency) """
+        on either the currency specified in value/@currency, or the default currency specified in 
+        iati-activity/@default-currency).
+    """
 
     # Find the currency in the value element as part of this budget, planned disbursement or transaction
     if budget_pd_transaction.find('value') is not None:
@@ -264,6 +271,48 @@ def get_currency(iati_activity_object, budget_pd_transaction):
 
     # Return the currency as a string
     return currency
+
+
+def has_xml_lang(obj):
+    """Test if an obj has an XML lang attribute declared.
+       Input: an etree XML object, for example a narrative element
+       Return: True if @xml:lang is present, or False if not
+    """
+    return len(obj.xpath("@xml:lang", namespaces={"xml": "http://www.w3.org/XML/1998/namespace"})) > 0
+
+
+def get_language(major_version, iati_activity_obj, title_or_description_obj):
+    """ Returns the language (or languages if publishing to version 2.x) used for a single title or 
+        description element. This is based on either the language specified in @xml:lang 
+        (version 1.x) or narrative/@xml:lang (version 2.x), or the default language, as specified 
+        in iati-activity/@xml:lang).
+        Input: iati_activity_object - An IATI Activity element. Will be self in most cases.
+        Returns: List of language/s used in the given title_or_description_elem.
+                 Empty list if no languages specified.
+    """
+
+    langs = []
+
+    # Get default language for this activity
+    if has_xml_lang(iati_activity_obj):
+        default_lang = iati_activity_obj.xpath("@xml:lang", namespaces={"xml": "http://www.w3.org/XML/1998/namespace"})[0]
+
+
+    if major_version == '2':
+        for narrative_obj in title_or_description_obj.findall('narrative'):
+            if has_xml_lang(narrative_obj):
+                langs.append(narrative_obj.xpath("@xml:lang", namespaces={"xml": "http://www.w3.org/XML/1998/namespace"})[0])
+            elif has_xml_lang(iati_activity_obj):
+                langs.append(default_lang)
+
+    else:
+        if has_xml_lang(title_or_description_obj):
+            langs.append(title_or_description_obj.xpath("@xml:lang", namespaces={"xml": "http://www.w3.org/XML/1998/namespace"})[0])
+        elif has_xml_lang(iati_activity_obj):
+            langs.append(default_lang)
+
+    # Remove any duplicates and return
+    return list(set(langs))
 
 
 
@@ -701,6 +750,39 @@ class ActivityStats(CommonSharedElements):
         """Outputs the whether each activity is considered current for the purposes of comprehensiveness calculations"""
         return {self.element.find('iati-identifier').text:self.comprehensiveness_current_activity_status}
 
+    def _is_recipient_language_used(self):
+        """If there is only 1 recipient-country, test if one of the languages for that country is used 
+           in the title and description elements.
+        """
+
+        # Test only applies to activities where there is only 1 recipient-country
+        if len(self.element.findall('recipient-country')) == 1:
+            # Get list of languages for the recipient-country
+            try:
+                country_langs = country_lang_map[self.element.xpath('recipient-country/@code')[0]]
+            except KeyError:
+                country_langs = []
+
+            # Get lists of the languages used in the title and descripton elements
+            langs_in_title = []
+            for title_elem in self.element.findall('title'):
+               langs_in_title.extend(get_language(self._major_version(), self.element, title_elem)) 
+            
+            langs_in_description = []
+            for descripton_elem in self.element.findall('description'):
+               langs_in_description.extend(get_language(self._major_version(), self.element, descripton_elem)) 
+
+
+            # Test if the languages used for the title and description are in the list of country langs
+            if len(set(langs_in_title).intersection(country_langs)) > 0 and len(set(langs_in_description).intersection(country_langs)) > 0:
+                return 1
+            else:
+                return 0
+
+        else:
+            return 0
+
+
     @memoize
     def _comprehensiveness_bools(self):
 
@@ -729,7 +811,7 @@ class ActivityStats(CommonSharedElements):
 
             # Perform logic. If the list is not empty, return true. Otherwise false
             return True if textFound else False
-            
+        
         return {
             'version': (self.element.getparent() is not None
                         and 'version' in self.element.getparent().attrib),
@@ -766,7 +848,7 @@ class ActivityStats(CommonSharedElements):
             'capital-spend': self.element.xpath('capital-spend/@percentage'),
             'document-link': self.element.findall('document-link'),
             'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),
-            #'title_recipient_language': ,
+            'recipient_language': self._is_recipient_language_used(),
             'conditions_attached': self.element.xpath('conditions/@attached'),
             'result_indicator': self.element.xpath('result/indicator')
         }
@@ -882,11 +964,13 @@ class ActivityStats(CommonSharedElements):
             else:
                 start_date = None
             return {
+                'recipient_language': 1 if len(self.element.findall('recipient-country')) == 1 else 0,
                 'transaction_spend': 1 if start_date and start_date < self.today and (self.today - start_date) > datetime.timedelta(days=365) else 0,
                 'transaction_traceability': 1 if (self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) or self._is_donor_publisher() else 0,
             }
         else:
             return {
+                'recipient_language': 0,
                 'transaction_spend': 0,
                 'transaction_traceability': 0
             }

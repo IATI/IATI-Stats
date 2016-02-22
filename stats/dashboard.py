@@ -760,7 +760,7 @@ class ActivityStats(CommonSharedElements):
             # Get list of languages for the recipient-country
             try:
                 country_langs = country_lang_map[self.element.xpath('recipient-country/@code')[0]]
-            except KeyError:
+            except (KeyError, IndexError):
                 country_langs = []
 
             # Get lists of the languages used in the title and descripton elements

@@ -1241,15 +1241,20 @@ class PublisherStats(object):
     def publisher_unique_identifiers(self):
         return len(self.aggregated['iati_identifiers'])
 
-    @returns_numberdict
+    @returns_dict
     def reference_spend_data(self):
         """Lookup the reference spend data (value and currency) for this publisher (obtained by using the 
            name of the folder), for years 2014 and 2015.
+           Outputs an empty string for each element where there is no data.
         """
         if self.folder in reference_spend_data.keys():
             # Note that the values may be strings or human-readable numbers (i.e. with commas to seperate thousands) 
-            return { '2014': { 'ref_spend': convert_to_float(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')), 'currency': reference_spend_data[self.folder]['currency'], 'official_forecast_usd': 0 }, 
-                     '2015': { 'ref_spend': convert_to_float(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')), 'currency': reference_spend_data[self.folder]['currency'], 'official_forecast_usd': convert_to_float(reference_spend_data[self.folder]['2015_official_forecast'].replace(',',''))}  }
+            return { '2014': { 'ref_spend': reference_spend_data[self.folder]['2014_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')) else '', 
+                               'currency': reference_spend_data[self.folder]['currency'], 
+                               'official_forecast_usd': '' }, 
+                     '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '', 
+                               'currency': reference_spend_data[self.folder]['currency'], 
+                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' }  }
         else:
             return {}
 
@@ -1257,12 +1262,13 @@ class PublisherStats(object):
     def reference_spend_data_usd(self):
         """For each year that there is reference spend data for this publisher, convert this 
            to the USD value for the given year
+           Outputs an empty string for each element where there is no data.
         """
         output = {}
         for year, data in self.reference_spend_data().items():
             output[year] = {}
-            output[year]['ref_spend'] = get_USD_value(data['currency'], data['ref_spend'], year)
-            output[year]['official_forecast'] = data['official_forecast_usd']
+            output[year]['ref_spend'] = str(get_USD_value(data['currency'], data['ref_spend'], year)) if is_number(data['ref_spend']) else ''
+            output[year]['official_forecast'] = data['official_forecast_usd'] if is_number(data['official_forecast_usd']) else ''
 
         return output
 

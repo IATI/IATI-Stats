@@ -191,7 +191,7 @@ def test_comprehensiveness_empty(major_version):
         'capital-spend': 0,
         'document-link': 0,
         'activity-website': 0,
-        'a_recipient_language': 0,
+        'recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
     }

@@ -17,7 +17,12 @@ def iso_date_match(raw_date):
     if raw_date:
         m1 = xsDateRegex.match(raw_date)
         if m1:
-            return datetime.date(*map(int, m1.groups()))
+            try:
+                return datetime.date(*map(int, m1.groups()))
+            except ValueError:
+                # A ValueError occurs when there is an invalid raw_date, 
+                # for example '2015-11-31' or '2015-13-01'
+                return None    
         else:
             return None
 

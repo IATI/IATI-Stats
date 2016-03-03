@@ -19,12 +19,12 @@ Official Forecast","Spend Ratio
 "United Nations Children's Fund (UNICEF)","unicef",,,4868000000,"http://www.un.org/en/ecosoc/qcpr/pdf/statistical_annex_tables_on_funding_flows_2014.xlsx","Table B-1, UNICEF",,,,,,,"USD"
 "Mercy Corps Europe","mce",,,51987175,"https://www.mercycorps.org.uk/sites/default/files/Mercy_Corps_Europe_Annual_Report_and_Accounts_2014-15.pdf","Non-calendar year ended 30th June 2015, total resources expended minus non-charitable activities",,,,,,,"GBP"
 "Y Care International","ycare",,,"-","http://1c8puy1lylrov7ssf1oz3o22.wpengine.netdna-cdn.com/wp-content/uploads/2014/12/YCI_AR2013-14_WO.pdf","Year ended 31st March 2014, not available for 2014",,,,,,,"-"
-"European Commission - Humanitarian Aid & Civil Protection","ec-echo",,,1273000000,"http://ec.europa.eu/echo/files/media/publications/annual_report/2014/COM_2015_406_en.pdf","Total commitment appropriations, page 17 of report",,,,,,,"EUR"
+"European Commission - Humanitarian Aid & Civil Protection","ec-echo",,,1230293216,"http://ec.europa.eu/echo/files/funding/agreements/agreements_2014.pdf","Total new contracts and amendments, final page",1313489800,"http://ec.europa.eu/echo/files/funding/agreements/agreements_2015.pdf","Total new contracts and amendments, final page",,,,"EUR"
 "The Sabre Charitable Trust","sct",,,269367,"http://www.sabretrust.org/downloads/Sabre_AR_2015.pdf","Non-calendar year ended 31st March 2015, cost of charitable activities",,,,,,,"GBP"
 "UK - Department for International Development (DFID)","dfid",,,9809236117,"DAC*","Department for International Development, do we need to add ECGD? See Joni's note of DAC agencies list",,,,,,,"USD"
 "Canada - Global Affairs Canada | Affaires mondiales Canada","gac-amc",,,2495862096,"DAC*","Department of Foreign Affairs, Trade and Development (should also add Canadian International Development Agency but that data is missing for 2014)",,,,,,,"USD"
 "The World Bank","worldbank",,,15858209220,"DAC*","International Bank for Reconstruction and Development [IBRD] - check this is the right one to use?",,,,,,,"USD"
-"Water Works","waterworks",,,20790,"http://www.waterworkscharity.org/Documents/Reports%20Page%20Annual%20Report%20and%20Accounts%202014.pdf","Direct and indirect project costs",,,,,,,"GBP"
+"Water Works","waterworks",,,20790,"http://www.waterworkscharity.org/Documents/Reports%20Page%20Annual%20Report%20and%20Accounts%202014.pdf","Direct and indirect project costs, page 18 of report",,,,,,,"GBP"
 "Carers Worldwide","cww",,,61608,"http://apps.charitycommission.gov.uk/Accounts/Ends14/0001150214_AC_20141231_E_C.pdf","Total resources expended minus governance costs",,,,,,,"GBP"
 "United Nations Development Programme","undp",,,5372000000,"http://www.un.org/en/ecosoc/qcpr/pdf/statistical_annex_tables_on_funding_flows_2014.xlsx","Table B-1, UNDP a/, this includes UNCDF",,,,,,,"USD"
 "Tearfund","tearfund",,,57833000,"http://www.tearfund.org/~/media/files/main%20site/about%20us/financial%20reports%202015.pdf","Non-calendar year ended 31st March 2015, total charitable activities",,,,,,,"GBP"
@@ -50,8 +50,8 @@ Official Forecast","Spend Ratio
 "European Commission - Service for Foreign Policy Instruments","ec-fpi",,,"?","http://ec.europa.eu/dgs/fpi/key-documents/index_en.htm","No up-to-date annual report found",,,,,,,
 "Hilfswerk Austria Zimbabwe","hwa-zm",,,"?","http://www.hilfswerk.at/cms/download/ctjl7/Annual%20Report%202014%20english.pdf","This is a report for the whole organisation but IATI seems to only publish Zimbabwe?",,,,,,,
 "Women for Women International (UK)","wfwiuk",,,2280000,"http://apps.charitycommission.gov.uk/Accounts/Ends09/0001115109_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
-"Inter-American Development Bank","iadb",,,"?","https://publications.iadb.org/bitstream/handle/11319/6855/2014%20Annual%20Report.%20%20The%20Year%20in%20Review.pdf?sequence=13","Hard to identify relevant figure from report",,,,,,,
-"United Nations Office for Project Services (UNOPS)","unops",,,"UN",,,,,,,,,
+"Inter-American Development Bank","iadb",,,8788843254,"DAC*","Sum of ORC and MIF (crs agency names), not certain this is the right mapping",,,,,,,"USD"
+"United Nations Office for Project Services (UNOPS)","unops",,,"?",,"Not in official source, no report found",,,,,,,
 "War on Want NI","wowni",,,412769,"http://www.waronwantni.org/images/2015%20statutory%20accounts.pdf","Non-calendar year ended 30th April 2015, charitable activities",,,,,,,"GBP"
 "BBC Media Action","bbcmediaaction",,,46222000,"http://downloads.bbc.co.uk/mediaaction/annualreports/2014-15.pdf","Non-calendar year ended 31st March 2015, charitable activities",,,,,,,"GBP"
 "Oxfam Novib","onl",,,168289000,"https://oxfam.app.box.com/s/j39kx2txzzjchzt2qu8dw0g0nckka10z/1/4121351863/34134704389/1","Non-calendar year ended 31st March 2015, expenditure on goal of ‘structural poverty alleviation’ Final Statement",,,,,,,"EUR"
@@ -77,7 +77,7 @@ Official Forecast","Spend Ratio
 "Food for the Hungry UK","fh",,,725400,"http://apps.charitycommission.gov.uk/Accounts/Ends73/0000328273_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
 "Leonard Cheshire Disability","lcd_admin",,,153330000,"http://apps.charitycommission.gov.uk/Accounts/Ends86/0000218186_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,,"GBP"
 "One to One Children's Fund","onetoonecf",,,924100,"http://apps.charitycommission.gov.uk/Accounts/Ends59/0001086159_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,,"GBP"
-"PHASE Worldwide","phase_worldwide",,,202702,"http://phaseworldwide.org/wp-content/uploads/2015/05/Annual-Report-PHASE-WW-2013-to-2014-Final-with-accounts.pdf","Non-calendar year ended 30th June 2014 (technically for the previous year but very close, and nothing more recent published), total payments (no clear separation of operational costs given)",,,,,,,"GBP"
+"PHASE Worldwide","phase_worldwide",,,202702,"http://phaseworldwide.org/wp-content/uploads/2015/05/Annual-Report-PHASE-WW-2013-to-2014-Final-with-accounts.pdf","Non-calendar year ended 30th June 2014 (technically for the previous year but very close, and nothing more recent published), total payments (no clear separation of charitable costs given), page 19 of report pdf",,,,,,,"GBP"
 "Railway Children","rc",,,2290000,"http://apps.charitycommission.gov.uk/Accounts/Ends91/0001058991_AC_20150531_E_C.pdf","Non-calendar year ended 31st May 2015, charitable activities from charity commission summary",,,,,,,"GBP"
 "Amref Health Africa - UK","amrefha",,,3690000,"http://apps.charitycommission.gov.uk/Accounts/Ends88/0000261488_AC_20140930_E_C.pdf","Non-calendar year ended 30th September 2014, charitable activities from charity commission summary",,,,,,,"GBP"
 "APT Action on Poverty","apt",,,1260000,"http://apps.charitycommission.gov.uk/Accounts/Ends36/0000290836_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
@@ -154,7 +154,7 @@ Official Forecast","Spend Ratio
 "McKinsey & Company","mck",,,"Private sector",,,,,,,,,
 "Medical Research Centre (MRC), Sierra Leone","mrc-sierra-leone",,,"?",,"Financial report difficult to locate",,,,,,,
 "Switzerland - Swiss Agency for Development and Cooperation (SDC)","sdc_ch",,,1655410561,"DAC*","Swiss Agency for Development and Co-operation",,,,,,,"USD"
-"The Global Alliance for Improved Nutrition","gain",,,6860173,"http://www.gainhealth.org/wp-content/uploads/2014/02/Financial-Statements-2014.pdf","Non-calendar year ended 30th June 2015, operational costs, page 7 of report",,,,,,,"USD"
+"The Global Alliance for Improved Nutrition","gain",,,21129038,"http://www.gainhealth.org/wp-content/uploads/2014/02/Financial-Statements-2014.pdf","Non-calendar year ended 30th June 2015, operational costs plus sub-awards, page 7 of report pdf",,,,,,,"USD"
 "Agency for Cooperation and Research in Development (ACORD)","acord",,,9771000,"http://www.acordinternational.org/silo/files/acord-2014-audited-accounts.pdf","Charitable activities, page 27 of report",,,,,,,"GBP"
 "Coffey International Development","coffey",,,"Private sector",,,,,,,,,
 "Ireland - Department of Foreign Affairs and Trade","irishaid",,,513561216.2,"DAC*","Department of Foreign Affairs",,,,,,,"USD"
@@ -181,7 +181,7 @@ Official Forecast","Spend Ratio
 "United Mission to Nepal","umn",,,7715748,"http://www.umn.org.np/new/publication_files/UMN_Annual_Report_13-14_low.pdf","Non-calendar year ended 16th July 2014, charitable expenditure, page 35 of report",9061577,"http://www.umn.org.np/new/publication_files/UMN_Annual_Report_2014-15.pdf","Non-calendar year ended 16th July 2015, charitable expenditure, page 35 of report",,,,"USD"
 "War Child Holland","warchildholland",,,27748827,"http://www.warchildholland.org/sites/default/files/bijlagen/node_14/23-2015/2014ar_summary_warchild_eng.pdf","Expenditure on the objective, page 14 of report ",,,,,,,"EUR"
 "Wellfound","wellfound",,,119547,"http://apps.charitycommission.gov.uk/Accounts/Ends34/0001110434_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, sum of charitable projects, page 17 or report",,,,,,,"GBP"
-"World Wide Fund for Nature - Pakistan","wwfpakistan",,,628750550,"http://www.wwfpak.org/publication/pdf/annualreport2014.pdf","Non-calendar year ended 30th June 2014 (so technically for previous year, but very close and no other report available), total expenditure minus (fundraising, administration, depreciation), page 69 of report",,,,,,,"PKR"
+"World Wide Fund for Nature - Pakistan","wwfpakistan",,,628750550,"http://www.wwfpak.org/publication/pdf/annualreport2014.pdf","Non-calendar year ended 30th June 2014 (so technically for previous year, but very close and no other report available), total expenditure minus [fundraising, administration, depreciation], page 69 of report",,,,,,,"PKR"
 "Aga Khan Foundation (United Kingdom)","akfuk73",,,25280000,"http://apps.charitycommission.gov.uk/Accounts/Ends18/0000266518_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
 "DAI Europe","dai-e",,,"Private sector",,,,,,,,,
 "Exeter Ethiopia Link","eel",,,41720.44,"http://apps.charitycommission.gov.uk/Accounts/Ends85/0001154085_AC_20141231_E_C.pdf","Projects sub-totals, page 3 of report",,,,,,,"GBP"
@@ -309,7 +309,6 @@ Official Forecast","Spend Ratio
 "Aqua for All","aqua4all",,,3434440,"http://aquaforall.org/wp-content/uploads/2014/09/Annual-Report-2014-Aqua-for-All.pdf","Expenditure - projects, page 38 of report",,,,,,,"EUR"
 "Backward Society Education (BASE)","base_22",,,"-",,"No report for 2014 located, but see 2015",192633005,"http://nepalbase.org/wp-content/uploads/2015/04/Audit-report1.jpg","Non-calendar year ended 16th July 2015, expenditure incurred in different projects",,,,"NPR"
 "Gender Links","gl",,,"?","http://www.genderlinks.org.za/page/annual-reports","Unable to locate report with spending information",,,,,,,
-"GRM International","grm",,,"Private sector",,"NB Became Palladium in 2015",,,,,,,
 "KPMG East Africa","kpmgea",,,"Private sector",,,,,,,,,
 "Mifumi UK","mifumi_uk",,,"?",,"Can't locate an up-to-date annual report, only up to May 2014",,,,,,,
 "Stichting Child Savings International","aflatoun",,,1638788,"https://dl.boxcloud.com/d/1/oceTEOFGIVuPQUQtF4DkevaymdonW70mFG7hi7EUgkzB6jCGYTMhoSJfMRJjR-lezjSvjonqHPoTItfk17qNxe3veNwC1QhGuPkH5KgogmhJ9ZSGf-6Y8SX5uj0Oo-F-wiLJNEmk03CMo3iLV-AmfAVC4vtCuxEGgSCn8G9woGdCTOKE0PII--wtyd4iIkAeP8uFTOQBz5lDcS1eMvZLHYZDPsOse1wTsMGJueBNI52o4zu2lDgSMEwrU9lWe9rb3VMQ-8KpzZFc_oMOV6myil-ya5q8tniaJ7npa1-62rjhOCi0RQD2Kg3C2x-mbKQZl82BJAECdDbPoaBJBvR-k9R2q5o3RzIh_vvFV_6hC-rV6wb9DmEhAWTTJmTvZNEVo6ZNuxRpTXTUcwZAQGA6m88yqS27w5ESbwPFi5R-MmiY7nhYQc0gklCS6Ilbo8nuXeEGgIhUxx5zuWVX8Fvm_LAIVb2Px6o1V1HULU8A2UAva1QQ2EIOfcjdiUuCgi9EY1zpf5t14YJO1DInFK5TyKVborEXoAPMpQEMhzSJJaT3V9BsgUpV-nG3yAhUDQNjMjn_mdaOqqLmUp91Wusc2O0weYZ3jJB41oloy0gOTgGjbbyW8GfvF1e_q7hsUWketoHvSgJADMMMSd5BEtFQEM92knEa-515-PexOZg_bpT1o832Fqxf4Em8bBGRs_rTJCvAqme8i-3EkLBwsLfLev0IcVeqvHmP6nsu3NDWA6fXpm8JX-2MsL6P2RAfQ96Iua56SRFp7ysINToR7PZIiOgDLW_txv-zCIphw8_7GAbXsTNxBwBhzFa63uWGqJIdVTiNFMC2swhDI658W6bRPkBZJnyMC9bGNJEgAXnaJVCuruoa1IxTPEteBJWOpPzJvTkjQPSAb4ieIdGWemmqX80YvASNZZBk0T7y_VkcfTIWI3PIjocUYfnPo9u8D266lw2kg7haNgCiFDB3p2v6R7lj_VDw-C8_hLrlc3c3cQDvF7i6J5n3xGPSBVm6/download","Total expenses for strategic objectives, page 52 of report",,,,,,,"EUR"
@@ -359,44 +358,48 @@ Official Forecast","Spend Ratio
 "New Zealand - Ministry of Foreign Affairs and Trade - New Zealand Aid Programme","mfat",,,"DAC - ambiguous",,"Not clear whether or not this should be a combination of two agencies ",,,,,,,
 "Norwegian Refugee Council","nrc",,,1939459000,"http://www.nrc.no/arch/_img/9203178.pdf","Total direct costs to programme activities, page 1 of report",,,,,,,"NOK"
 "ShelterBox","shelterbox",,,6460000,"http://shelterbox.org/uploads/Sources/Downloads/shelterbox_trust_annual_report_2014.pdf","Charitable activities, page 28 of report",,,,,,,"GBP"
-"Stichting Red een Kind","redeenkind",,,,,,,,,,,,
-"Stichting Vluchteling","st_vluchteling",,,,,,,,,,,,
-"UK - Foreign & Commonwealth Office","fco",,,,,,,,,,,,
-"UK - Scottish Government","scottish_government",,,,,,,,,,,,
-"Viva","viva",,,,,,,,,,,,
-"African Initiatives","ai_1064413",,,,,,,,,,,,
-"ARK (Absolute Return for Kids)","ark",,,,,,,,,,,,
-"Fauna & Flora International","ffi_publisher",,,,,,,,,,,,
-"Forests Monitor","fm",,,,,,,,,,,,
-"Global Integrity","globalintegrity",,,,,,,,,,,,
-"Habitat for Humanity Great Britain","hfhgb",,,,,,,,,,,,
-"I Choose Life Africa","ke-ngc-3372",,,,,,,,,,,,
-"Interact Worldwide","iww_publish",,,,,,,,,,,,
-"International HIV/AIDS Alliance","aa",,,,,,,,,,,,
-"Jeevika Trust","jeevika_trust",,,,,,,,,,,,
-"Kepa ry","kepa",,,,,,,,,,,,
-"LEAD International","lead_international",,,,,,,,,,,,
-"NGO Federation of Nepal","nfn",,,,,,,,,,,,
-"partos","partos_nl",,,,,,,,,,,,
-"Peace Direct","pdorg",,,,,,,,,,,,
-"PHASE Nepal","phase-nepal",,,,,,,,,,,,
-"Plan Ireland Charitable Assistance Limited","plan_ireland",,,,,,,,,,,,
-"PONT","pont",,,,,,,,,,,,
-"Progressio","progressio",,,,,,,,,,,,
-"Resource Extraction Monitoring","rem",,,,,,,,,,,,
-"Retrak","retrak",,,,,,,,,,,,
-"SOS Sahel International UK","sossaheluk",,,,,,,,,,,,
-"Trust for Africa's Orphans","tao-03473165",,,,,,,,,,,,
-"UK - Department of Health","doh",,,,,,,,,,,,
-"UK - Welsh Government's Wales for Africa Programme","wfa",,,,,,,,,,,,
-"Water for People","w4p",,,,,,,,,,,,
-"World Association for Christian Communication (UK)","wacc-uk",,,,,,,,,,,,
-"Young Innovations Pvt. Ltd","yipl",,,,,,,,,,,,
-"Zimmerman & Zimmerman","zimmzimm",,,,,,,,,,,,
-,,,,,,,,,,,,,
-,,,,,,,,,,,,,
-,,,,,,,,,,,,,
-,,,,,,,,,,,,,
+"Stichting Red een Kind","redeenkind",,,10619000,"https://www.redeenkind.nl/download/CAwdEAwUUkNKWEE=&inline=0","Expenditure on objectives, page 94 of report",,,,,,,"EUR"
+"Stichting Vluchteling","st_vluchteling",,,"Can't read, in Dutch","https://www.vluchteling.nl/~/media/Files/Jaarverslag/Jaarverslag-2014/Financieel-JV-2014-Interact-pdf.ashx",,,,,,,,
+"UK - Foreign & Commonwealth Office","fco",,,537422417.4,"DAC*","Foreign & Commonwealth Office",,,,,,,"USD"
+"UK - Scottish Government","scottish_government",,,19268455.28,"DAC*","Scottish Government",,,,,,,"USD"
+"Viva","viva",,,1150000,"http://apps.charitycommission.gov.uk/Accounts/Ends89/0001053389_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,,"GBP"
+"African Initiatives","ai_1064413",,,645700,"http://apps.charitycommission.gov.uk/Accounts/Ends13/0001064413_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,,"GBP"
+"ARK (Absolute Return for Kids)","ark",,,13210000,"http://apps.charitycommission.gov.uk/Accounts/Ends22/0001095322_AC_20140831_E_C.pdf","Non-calendar year ended 31st August 2014, charitable activities from charity commission summary",,,,,,,"GBP"
+"Fauna & Flora International","ffi_publisher",,,15550000,"http://apps.charitycommission.gov.uk/Accounts/Ends02/0001011102_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
+"Forests Monitor","fm",,,"?","http://www.forestsmonitor.org/","No report found",,,,,,,
+"Habitat for Humanity Great Britain","hfhgb",,,2720000,"http://apps.charitycommission.gov.uk/Accounts/Ends41/0001043641_AC_20150630_E_C.pdf","Non-calendar year ended 30th June 2015, charitable activities from charity commission summary",,,,,,,"GBP"
+"I Choose Life Africa","ke-ngc-3372",,,"?","http://www.ichooselife.or.ke/","No report found",,,,,,,
+"Interact Worldwide","iww_publish",,,"Data not available, merged with Plan UK in 2013",,"Worth checking with Bond",,,,,,,"-"
+"International HIV/AIDS Alliance","aa",,,29510000,"http://apps.charitycommission.gov.uk/Accounts/Ends60/0001038860_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
+"Jeevika Trust","jeevika_trust",,,48754,"http://apps.charitycommission.gov.uk/Accounts/Ends67/0000291167_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities ",,,,,,,"GBP"
+"Kepa ry","kepa",,,"?",,"No financial report found",,,,,,,
+"LEAD International","lead_international",,,1250000,"http://apps.charitycommission.gov.uk/Accounts/Ends89/0001086989_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
+"NGO Federation of Nepal","nfn",,,"?","http://www.ngofederation.org/images/stories/Financial_reports/Audit_Report-070-71_2013-14.pdf","Difficult to identify relevant information in report, non-calendar year ended 16th July 2014",,,,,,,
+"partos","partos_nl",,,"?",,"No up-to-date report found",,,,,,,
+"PHASE Nepal","phase-nepal",,,"-",,"No audit report available for this year",156998485,"http://phasenepal.org/wp-content/uploads/2016/01/Jan-7-Audit-report-FY-2071-72.pdf","Non-calendar year ended 16th July 2015, total expenditure, page 11 of report. No clear breakdown of charitable/goverance/fundraising available so likely to be to large. ",,,,"NPR"
+"Plan Ireland Charitable Assistance Limited","plan_ireland",,,11399083,"http://www.plan.ie/wp-content/uploads/2015/10/Plan_Report_2015_Web_FINAL.pdf","Non-calendar year ended 30th June 2015, charitable activity, page 46 of report",,,,,,,"EUR"
+"PONT","pont",,,372949,"http://apps.charitycommission.gov.uk/Accounts/Ends48/0001125948_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities - general activities, page 6 of report",,,,,,,"GBP"
+"Progressio","progressio",,,5720000,"http://apps.charitycommission.gov.uk/Accounts/Ends29/0000294329_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,,"GBP"
+"Resource Extraction Monitoring","rem",,,"?",,"No report found",,,,,,,
+"Retrak","retrak",,,1080000,"http://apps.charitycommission.gov.uk/Accounts/Ends99/0001122799_AC_20141231_E_C.pdf","Charitable activities from charity commission summary",,,,,,,"GBP"
+"SOS Sahel International UK","sossaheluk",,,1720000,"http://apps.charitycommission.gov.uk/Accounts/Ends11/0000296311_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,,"GBP"
+"Trust for Africa's Orphans","tao-03473165",,,200567,"http://apps.charitycommission.gov.uk/Accounts/Ends08/0001069208_AC_20141231_E_C.pdf","Costs of charitable activities, page 20 of report",,,,,,,"GBP"
+"UK - Department of Health","doh",,,"-","DAC*","Department of Health, but no data in DAC for 2014",,,,,,,
+"UK - Welsh Government's Wales for Africa Programme","wfa",,,1699864.6,"DAC*","Welsh Assembly Government",,,,,,,"USD"
+"Water for People","w4p",,,12976772,"https://www.waterforpeople.org/assets/docs/financials/2014.pdf","Non-calendar year ended 30th September 2014, program services, page 10",,,,,,,"USD"
+"World Association for Christian Communication (UK)","wacc-uk",,,280393,"http://cdn.agilitycms.com/wacc-global/Images/Articles/pdf/WACC-UK-2014-Signed-Audited-Financial-Statements.pdf","Three different grant expenditures plus programmed activities, page 10 of report",,,,,,,"GBP"
+"Young Innovations Pvt. Ltd","yipl",,,"?",,"No report found",,,,,,,
+"Zimmerman & Zimmerman","zimmzimm",,,"Private sector",,,,,,,,,
+"Aktis Strategy Ltd","aktis",,,"Private sector",,,,,,,,,
+"Christian Engineers in Development","ced",,,125166,"http://apps.charitycommission.gov.uk/Accounts/Ends34/0000293734_AC_20150331_E_C.pdf","Non-calendar year ended 31st March 2015, charitable activities - costs associated with engineering activities, page 9 of report",,,,,,,"GBP"
+"Discovery Learning Alliance, Inc.","dla",,,9228576,"http://www.discoverylearningalliance.org/wp-content/uploads/Audit-Report-2014.pdf","Program services, page 3 of report",,,,,,,"USD"
+"Institute of Development Studies","ids",,,19571000,"http://opendocs.ids.ac.uk/opendocs/bitstream/handle/123456789/7082/IDS_AnnualFinancialStatements_1415.pdf?sequence=1","Non-calendar year ended 31st March 2015, sum of three charitable activities, page 25 of report",,,,,,,"GBP"
+"InterAction's NGO Aid Map","ia_nam",,,"?","https://ngoaidmap.org/","No report found",,,,,,,
+"KPMG LLP","kpmgllp",,,"Private sector",,,,,,,,,
+"Protecting Families Against HIV/AIDS","prefa_1",,,1025722,"http://www.prefa.or.ug/wp-content/uploads/2014/07/PREFA-Annual-report-2014_2015-V1.pdf","Non-calendar year ended 31st March 2015, project costs, page 26 of report",,,,,,,"USD"
+"The OPEC Fund for International Development (OFID)","ofid",,,25900000,"http://www.ofid.org/Portals/0/Publications/Annual%20Reports/AR_2014_English.pdf","Disbursements - grant assistance, figure 0.6 page 13 of report",,,,,,,"USD"
+"United Nations Central Emergency Response Fund (CERF)","cerf",,,461000000,"https://docs.unocha.org/sites/dms/CERF/CERF-Annual_Report_2014-Final-6.15.15-WEB.pdf","CERF allocations to global humanitarian funding for relief work, page 14 of report, more detailed finances not found",,,,,,,"USD"
+"ZOA","zoa",,,38460420,"http://www.zoa-international.com/sites/default/files/pdf/ZOA-Jaarverslag-2014-webversie.pdf","Spent on objectives, page 90 of report",,,,,,,"EUR"
 ,,,,,,,,,,,,,
 ,,,,,"*The OECD DAC* data was sourced on 20/01/2016 from [https://stats.oecd.org/DownloadFiles.aspx?DatasetCode=CRS1] using the file 'CRS 2014 data.zip' that was uploaded by the OECD on the 12/01/2016. The columns used were those headed 'DonorCode', 'DonorName', 'AgencyCode', 'AgencyName' and 'usd_disbursement' which was summed for each agency.
 

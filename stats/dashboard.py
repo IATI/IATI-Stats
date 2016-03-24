@@ -680,6 +680,30 @@ class ActivityStats(CommonSharedElements):
         # Return boolean. True if activity_end_years is empty, or at least one of the end years is greater or equal to the year passed to this function
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
 
+    def _forwardlooking_include_in_calculations(self, year):
+        """ Tests if an activity should be included within the forward looking calculations.
+            Activities where at least 90% of the commitment has been disbursed or expended should be excluded.
+            Values are converted to USD to improve comparability.
+            Returns: True or False
+        """
+        
+        # Compute the sum of all commitments
+        # Get a list of commitment transactions
+        commitment_transactions = self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))
+        
+        # Convert transaction values to USD and aggregate
+        commitment_transactions_usd_total = sum([get_USD_value(get_currency(self, transaction), transaction.xpath('value/text()')[0], iso_date(transaction.xpath('transaction-date')[0]).year) for transaction in commitment_transactions])
+
+        # Compute the sum of all disbursements and expenditures up to and including the inputted year
+        # Get a list of commitment transactions
+        exp_disb_transactions = self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code()))
+
+        # If the transaction date this year or older, convert transaction values to USD and aggregate
+        exp_disb_transactions_usd_total = sum([get_USD_value(get_currency(self, transaction), transaction.xpath('value/text()')[0], iso_date(transaction.xpath('transaction-date')[0]).year) for transaction in exp_disb_transactions if iso_date(transaction.xpath('transaction-date')[0]).year <= int(year)])
+
+        return False if commitment_transactions_usd_total > 0 and (convert_to_float(exp_disb_transactions_usd_total) / convert_to_float(commitment_transactions_usd_total)) >= 0.9 else True
+
+
     def _is_donor_publisher(self):
         """Returns True if this activity is deemed to be reported by a donor publisher.
            Methodology descibed in https://github.com/IATI/IATI-Dashboard/issues/377
@@ -692,19 +716,32 @@ class ActivityStats(CommonSharedElements):
         return ((self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(self._funding_code(), self._OrganisationRole_Extending_code()))) 
             and (self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(self._OrganisationRole_Implementing_code()))))
 
+    @returns_dict
+    def forwardlooking_included_activities(self):
+        """Outputs whether this activity is included for the purposes of forwardlooking calculations
+           Returns iati-identifier and...: 0 if excluded
+                                           1 if included
+        """
+        this_year = datetime.date.today().year
+        return { self.element.find('iati-identifier').text: {year: int(self._forwardlooking_include_in_calculations(year))
+                    for year in range(this_year, this_year+3)} }
+
+
     @returns_numberdict
     def forwardlooking_activities_current(self):
         """
-        The number of current activities for this year and the following 2 years.
+        The number of current and non-excluded activities for this year and the following 2 years.
 
-        http://support.iatistandard.org/entries/52291985-Forward-looking-Activity-level-budgets-numerator
+        Current activities: http://support.iatistandard.org/entries/52291985-Forward-looking-Activity-level-budgets-numerator
+        Non-excluded activities: https://github.com/IATI/IATI-Dashboard/issues/388
 
         Note: this is a different definition of 'current' to the older annual
         report stats in this file, so does not re-use those functions.
 
         """
+
         this_year = datetime.date.today().year
-        return { year: int(self._forwardlooking_is_current(year))
+        return { year: int(self._forwardlooking_is_current(year) and self._forwardlooking_include_in_calculations(year))
                     for year in range(this_year, this_year+3) }
 
     @returns_numberdict
@@ -717,7 +754,7 @@ class ActivityStats(CommonSharedElements):
         """
         this_year = datetime.date.today().year
         budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
-        return { year: int(self._forwardlooking_is_current(year) and year in budget_years)
+        return { year: int(self._forwardlooking_is_current(year) and year in budget_years and self._forwardlooking_include_in_calculations(year))
                     for year in range(this_year, this_year+3) }
 
     @memoize
@@ -759,7 +796,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_dict
     def comprehensiveness_current_activities(self):
-        """Outputs the whether each activity is considered current for the purposes of comprehensiveness calculations"""
+        """Outputs whether each activity is considered current for the purposes of comprehensiveness calculations"""
         return {self.element.find('iati-identifier').text:self.comprehensiveness_current_activity_status}
 
     def _is_recipient_language_used(self):

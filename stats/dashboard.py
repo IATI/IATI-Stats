@@ -667,11 +667,17 @@ class ActivityStats(CommonSharedElements):
         return out
 
     def _forwardlooking_is_current(self, year):
+        """Tests if an activity contains i) at least one (actual or planned) end year which is greater 
+           or equal to the year passed to this function, or ii) no (actual or planned) end years at all.
+           Returns: True or False
+        """
+        # Get list of years for each of the planned-end and actual-end dates
         activity_end_years = [
             iso_date(x).year
             for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_end_code(), self._actual_end_code()))
             if iso_date(x)
         ]
+        # Return boolean. True if activity_end_years is empty, or at least one of the end years is greater or equal to the year passed to this function
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
 
     def _is_donor_publisher(self):

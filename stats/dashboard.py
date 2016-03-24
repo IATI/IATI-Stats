@@ -722,6 +722,12 @@ class ActivityStats(CommonSharedElements):
 
     @memoize
     def _comprehensiveness_is_current(self):
+        """
+        Tests if this activity should be considered as part of the comprehensiveness calculations.
+        Logic is based on the activity status code and end dates.
+        Returns: True or False
+        """
+
         # Get the activity-code value for this activity
         activity_status_code = self.element.xpath('activity-status/@code')
 

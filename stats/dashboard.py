@@ -123,7 +123,8 @@ with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv
                                                   '2014_ref_spend': line[4],
                                                   '2015_ref_spend': line[7],
                                                   '2015_official_forecast': line[10],
-                                                  'currency': line[13] }
+                                                  'currency': line[13],
+                                                  'spend_data_error_reported': True if line[14] == 'Y' else False }
 
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
@@ -1303,7 +1304,9 @@ class PublisherStats(object):
                                'official_forecast_usd': '' }, 
                      '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '', 
                                'currency': reference_spend_data[self.folder]['currency'], 
-                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' }  }
+                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' },  
+                     'spend_data_error_reported': 1 if reference_spend_data[self.folder]['spend_data_error_reported'] else 0
+                   }
         else:
             return {}
 
@@ -1313,12 +1316,21 @@ class PublisherStats(object):
            to the USD value for the given year
            Outputs an empty string for each element where there is no data.
         """
+        
         output = {}
-        for year, data in self.reference_spend_data().items():
+
+        # Construct a list of reference spend data related to years 2015 & 2014 only
+        ref_data_years = [x for x in self.reference_spend_data().items() if is_number(x[0])]
+
+        # Loop over the years
+        for year, data in ref_data_years:    
+            # Construct output dictionary with USD values
             output[year] = {}
             output[year]['ref_spend'] = str(get_USD_value(data['currency'], data['ref_spend'], year)) if is_number(data['ref_spend']) else ''
             output[year]['official_forecast'] = data['official_forecast_usd'] if is_number(data['official_forecast_usd']) else ''
 
+        # Append the spend error boolean and return
+        output['spend_data_error_reported'] = self.reference_spend_data().get('spend_data_error_reported', 0)
         return output
 
     @returns_numberdict

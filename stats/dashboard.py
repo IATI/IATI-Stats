@@ -123,7 +123,8 @@ with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv
                                                   '2014_ref_spend': line[4],
                                                   '2015_ref_spend': line[7],
                                                   '2015_official_forecast': line[10],
-                                                  'currency': line[13] }
+                                                  'currency': line[13],
+                                                  'spend_data_error_reported': True if line[14] == 'Y' else False }
 
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
@@ -667,12 +668,42 @@ class ActivityStats(CommonSharedElements):
         return out
 
     def _forwardlooking_is_current(self, year):
+        """Tests if an activity contains i) at least one (actual or planned) end year which is greater 
+           or equal to the year passed to this function, or ii) no (actual or planned) end years at all.
+           Returns: True or False
+        """
+        # Get list of years for each of the planned-end and actual-end dates
         activity_end_years = [
             iso_date(x).year
             for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_end_code(), self._actual_end_code()))
             if iso_date(x)
         ]
+        # Return boolean. True if activity_end_years is empty, or at least one of the end years is greater or equal to the year passed to this function
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
+
+    def _forwardlooking_include_in_calculations(self, year):
+        """ Tests if an activity should be included within the forward looking calculations.
+            Activities where at least 90% of the commitment has been disbursed or expended should be excluded.
+            Values are converted to USD to improve comparability.
+            Returns: True or False
+        """
+        
+        # Compute the sum of all commitments
+        # Get a list of commitment transactions
+        commitment_transactions = self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))
+        
+        # Convert transaction values to USD and aggregate
+        commitment_transactions_usd_total = sum([get_USD_value(get_currency(self, transaction), transaction.xpath('value/text()')[0], iso_date(transaction.xpath('transaction-date')[0]).year) for transaction in commitment_transactions])
+
+        # Compute the sum of all disbursements and expenditures up to and including the inputted year
+        # Get a list of commitment transactions
+        exp_disb_transactions = self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code()))
+
+        # If the transaction date this year or older, convert transaction values to USD and aggregate
+        exp_disb_transactions_usd_total = sum([get_USD_value(get_currency(self, transaction), transaction.xpath('value/text()')[0], iso_date(transaction.xpath('transaction-date')[0]).year) for transaction in exp_disb_transactions if iso_date(transaction.xpath('transaction-date')[0]).year <= int(year)])
+
+        return False if commitment_transactions_usd_total > 0 and (convert_to_float(exp_disb_transactions_usd_total) / convert_to_float(commitment_transactions_usd_total)) >= 0.9 else True
+
 
     def _is_donor_publisher(self):
         """Returns True if this activity is deemed to be reported by a donor publisher.
@@ -686,19 +717,32 @@ class ActivityStats(CommonSharedElements):
         return ((self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(self._funding_code(), self._OrganisationRole_Extending_code()))) 
             and (self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(self._OrganisationRole_Implementing_code()))))
 
+    @returns_dict
+    def forwardlooking_included_activities(self):
+        """Outputs whether this activity is included for the purposes of forwardlooking calculations
+           Returns iati-identifier and...: 0 if excluded
+                                           1 if included
+        """
+        this_year = datetime.date.today().year
+        return { self.element.find('iati-identifier').text: {year: int(self._forwardlooking_include_in_calculations(year))
+                    for year in range(this_year, this_year+3)} }
+
+
     @returns_numberdict
     def forwardlooking_activities_current(self):
         """
-        The number of current activities for this year and the following 2 years.
+        The number of current and non-excluded activities for this year and the following 2 years.
 
-        http://support.iatistandard.org/entries/52291985-Forward-looking-Activity-level-budgets-numerator
+        Current activities: http://support.iatistandard.org/entries/52291985-Forward-looking-Activity-level-budgets-numerator
+        Non-excluded activities: https://github.com/IATI/IATI-Dashboard/issues/388
 
         Note: this is a different definition of 'current' to the older annual
         report stats in this file, so does not re-use those functions.
 
         """
+
         this_year = datetime.date.today().year
-        return { year: int(self._forwardlooking_is_current(year))
+        return { year: int(self._forwardlooking_is_current(year) and self._forwardlooking_include_in_calculations(year))
                     for year in range(this_year, this_year+3) }
 
     @returns_numberdict
@@ -711,11 +755,17 @@ class ActivityStats(CommonSharedElements):
         """
         this_year = datetime.date.today().year
         budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
-        return { year: int(self._forwardlooking_is_current(year) and year in budget_years)
+        return { year: int(self._forwardlooking_is_current(year) and year in budget_years and self._forwardlooking_include_in_calculations(year))
                     for year in range(this_year, this_year+3) }
 
     @memoize
     def _comprehensiveness_is_current(self):
+        """
+        Tests if this activity should be considered as part of the comprehensiveness calculations.
+        Logic is based on the activity status code and end dates.
+        Returns: True or False
+        """
+
         # Get the activity-code value for this activity
         activity_status_code = self.element.xpath('activity-status/@code')
 
@@ -747,7 +797,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_dict
     def comprehensiveness_current_activities(self):
-        """Outputs the whether each activity is considered current for the purposes of comprehensiveness calculations"""
+        """Outputs whether each activity is considered current for the purposes of comprehensiveness calculations"""
         return {self.element.find('iati-identifier').text:self.comprehensiveness_current_activity_status}
 
     def _is_recipient_language_used(self):
@@ -1241,15 +1291,22 @@ class PublisherStats(object):
     def publisher_unique_identifiers(self):
         return len(self.aggregated['iati_identifiers'])
 
-    @returns_numberdict
+    @returns_dict
     def reference_spend_data(self):
         """Lookup the reference spend data (value and currency) for this publisher (obtained by using the 
            name of the folder), for years 2014 and 2015.
+           Outputs an empty string for each element where there is no data.
         """
         if self.folder in reference_spend_data.keys():
             # Note that the values may be strings or human-readable numbers (i.e. with commas to seperate thousands) 
-            return { '2014': { 'ref_spend': convert_to_float(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')), 'currency': reference_spend_data[self.folder]['currency'], 'official_forecast_usd': 0 }, 
-                     '2015': { 'ref_spend': convert_to_float(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')), 'currency': reference_spend_data[self.folder]['currency'], 'official_forecast_usd': convert_to_float(reference_spend_data[self.folder]['2015_official_forecast'].replace(',',''))}  }
+            return { '2014': { 'ref_spend': reference_spend_data[self.folder]['2014_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')) else '', 
+                               'currency': reference_spend_data[self.folder]['currency'], 
+                               'official_forecast_usd': '' }, 
+                     '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '', 
+                               'currency': reference_spend_data[self.folder]['currency'], 
+                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' },  
+                     'spend_data_error_reported': 1 if reference_spend_data[self.folder]['spend_data_error_reported'] else 0
+                   }
         else:
             return {}
 
@@ -1257,13 +1314,23 @@ class PublisherStats(object):
     def reference_spend_data_usd(self):
         """For each year that there is reference spend data for this publisher, convert this 
            to the USD value for the given year
+           Outputs an empty string for each element where there is no data.
         """
+        
         output = {}
-        for year, data in self.reference_spend_data().items():
-            output[year] = {}
-            output[year]['ref_spend'] = get_USD_value(data['currency'], data['ref_spend'], year)
-            output[year]['official_forecast'] = data['official_forecast_usd']
 
+        # Construct a list of reference spend data related to years 2015 & 2014 only
+        ref_data_years = [x for x in self.reference_spend_data().items() if is_number(x[0])]
+
+        # Loop over the years
+        for year, data in ref_data_years:    
+            # Construct output dictionary with USD values
+            output[year] = {}
+            output[year]['ref_spend'] = str(get_USD_value(data['currency'], data['ref_spend'], year)) if is_number(data['ref_spend']) else ''
+            output[year]['official_forecast'] = data['official_forecast_usd'] if is_number(data['official_forecast_usd']) else ''
+
+        # Append the spend error boolean and return
+        output['spend_data_error_reported'] = self.reference_spend_data().get('spend_data_error_reported', 0)
         return output
 
     @returns_numberdict

@@ -1,5 +1,6 @@
-import re
+import csv
 import datetime
+import re
 
 def debug(stats, error):
     """ prints debugging information for a given stats object and error """
@@ -16,7 +17,12 @@ def iso_date_match(raw_date):
     if raw_date:
         m1 = xsDateRegex.match(raw_date)
         if m1:
-            return datetime.date(*map(int, m1.groups()))
+            try:
+                return datetime.date(*map(int, m1.groups()))
+            except ValueError:
+                # A ValueError occurs when there is an invalid raw_date, 
+                # for example '2015-11-31' or '2015-13-01'
+                return None    
         else:
             return None
 
@@ -65,3 +71,20 @@ def planned_disbursement_year(planned_disbursement):
     else:
         return None
 
+def get_registry_id_matches():
+    """Returns a dictionary of publishers who have modified their registry ID
+    Returns: Dictionary, where the key is the old registry ID, and the corresponding 
+             value is the registry ID that data should be mapped to
+    NOTE: Any changes to this function should be replicated in:
+          https://github.com/IATI/IATI-Dashboard/blob/master/data.py#L143
+    """
+
+    # Load registry IDs for publishers who have changed their registry ID
+    reader = csv.DictReader(open('helpers/registry_id_relationships.csv', 'rU'), delimiter=',')
+    
+    # Load this data into a dictonary
+    registry_matches = {}
+    for row in reader:
+        registry_matches[row['previous_registry_id']] = row['current_registry_id']
+
+    return registry_matches

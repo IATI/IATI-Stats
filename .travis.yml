@@ -3,7 +3,7 @@ python:
   - "2.7"
 install:
   - pip install -r requirements_dev.txt
-  - cd helpers; ./get_codelist_mapping.sh; ./get_codelists.sh; echo '{}' > ckan.json; cd ..
+  - cd helpers; ./get_codelist_mapping.sh; ./get_codelists.sh; echo '{}' > ckan.json; touch registry_id_relationships.csv; cd ..
   - git config --global user.name "Travis"
 script:  py.test --cov .
 after_success:  coveralls

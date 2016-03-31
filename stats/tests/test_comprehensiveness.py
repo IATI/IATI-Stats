@@ -191,7 +191,7 @@ def test_comprehensiveness_empty(major_version):
         'capital-spend': 0,
         'document-link': 0,
         'activity-website': 0,
-        #'title_recipient_language': 0,
+        'recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
     }
@@ -322,7 +322,7 @@ def test_comprehensiveness_full(major_version):
         'capital-spend': 1,
         'document-link': 1,
         'activity-website': 1,
-        #'title_recipient_language': 1,
+        'recipient_language': 1,
         'conditions_attached': 1,
         'result_indicator': 1,
     }
@@ -393,7 +393,7 @@ def test_comprehensiveness_other_passes(major_version):
         'capital-spend': 0,
         'document-link': 0,
         'activity-website': 0,
-        #'title_recipient_language': 0,
+        'recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
     }
@@ -960,6 +960,7 @@ def test_comprehensivness_denominator_empty(major_version):
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_denominators() == {
+        'recipient_language': 0,
         'transaction_spend': 0,
         'transaction_traceability': 0
     }

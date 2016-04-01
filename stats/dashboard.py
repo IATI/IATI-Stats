@@ -120,11 +120,11 @@ with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv
             pub_registry_id = get_registry_id_matches()[pub_registry_id]
         
         reference_spend_data[pub_registry_id] = { 'publisher_name': line[0], 
-                                                  '2014_ref_spend': line[4],
-                                                  '2015_ref_spend': line[7],
+                                                  '2014_ref_spend': line[2],
+                                                  '2015_ref_spend': line[6],
                                                   '2015_official_forecast': line[10],
-                                                  'currency': line[13],
-                                                  'spend_data_error_reported': True if line[14] == 'Y' else False }
+                                                  'currency': line[11],
+                                                  'spend_data_error_reported': True if line[12] == 'Y' else False }
 
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):

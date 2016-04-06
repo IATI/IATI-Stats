@@ -21,6 +21,7 @@ from stats.common import *
 
 import iatirulesets
 from helpers.currency_conversion import get_USD_value
+from dateutil.relativedelta import relativedelta
 
 
 def add_years(d, years):
@@ -667,6 +668,22 @@ class ActivityStats(CommonSharedElements):
             out[budget_year(budget)][get_currency(self, budget)] += budget_value
         return out
 
+    def _get_end_date(self):
+        """Gets the end date for the activity. An 'actual end date' is preferred 
+           over a 'planned end date'
+           Inputs: None
+           Output: a date object, or None if no value date found
+        """
+        # Get enddate. An 'actual end date' is preferred over a 'planned end date'        
+        end_date_list = (self.element.xpath('activity-date[@type="{}"]'.format(self._actual_end_code())) or 
+                         self.element.xpath('activity-date[@type="{}"]'.format(self._planned_end_code())))
+        
+        # If there is a date, convert to a date object
+        if end_date_list:
+            return iso_date(end_date_list[0])
+        else:
+            return None
+
     def _forwardlooking_is_current(self, year):
         """Tests if an activity contains i) at least one (actual or planned) end year which is greater 
            or equal to the year passed to this function, or ii) no (actual or planned) end years at all.
@@ -678,16 +695,17 @@ class ActivityStats(CommonSharedElements):
             for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_end_code(), self._actual_end_code()))
             if iso_date(x)
         ]
-        # Return boolean. True if activity_end_years is empty, or at least one of the end years is greater or equal to the year passed to this function
+        # Return boolean. True if activity_end_years is empty, or at least one of the actual/planned 
+        # end years is greater or equal to the year passed to this function
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
 
-    def _forwardlooking_include_in_calculations(self, year):
-        """ Tests if an activity should be included within the forward looking calculations.
-            Activities where at least 90% of the commitment has been disbursed or expended should be excluded.
-            Values are converted to USD to improve comparability.
+    def _get_ratio_commitments_disbursements(self, year):
+        """ Caluclates the ratio of commitments vs total amount disbursed or expended in or before the 
+            input year. Values are converted to USD to improve comparability.
+            Input:
+              year -- The point in time to aggregate expenditure and disbursements
             Returns: True or False
         """
-        
         # Compute the sum of all commitments
         # Get a list of commitment transactions
         commitment_transactions = self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))
@@ -702,7 +720,37 @@ class ActivityStats(CommonSharedElements):
         # If the transaction date this year or older, convert transaction values to USD and aggregate
         exp_disb_transactions_usd_total = sum([get_USD_value(get_currency(self, transaction), transaction.xpath('value/text()')[0], iso_date(transaction.xpath('transaction-date')[0]).year) for transaction in exp_disb_transactions if iso_date(transaction.xpath('transaction-date')[0]).year <= int(year)])
 
-        return False if commitment_transactions_usd_total > 0 and (convert_to_float(exp_disb_transactions_usd_total) / convert_to_float(commitment_transactions_usd_total)) >= 0.9 else True
+        if commitment_transactions_usd_total > 0:
+            return convert_to_float(exp_disb_transactions_usd_total) / convert_to_float(commitment_transactions_usd_total)
+        else:
+            return None
+
+    def _forwardlooking_exclude_in_calculations(self, year=datetime.date.today().year):
+        """ Tests if an activity should be excluded from the forward looking calculations.
+            Activities are excluded if:
+              i) They end within six months of the input year OR
+              ii) At least 90% of the commitment transactions has been disbursed or expended 
+                  within or before the input year
+            Input:
+              year -- The point in time to test the above criteria against
+            Returns: 0 if not excluded
+                     >0 if excluded
+        """
+        # Fix date is this is a leap year. Otherwise will cause issues if incrementing a year
+        today = datetime.date.today()
+        if today.month == 2 and today.day() == 29:
+            today = datetime.date(2000, 3, 1)
+
+        # If this activity has an end date, check that it will not end within the next six 
+        # months from the input year (this uses the current day and month as a base date)
+        if self._get_end_date():
+            if (datetime.date(year, today.month, today.day) + relativedelta(months=+6)) > self._get_end_date():
+                return 1
+
+        if self._get_ratio_commitments_disbursements(year) >= 0.9:
+            return 2
+        else:
+            return 0
 
 
     def _is_donor_publisher(self):
@@ -718,13 +766,16 @@ class ActivityStats(CommonSharedElements):
             and (self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(self._OrganisationRole_Implementing_code()))))
 
     @returns_dict
-    def forwardlooking_included_activities(self):
+    def forwardlooking_excluded_activities(self):
         """Outputs whether this activity is included for the purposes of forwardlooking calculations
-           Returns iati-identifier and...: 0 if excluded
-                                           1 if included
+           Returns iati-identifier and...: 0 if not excluded
+                                           1 if excluded
         """
+        # Set the current year
         this_year = datetime.date.today().year
-        return { self.element.find('iati-identifier').text: {year: int(self._forwardlooking_include_in_calculations(year))
+
+        # Retreive a dictionary with the activity identifier and the result for this and the next two years
+        return { self.element.find('iati-identifier').text: {year: int(self._forwardlooking_exclude_in_calculations(year))
                     for year in range(this_year, this_year+3)} }
 
 
@@ -742,7 +793,7 @@ class ActivityStats(CommonSharedElements):
         """
 
         this_year = datetime.date.today().year
-        return { year: int(self._forwardlooking_is_current(year) and self._forwardlooking_include_in_calculations(year))
+        return { year: int(self._forwardlooking_is_current(year) and not bool(self._forwardlooking_exclude_in_calculations(year)))
                     for year in range(this_year, this_year+3) }
 
     @returns_numberdict
@@ -755,7 +806,7 @@ class ActivityStats(CommonSharedElements):
         """
         this_year = datetime.date.today().year
         budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
-        return { year: int(self._forwardlooking_is_current(year) and year in budget_years and self._forwardlooking_include_in_calculations(year))
+        return { year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year)))
                     for year in range(this_year, this_year+3) }
 
     @memoize

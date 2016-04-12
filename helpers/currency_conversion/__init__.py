@@ -37,4 +37,4 @@ def get_USD_value(input_currency, input_value, year):
     except KeyError:
         usd_value = 0
 
-    return Decimal(usd_value) if usd_value > 0 else 0
+    return Decimal(usd_value)

@@ -30,11 +30,22 @@ for row in reader:
 
 
 def get_USD_value(input_currency, input_value, year):
-    """ Returns a USD value based on an inputted ISO currency, an inputted value and a year """
+    """Returns a USD value based on an inputted ISO currency, an inputted value and a year 
+    Inputs:
+       input_currency -- ISO currency code for the input currency
+       input_value -- Currency value
+       year -- year, as a string or integer
 
+    Returns:
+       Decimal of the USD value. Can be a negative value
+    """
+
+    # Attempt to make a USD conversion
     try:
         usd_value = (1 / currency_values[input_currency][int(year)]) * float(input_value)
     except KeyError:
+        # Arises if the currency or year is not in the sheet
         usd_value = 0
 
+    # Cast to Decimal and return result
     return Decimal(usd_value)

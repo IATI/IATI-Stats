@@ -44,7 +44,10 @@ def get_USD_value(input_currency, input_value, year):
     try:
         usd_value = (1 / currency_values[input_currency][int(year)]) * float(input_value)
     except KeyError:
-        # Arises if the currency or year is not in the sheet
+        # Arises if the currency is not in the sheet
+        usd_value = 0
+    except ZeroDivisionError:
+        # Arises if there is no data for the given year - i.e. set as zero for that year
         usd_value = 0
 
     # Cast to Decimal and return result

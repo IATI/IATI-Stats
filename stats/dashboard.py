@@ -650,6 +650,24 @@ class ActivityStats(CommonSharedElements):
     def spend_currency_year(self):
         return self._spend_currency_year(self.element.findall('transaction'))
 
+    def _is_secondary_reported(self):
+        """Tests if this activity has been secondary reported. Test based on if the 
+           secondary-reporter flag is set.
+        Input -- None
+        Output:
+          True -- Secondary-reporter flag set
+          False -- Secondary-reporter flag not set, or evaulates to False
+        """
+        return bool(filter(lambda x: int(x) if str(x).isdigit() else 0, 
+                     self.element.xpath('reporting-org/@secondary-reporter')))
+
+    @returns_dict
+    def activities_secondary_reported(self):
+        if self._is_secondary_reported():
+            return { self.element.find('iati-identifier').text: 0}
+        else:
+            return {}
+
 
     @returns_numberdictdict
     def forwardlooking_currency_year(self):

@@ -1052,6 +1052,9 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdictdict
     def transaction_dates(self):
+        """Generates a dictionary of dates for reported transactions. Transactions for activities 
+           excluded from publisher stats are not included.
+        """
         out = defaultdict(lambda: defaultdict(int))
         for transaction in self.element.findall('transaction'):
             date = transaction_date(transaction)
@@ -1453,6 +1456,8 @@ class PublisherStats(object):
 
     @no_aggregation
     def most_recent_transaction_date(self):
+        """Computes the latest non-future transaction data across a dataset 
+        """
         nonfuture_transaction_dates = filter(lambda x: x is not None and x <= self.today,
             map(iso_date_match, sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])))
         if nonfuture_transaction_dates:
@@ -1460,6 +1465,8 @@ class PublisherStats(object):
 
     @no_aggregation
     def latest_transaction_date(self):
+        """Computes the latest transaction data across a dataset. Can be in the future
+        """
         transaction_dates = filter(lambda x: x is not None,
             map(iso_date_match, sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])))
         if transaction_dates:

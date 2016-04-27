@@ -1052,8 +1052,8 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdictdict
     def transaction_dates(self):
-        """Generates a dictionary of dates for reported transactions. Transactions for activities 
-           excluded from publisher stats are not included.
+        """Generates a dictionary of dates for reported transactions, together 
+           with the number of times they appear.
         """
         out = defaultdict(lambda: defaultdict(int))
         for transaction in self.element.findall('transaction'):

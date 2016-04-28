@@ -7,8 +7,8 @@ Reference Spend Value","2015
 Reference Spend Source URL","2015
 Accounting Year
 ","2015 Account Narrative/s used","2015
-Official Forecast","Currency code","Data error 
-reported"
+Official Forecast","Currency code","Unable 
+To Calculate"
 "Aasaman Nepal","aasaman","NO DATA",,,,"NO DATA",,,,,,
 "Abaseen Foundation UK","abaseen",110633,"http://apps.charitycommission.gov.uk/Accounts/Ends82/0001095882_AC_20150331_E_C.pdf",,"Non-calendar year ended 31st March 2015, total charitable expenditure, page 6 of report",,,,,,"GBP",
 "AbleChildAfrica","ablechildafrica",380906,"http://apps.charitycommission.gov.uk/Accounts/Ends59/0000326859_AC_20150331_E_C.pdf",,"Non-calendar year ended 31st March 2015, total charitable expenditure, page 10 of report",,,,,,"GBP",
@@ -51,7 +51,7 @@ reported"
 "Asian Development Bank","asdb",10191000000,"http://www.adb.org/sites/default/files/institutional-document/157524/defr-2014-report.pdf",,"total disbursements as declared on Table 9 on page 40",,,,,,"USD",
 "Association for Reproductive and Family Health","arfh","NO DATA","http://arfh-ng.org/",,"Can't locate any reports","NO DATA",,,,,,
 "Atos IT Services Ltd","atosuk","NO DATA",,,"Private sector","NO DATA",,,,,,
-"Australia - Department of Foreign Affairs and Trade","ausgov",3287257480,"DAC*",,"Australian government",,,,,,"USD",
+"Australia - Department of Foreign Affairs and Trade","ausgov",5031900000,"http://dfat.gov.au/about-us/corporate/portfolio-budget-statements/documents/2014-15-development-assistance-budget-a-summary.docx",,"Australian government",,,,,,"USD",
 "Avocats Sans Frontières","asf",3866541,"http://www.asf.be/wp-content/uploads/2015/09/ASF_AnnualReport2014_EN.pdf",,"Services and other goods, page 65 of report",,,,,,"EUR",
 "Backward Society Education (BASE)","base_22","NO DATA",,,"No report for 2014 located, but see 2015",192633005,"http://nepalbase.org/wp-content/uploads/2015/04/Audit-report1.jpg",,"Non-calendar year ended 16th July 2015, expenditure incurred in different projects",,"NPR",
 "BasicNeeds","basicneeds",1550000,"http://apps.charitycommission.gov.uk/Accounts/Ends99/0001079599_AC_20141231_E_C.pdf",,"Charitable activities from charity commission summary",,,,,,"GBP",
@@ -114,7 +114,7 @@ reported"
 "Emmanuel International UK","eiuk",352232,"http://apps.charitycommission.gov.uk/Accounts/Ends36/0000289036_AC_20140930_E_C.pdf",,"Non-calendar year ended 30th September 2014, charitable activities, page 9 of report",,,,,,"GBP",
 "EMMS International","emms",1067805,"https://www.emms.org/files/8614/3556/3978/EMMS_INTERNATIONAL_Annual_Report_2014.pdf",,"Charitable activities, page 14 of report",,,,,,"GBP",
 "Engineers Without Borders Canada","ewb_canada",3507525,"https://www.ewb.ca/sites/default/files/2014%20EWB%20Annual%20Report_Web_FINAL.pdf",,"Non-calendar year ended 31st October 2014, total expenses minus fundraising and management and administration, page 21 of report",,,,,,"CAD",
-"Ethical Trading Initiative","eti",657431,"http://www.ethicaltrade.org/resources?tid_1=All&tid_4=222&field_about_membership__value=All&taxonomy_vocabulary_7_tid=All",,"Spend on programmes from accounts ",,,,,,"GBP",
+"Ethical Trading Initiative","eti",657431,"http://www.ethicaltrade.org/resources?tid_1=All&tid_4=222&field_about_membership__value=All&taxonomy_vocabulary_7_tid=All",,"Spend on programmes from accounts as provided by publisher ",,,,,,"GBP",
 "European Bank for Reconstruction and Development","ebrd",8853000000,"http://www.ebrd.com/publications/annual-report",,"Figure for annual bank investment",9378000000,"http://www.ebrd.com/news/2016/ebrd-responds-to-financing-challenges-with-record-2015-investments.html",,"Figure for annual bank investment",,"EUR",
 "European Commission - Development and Cooperation-EuropeAid","ec-devco",7034200000,"http://ec.europa.eu/europeaid/sites/devco/files/swd-2015-248-f1-other-staff-working_paper_en_0.pdf",,"Table 5.15, pg 208, column “Managed by EuropeAid”",,,,,,"EUR",
 "European Commission - Humanitarian Aid & Civil Protection","ec-echo",1368040000,"http://ec.europa.eu/europeaid/sites/devco/files/swd-2015-248-f1-other-staff-working_paper_en_0.pdf",,"Table 5.23, pg. 224 ECHO Totals",1313489800,"http://ec.europa.eu/echo/files/funding/agreements/agreements_2015.pdf",,"Total new contracts and amendments, final page",,"EUR",
@@ -130,7 +130,7 @@ reported"
 "Fauna & Flora International","ffi_publisher",15550000,"http://apps.charitycommission.gov.uk/Accounts/Ends02/0001011102_AC_20141231_E_C.pdf",,"Charitable activities from charity commission summary",,,,,,"GBP",
 "Feed the Minds","ftm-291333",935900,"http://apps.charitycommission.gov.uk/Accounts/Ends33/0000291333_AC_20150430_E_C.pdf",,"Non-calendar year ended 30th April 2015, charitable activities from charity commission summary",,,,,,"GBP",
 "Find Your Feet","fyf",1250000,"http://apps.charitycommission.gov.uk/Accounts/Ends56/0000250456_AC_20141231_E_C.pdf",,"Charitable activities from charity commission summary",,,,,,"GBP",
-"Finland - Ministry of Foreign Affairs","finland_mfa",863605643,"DAC*",,"Ministry of Foreign Affairs",,,,,,"USD",
+"Finland - Ministry of Foreign Affairs","finland_mfa",1232000000,"http://formin.finland.fi/public/default.aspx?nodeid=49314&contentlan=2&culture=en-US",,"Ministry of Foreign Affairs",1164000000,"http://formin.finland.fi/public/default.aspx?nodeid=49314&contentlan=2&culture=en-US",,,,"EUR",
 "Food for the Hungry UK","fh",725400,"http://apps.charitycommission.gov.uk/Accounts/Ends73/0000328273_AC_20141231_E_C.pdf",,"Charitable activities from charity commission summary",,,,,,"GBP",
 "Forests Monitor","fm","NO DATA",,,,"NO DATA",,,,,,
 "France - Ministry of Foreign Affairs and International Development","france","NO DATA",,,,"NO DATA",,,,,,
@@ -207,7 +207,8 @@ reported"
 "Leonard Cheshire Disability","lcd_admin",153330000,"http://apps.charitycommission.gov.uk/Accounts/Ends86/0000218186_AC_20150331_E_C.pdf",,"Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,"GBP",
 "Lepra","lepra",4220000,"http://apps.charitycommission.gov.uk/Accounts/Ends51/0000213251_AC_20150331_E_C.pdf",,"Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,"GBP",
 "Link Community Development Scotland","lcds",1560000,"http://apps.charitycommission.gov.uk/Showcharity/RegisterOfCharities/CharityWithPartB.aspx?RegisteredCharityNumber=1048007&SubsidiaryNumber=0",,"Charitable activities from charity commission summary, full report for year ended 31st March 2015 not yet available. Accounting year appears to have changed, possibly due to a merge, so this figure may be for a 17 month period.",,,,,,"GBP",
-"Lithuania, Ministry of Foreign Affairs","lithuania_mfa",4365380.26,"DAC*",,"MFA only",,,,,,"USD",
+"Lithuania, Ministry of Foreign Affairs","lithuania_mfa",45779478.77,"DAC*",,"Secondary publisher for other government departments. CRS: 6879849.69, Multilateral: 38899629.082
+",,,,,,"USD",
 "Lively Minds","livelyminds",119233,"http://apps.charitycommission.gov.uk/Accounts/Ends12/0001125512_AC_20141231_E_C.pdf",,"Sum of direct expenditure on charitable activities in Ghana and Uganda, page 13 of report",,,,,,"GBP",
 "Living Earth Foundation","livingearth12",1630000,"http://apps.charitycommission.gov.uk/Accounts/Ends72/0000800672_AC_20150331_E_C.pdf",,"Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,"GBP",
 "MADE in Europe","mie-1134415",240647,"https://www.made.ngo/about/annual-reviews?task=callelement&format=raw&item_id=684&element=70ecd53a-a2c5-41d4-b1bf-bc7981ee65cf&method=download&args[0]=0",,"Non-calendar year 2014-2015 but no mention of month, campaigning and education, page 14 of report",,,,,,"GBP",
@@ -281,7 +282,7 @@ reported"
 "Restless Development","restless",9360000,"http://apps.charitycommission.gov.uk/Accounts/Ends88/0001127488_AC_20140930_E_C.pdf",,"Non-calendar year ended 30th September 2014, charitable activities from charity commission summary",,,,,,"GBP",
 "Retrak","retrak",1080000,"http://apps.charitycommission.gov.uk/Accounts/Ends99/0001122799_AC_20141231_E_C.pdf",,"Charitable activities from charity commission summary",,,,,,"GBP",
 "Rojiroti UK","rojiroti",63963,"http://apps.charitycommission.gov.uk/Accounts/Ends83/0001147083_AC_20140630_E_C.pdf",,"Non-calendar year ended 30th June 2014 (so technically for the previous year), grants to CPSL, page 6 of report pdf",,,,,,"GBP",
-"Romania Ministry of Foreign Affairs","uasd",69844464.68,"DAC",,"MFA publishes all of RO Gov's spending - not all of which is pubished to CRS, but most of which is published to IATI. This figue is all of RO Gov's CRS spending (so multiple departments)
+"Romania Ministry of Foreign Affairs","uasd",212957129.4,"DAC",,"Secondary publisher for RO's departments. CRS: 69.84446468, Multilateral: 143.112664719 (milions).
 ",,,,,,"USD",
 "Royal Society for the Protection of Birds","rspb_",93870000,"http://apps.charitycommission.gov.uk/Accounts/Ends76/0000207076_AC_20150331_E_C.pdf",,"Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,"GBP",
 "Saferworld","saferworld",11970000,"http://apps.charitycommission.gov.uk/Accounts/Ends43/0001043843_AC_20150331_E_C.pdf",,"Non-calendar year ended 31st March 2015, charitable activities from charity commission summary",,,,,,"GBP",
@@ -313,7 +314,7 @@ reported"
 "StreetInvest","si",599700,"http://apps.charitycommission.gov.uk/Accounts/Ends06/0001127206_AC_20141031_E_C.pdf",,"Non-calendar year ended 31st October 2014, charitable activities from charity commission summary",,,,,,"GBP",
 "Stromme Foundation","stromme_ug","NO DATA",,,,"NO DATA",,,,,,
 "Survivors Fund (SURF)","surf",815700,"http://apps.charitycommission.gov.uk/Accounts/Ends05/0001065705_AC_20141231_E_C.pdf",,"Charitable activities from charity commission summary",,,,,,"GBP",
-"Sweden, through Swedish International Development Cooperation Agency (Sida)","sida",4260694963,"DAC*",,"Ministry of Foreign Affairs + Swedish International Development Authority",,,,,,"USD",
+"Sweden, through Swedish International Development Cooperation Agency (Sida)","sida",6225587345.04,"DAC*",,"Ministry of Foreign Affairs + Swedish International Development Authority. CRS: 4260.694963, Multilateral: 1964.892382039 (millions)",,,,,,"USD",
 "Switzerland - Swiss Agency for Development and Cooperation (SDC)","sdc_ch",2228200000,"https://www.eda.admin.ch/content/dam/deza/en/documents/publikationen/Jahresberichte/Jahresbericht-deza-seco-2014_EN.pdf",,"Total SDC expenditure for 2014 on page 68",,,,,,"CHF",
 "Sympany+","simone_sympany","NO DATA",,,,"NO DATA",,,,,,
 "Target TB","targettb","NO DATA",,,,"NO DATA",,,,,,

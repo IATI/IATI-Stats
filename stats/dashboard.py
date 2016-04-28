@@ -922,8 +922,18 @@ class ActivityStats(CommonSharedElements):
         }
 
     def _comprehensiveness_with_validation_bools(self):
-            reporting_org_ref = self.element.find('reporting-org').attrib.get('ref') if self.element.find('reporting-org') is not None else None
+            
+            def element_ref(element_obj):
+                """Get the ref attribute of a given element
+
+                Returns:
+                  Value in the 'ref' attribute or None if none found
+                """
+                return element_obj.attrib.get('ref') if element_obj is not None else None
+            
             bools = copy.copy(self._comprehensiveness_bools())
+            reporting_org_ref = element_ref(self.element.find('reporting-org'))
+            other_idenifier_refs = [element_ref(x) for x in self.element.findall('other-identifier') if element_ref(x) is not None]
 
             def decimal_or_zero(value):
                 try:
@@ -950,7 +960,11 @@ class ActivityStats(CommonSharedElements):
 
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
-                'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
+                'iati-identifier': (
+                    bools['iati-identifier'] and 
+                    ((reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or 
+                     any([self.element.find('iati-identifier').text.startswith(x) for x in other_idenifier_refs]))
+                    ),
                 'participating-org': bools['participating-org'] and self._funding_code() in self.element.xpath('participating-org/@role'),
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS[self._major_version()]['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (

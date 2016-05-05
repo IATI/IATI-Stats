@@ -756,7 +756,7 @@ class ActivityStats(CommonSharedElements):
         """
         # Fix date is this is a leap year. Otherwise will cause issues if incrementing a year
         today = datetime.date.today()
-        if today.month == 2 and today.day() == 29:
+        if today.month == 2 and today.day == 29:
             today = datetime.date(2000, 3, 1)
 
         # If this activity has an end date, check that it will not end within the next six 
@@ -785,7 +785,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_dict
     def forwardlooking_excluded_activities(self):
-        """Outputs whether this activity is included for the purposes of forwardlooking calculations
+        """Outputs whether this activity is excluded for the purposes of forwardlooking calculations
            Returns iati-identifier and...: 0 if not excluded
                                            1 if excluded
         """

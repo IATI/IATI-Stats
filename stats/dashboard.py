@@ -740,6 +740,7 @@ class ActivityStats(CommonSharedElements):
         """Outputs whether this activity is included for the purposes of forwardlooking calculations
            Returns iati-identifier and...: 0 if excluded
                                            1 if included
+           Note: The output is aggregated if there are duplicate identifiers
         """
         this_year = datetime.date.today().year
         return { self.element.find('iati-identifier').text: {year: int(self._forwardlooking_include_in_calculations(year))

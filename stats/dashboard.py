@@ -1148,7 +1148,7 @@ class ActivityStats(CommonSharedElements):
         for transaction in self.element.findall('transaction'):
             value = transaction.find('value')
             if (transaction.find('transaction-type') is not None and
-                    transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
+                    transaction.find('transaction-type').attrib.get('code') in [self._incoming_funds_code(), self._commitment_code(), self._disbursement_code(), self._expenditure_code()]):
 
                 # Set transaction_value if a value exists for this transaction. Else set to 0
                 transaction_value = 0 if value is None else Decimal(value.text)

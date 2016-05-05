@@ -651,6 +651,24 @@ class ActivityStats(CommonSharedElements):
     def spend_currency_year(self):
         return self._spend_currency_year(self.element.findall('transaction'))
 
+    def _is_secondary_reported(self):
+        """Tests if this activity has been secondary reported. Test based on if the 
+           secondary-reporter flag is set.
+        Input -- None
+        Output:
+          True -- Secondary-reporter flag set
+          False -- Secondary-reporter flag not set, or evaulates to False
+        """
+        return bool(filter(lambda x: int(x) if str(x).isdigit() else 0, 
+                     self.element.xpath('reporting-org/@secondary-reporter')))
+
+    @returns_dict
+    def activities_secondary_reported(self):
+        if self._is_secondary_reported():
+            return { self.element.find('iati-identifier').text: 0}
+        else:
+            return {}
+
 
     @returns_numberdictdict
     def forwardlooking_currency_year(self):
@@ -955,8 +973,18 @@ class ActivityStats(CommonSharedElements):
         }
 
     def _comprehensiveness_with_validation_bools(self):
-            reporting_org_ref = self.element.find('reporting-org').attrib.get('ref') if self.element.find('reporting-org') is not None else None
+            
+            def element_ref(element_obj):
+                """Get the ref attribute of a given element
+
+                Returns:
+                  Value in the 'ref' attribute or None if none found
+                """
+                return element_obj.attrib.get('ref') if element_obj is not None else None
+            
             bools = copy.copy(self._comprehensiveness_bools())
+            reporting_org_ref = element_ref(self.element.find('reporting-org'))
+            other_idenifier_refs = [element_ref(x) for x in self.element.findall('other-identifier') if element_ref(x) is not None]
 
             def decimal_or_zero(value):
                 try:
@@ -983,7 +1011,11 @@ class ActivityStats(CommonSharedElements):
 
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
-                'iati-identifier': bools['iati-identifier'] and reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref),
+                'iati-identifier': (
+                    bools['iati-identifier'] and 
+                    ((reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or 
+                     any([self.element.find('iati-identifier').text.startswith(x) for x in other_idenifier_refs]))
+                    ),
                 'participating-org': bools['participating-org'] and self._funding_code() in self.element.xpath('participating-org/@role'),
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS[self._major_version()]['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (
@@ -1085,6 +1117,9 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdictdict
     def transaction_dates(self):
+        """Generates a dictionary of dates for reported transactions, together 
+           with the number of times they appear.
+        """
         out = defaultdict(lambda: defaultdict(int))
         for transaction in self.element.findall('transaction'):
             date = transaction_date(transaction)
@@ -1124,15 +1159,13 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdictdictdict
     def sum_transactions_by_type_by_year_usd(self):
         out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
-        for transaction in self.element.findall('transaction'):
-            value = transaction.find('value')
-            if (transaction.find('transaction-type') is not None and
-                    transaction.find('transaction-type').attrib.get('code') in [self._disbursement_code(), self._expenditure_code()]):
 
-                # Set transaction_value if a value exists for this transaction. Else set to 0
-                transaction_value = 0 if value is None else Decimal(value.text)
-
-                out[self._transaction_type_code(transaction)]['USD'][self._transaction_year(transaction)] += get_USD_value(get_currency(self, transaction), transaction_value, self._transaction_year(transaction))
+        # Loop over the values in computed in sum_transactions_by_type_by_year() and build a 
+        # dictionary of USD values for the currency and year
+        for transaction_type, data in self.sum_transactions_by_type_by_year().items():
+            for currency, years in data.items():
+                for year, value in years.items():
+                    out[transaction_type]['USD'][year] += get_USD_value(currency, value, year)
         return out
 
     @returns_numberdictdict
@@ -1488,6 +1521,8 @@ class PublisherStats(object):
 
     @no_aggregation
     def most_recent_transaction_date(self):
+        """Computes the latest non-future transaction data across a dataset 
+        """
         nonfuture_transaction_dates = filter(lambda x: x is not None and x <= self.today,
             map(iso_date_match, sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])))
         if nonfuture_transaction_dates:
@@ -1495,6 +1530,8 @@ class PublisherStats(object):
 
     @no_aggregation
     def latest_transaction_date(self):
+        """Computes the latest transaction data across a dataset. Can be in the future
+        """
         transaction_dates = filter(lambda x: x is not None,
             map(iso_date_match, sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])))
         if transaction_dates:

@@ -954,7 +954,7 @@ class ActivityStats(CommonSharedElements):
                      transaction.find('recipient-region') is not None)
                         for transaction in self.element.findall('transaction')
                 ))),
-            'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
+            'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="11"]'.format(self._commitment_code())),
             'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
             'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
             'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) 

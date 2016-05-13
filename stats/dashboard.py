@@ -718,12 +718,14 @@ class ActivityStats(CommonSharedElements):
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
 
     def _get_ratio_commitments_disbursements(self, year):
-        """ Caluclates the ratio of commitments vs total amount disbursed or expended in or before the 
+        """ Calculates the ratio of commitments vs total amount disbursed or expended in or before the 
             input year. Values are converted to USD to improve comparability.
             Input:
               year -- The point in time to aggregate expenditure and disbursements
-            Returns: True or False
+            Returns: 
+              Float: 0 represents no commitments disbursed, 1 represents all commitments disbursed.
         """
+        
         # Compute the sum of all commitments
         # Get a list of commitment transactions
         commitment_transactions = self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))

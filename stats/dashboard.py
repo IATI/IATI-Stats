@@ -262,16 +262,14 @@ def get_currency(iati_activity_object, budget_pd_transaction):
         iati-activity/@default-currency).
     """
 
-    # Find the currency in the value element as part of this budget, planned disbursement or transaction
-    if budget_pd_transaction.find('value') is not None:
-        value = budget_pd_transaction.find('value')
-        currency = value.attrib.get('currency')
+    # Get the default currency (specified in iati-activity/@default-currency)
+    currency = iati_activity_object.element.attrib.get('default-currency')
 
-    # If the currency in value/@currency does not exist, use the currency in iati-activity/@default-currency instead
-    if currency is None:
-        currency = iati_activity_object.element.attrib.get('default-currency')
+    # If there is a currency within the value element, overwrite the default currency
+    if budget_pd_transaction.xpath('value/@currency'):
+        currency = budget_pd_transaction.xpath('value/@currency')[0]
 
-    # Return the currency as a string
+    # Return the currency
     return currency
 
 

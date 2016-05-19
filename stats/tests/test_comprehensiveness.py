@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from lxml import etree
 import datetime
 import pytest
@@ -439,6 +441,174 @@ def test_comprehensiveness_location_other_passes(major_version):
     ''')
     assert activity_stats.comprehensiveness()['location'] == 1
     assert activity_stats.comprehensiveness()['location_point_pos'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_recipient_language_passes(major_version):
+    # Set one and only one recipient-country
+    # Country code "AI" has valid language code "en" in helpers/transparency_indicator/country_lang_map.csv
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="en">Activity title</title>
+            <description type="1" xml:lang="en">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="en">Activity title</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="en">
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 1
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="en">Activity title</title>
+            <description type="1" xml:lang="en">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <recipient-country code="AI"/>
+            <activity-status code="2"/> 
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="en">Activity title</narrative>
+                <narrative xml:lang="fr">Titre de l'activité</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="en">
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+                <narrative xml:lang="fr">
+                    Activité générale du texte de description. Longue description de l'activité 
+                    sans structure particulière.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_recipient_language_fails(major_version):
+    # Set one and only one recipient-country
+    # Country code "AI" has valid language code "en" in helpers/transparency_indicator/country_lang_map.csv
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title>Activity title</title>
+            <description type="1">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative>Activity title</narrative>
+            </title>
+            <description type="1">
+                <narrative>
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 0
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="fr">Titre de l'activité</title>
+            <description type="1" xml:lang="fr">
+                Activité générale du texte de description. Longue description de l'activité 
+                sans structure particulière.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="fr">Titre de l'activité</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="fr">
+                    Activité générale du texte de description. Longue description de l'activité 
+                    sans structure particulière.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_recipient_language_fails_mulitple_countries(major_version):
+    # Set more than one recipient-country
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="en">Activity title</title>
+            <description type="1" xml:lang="en">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AF" percentage="50" />
+            <recipient-country code="AI" percentage="50" />
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="en">Activity title</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="en">
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AF" percentage="50" />
+            <recipient-country code="AI" percentage="50" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 0
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
@@ -1032,3 +1202,30 @@ def test_transaction_non_exclusions(key, major_version):
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_denominators()[key] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensivness_denominator_recipient_language_true(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <recipient-country />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators()['recipient_language'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensivness_denominator_recipient_language_false(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <recipient-country code="AF" percentage="50" />
+            <recipient-country code="AG" percentage="50" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators()['recipient_language'] == 0

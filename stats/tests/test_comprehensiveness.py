@@ -667,17 +667,18 @@ def test_comprehensiveness_sector_other_passes(major_version):
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', [
-    'version', 'iati-identifier', 'participating-org', 'activity-status',
+    'version', 'participating-org', 'activity-status',
     'activity-date', 'sector', 'country_or_region',
     'transaction_commitment', 'transaction_currency',
     'budget',
     'location_point_pos', 'sector_dac', 'document-link', 'activity-website',
     'aid_type'
+    # iati_identifier is exluded as it does not validate for v1.xx data as a special case: https://github.com/IATI/IATI-Dashboard/issues/399
 ])
 def test_comprehensiveness_with_validation(key, major_version):
-    activity_stats = MockActivityStats(major_version)
-    activity_stats.today = datetime.date(2014, 1, 1)
-    root = etree.fromstring('''
+    activity_stats_not_valid = MockActivityStats(major_version)
+    activity_stats_not_valid.today = datetime.date(2014, 1, 1)
+    root_not_valid = etree.fromstring('''
         <iati-activities version="9.99">
             <iati-activity>
                 <reporting-org ref="BBB"/>
@@ -761,7 +762,7 @@ def test_comprehensiveness_with_validation(key, major_version):
             </iati-activity>
         </iati-activities>
     ''')
-    activity_stats.element = root.find('iati-activity')
+    activity_stats_not_valid.element = root_not_valid.find('iati-activity')
     activity_stats_valid = MockActivityStats(major_version)
     activity_stats_valid.today = datetime.date(2014, 1, 1)
     root_valid = etree.fromstring('''
@@ -858,8 +859,8 @@ def test_comprehensiveness_with_validation(key, major_version):
         </iati-activities>
     ''')
     activity_stats_valid.element = root_valid.find('iati-activity')
-    comprehensiveness = activity_stats.comprehensiveness()
-    not_valid = activity_stats.comprehensiveness_with_validation()
+    comprehensiveness = activity_stats_not_valid.comprehensiveness()
+    not_valid = activity_stats_not_valid.comprehensiveness_with_validation()
     valid = activity_stats_valid.comprehensiveness_with_validation()
     assert comprehensiveness[key] == 1
     assert not_valid[key] == 0
@@ -1061,6 +1062,88 @@ def test_aid_type_not_valid(major_version):
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 0
+
+
+# Note v1.xx data gets an automatic pass for iati_identifier as a special case: https://github.com/IATI/IATI-Dashboard/issues/399
+def test_iati_identifier_valid_v1_passes():
+    activity_stats = MockActivityStats('1')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="AA-AAA">Reporting ORG Name</reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <activity-status code="2"/> 
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+    activity_stats = MockActivityStats('1')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="AA-AAA">Reporting ORG Name</reporting-org>
+            <iati-identifier>NOT-PREFIXED-WITH-REPORTING-ORG_AA-AAA-1</iati-identifier>
+            <activity-status code="2"/> 
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+
+def test_iati_identifier_valid_v2_passes():
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="AA-AAA">
+                <narrative>Reporting ORG Name</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="BB-BBB">
+                <narrative>A new reporting org name (BB-BBB)</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <other-identifier ref="AA-AAA" type="B1">
+                <owner-org ref="BB-BBB">
+                    <narrative>Reporting org name (who previously were known as AA-AAA)</narrative>
+                </owner-org>   
+            </other-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+
+def test_iati_identifier_valid_v2_fails():
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="BB-BBB">
+                <narrative>Reporting ORG Name</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 0
+
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="BB-BBB">
+                <narrative>A new reporting org name (BB-BBB)</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <other-identifier ref="AA-AAA" type="A1"><!-- @type set, but not of value 'B1'-->
+            </other-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 0
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])

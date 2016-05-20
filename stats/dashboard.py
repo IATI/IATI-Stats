@@ -1017,13 +1017,17 @@ class ActivityStats(CommonSharedElements):
                     else:
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
 
+            #import pdb;pdb.set_trace()
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
                 'iati-identifier': (
                     bools['iati-identifier'] and 
-                    ((reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or 
-                     any([self.element.find('iati-identifier').text.startswith(x) for x in previous_reporting_org_refs]))
-                    ),
+                    (
+                        # Give v1.xx data an automatic pass on this sub condition: https://github.com/IATI/IATI-Dashboard/issues/399
+                        (reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or 
+                        any([self.element.find('iati-identifier').text.startswith(x) for x in previous_reporting_org_refs]) 
+                        if self._major_version() is not '1' else True
+                    )),
                 'participating-org': bools['participating-org'] and self._funding_code() in self.element.xpath('participating-org/@role'),
                 'activity-status': bools['activity-status'] and all_and_not_empty(x in CODELISTS[self._major_version()]['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
                 'activity-date': (

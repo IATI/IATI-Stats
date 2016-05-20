@@ -196,6 +196,7 @@ def test_comprehensiveness_empty(major_version):
         'recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
+        'aid_type': 0
     }
 
 
@@ -215,6 +216,7 @@ def test_comprehensiveness_full(major_version):
                 <activity-date type="start-actual" iso-date="9989-05-01" />
                 <sector vocabulary="DAC"/>
                 <recipient-country code="AI"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="C"/>
                     <value currency="" value-date="2014-01-01"/>
@@ -264,6 +266,7 @@ def test_comprehensiveness_full(major_version):
                 <activity-date type="2" iso-date="9989-05-01" />
                 <sector vocabulary="1"/>
                 <recipient-country code="AI"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="2"/><!-- Commitment -->
                     <value currency="" value-date="2014-01-01"/>
@@ -327,6 +330,7 @@ def test_comprehensiveness_full(major_version):
         'recipient_language': 1,
         'conditions_attached': 1,
         'result_indicator': 1,
+        'aid_type': 1
     }
 
     # Check recipient-region independently
@@ -354,6 +358,7 @@ def test_comprehensiveness_other_passes(major_version):
                 <transaction>
                     <transaction-type code="D"/>
                     <value value-date="2014-01-01"/>
+                    <aid-type code="A01" />
                 </transaction>
             </iati-activity>
         </iati-activities>
@@ -366,6 +371,7 @@ def test_comprehensiveness_other_passes(major_version):
                 <transaction>
                     <transaction-type code="3"/><!-- Disbursement -->
                     <value value-date="2014-01-01"/>
+                    <aid-type code="A01" />
                 </transaction>
             </iati-activity>
         </iati-activities>
@@ -398,6 +404,7 @@ def test_comprehensiveness_other_passes(major_version):
         'recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
+        'aid_type': 1
     }
 
 
@@ -664,7 +671,8 @@ def test_comprehensiveness_sector_other_passes(major_version):
     'activity-date', 'sector', 'country_or_region',
     'transaction_commitment', 'transaction_currency',
     'budget',
-    'location_point_pos', 'sector_dac', 'document-link', 'activity-website'
+    'location_point_pos', 'sector_dac', 'document-link', 'activity-website',
+    'aid_type'
 ])
 def test_comprehensiveness_with_validation(key, major_version):
     activity_stats = MockActivityStats(major_version)
@@ -688,6 +696,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="RO" percentage="100" />
                 <recipient-country percentage="100"/>
                 <recipient-region percentage="100"/>
+                <default-aid-type code="non-valid-code" />
                 <transaction>
                     <transaction-type code="C"/>
                     <value value-date="" currency=""/>
@@ -727,6 +736,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="99" percentage="100" />
                 <recipient-country percentage="100"/>
                 <recipient-region percentage="100"/>
+                <default-aid-type code="non-valid-code" />
                 <transaction>
                     <transaction-type code="2"/>
                     <value value-date="" currency=""/>
@@ -772,6 +782,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="RO" percentage="49" />
                 <recipient-country percentage="44.5"/>
                 <recipient-region percentage="55.5"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="C"/>
                     <value value-date="2014-01-01" currency="GBP">1.0</value>
@@ -816,6 +827,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="99" percentage="49" />
                 <recipient-country percentage="44.5"/>
                 <recipient-region percentage="55.5"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="2"/>
                     <value value-date="2014-01-01" currency="GBP">1.0</value>
@@ -939,6 +951,116 @@ def test_valid_single_recipient_country(major_version):
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_with_validation()['country_or_region'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_passes(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="A01" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['aid_type'] == 1
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                <aid-type code="B01" />
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['aid_type'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_fails(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['aid_type'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_valid(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="A01" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 1
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="non-valid-code" />
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                <aid-type code="B01" />
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_not_valid(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="non-valid-code" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 0
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                <aid-type code="non-valid-code" />
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 0
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                
+            </transaction>
+            <transaction>
+                
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 0
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])

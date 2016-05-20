@@ -94,7 +94,7 @@ codelist_mappings = { major_version: get_codelist_mapping(major_version) for maj
 
 CODELISTS = {'1':{}, '2':{}}
 for major_version in ['1', '2']:
-    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory']:
+    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType']:
         CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data']) 
 
 
@@ -973,7 +973,12 @@ class ActivityStats(CommonSharedElements):
             'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),
             'recipient_language': self._is_recipient_language_used(),
             'conditions_attached': self.element.xpath('conditions/@attached'),
-            'result_indicator': self.element.xpath('result/indicator')
+            'result_indicator': self.element.xpath('result/indicator'),
+            'aid_type': (
+                all_and_not_empty(self.element.xpath('default-aid-type/@code')) 
+                or all_and_not_empty([transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')])
+                )
+            # Alternative: all(map(all_and_not_empty, [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]))
         }
 
     def _comprehensiveness_with_validation_bools(self):
@@ -1011,7 +1016,6 @@ class ActivityStats(CommonSharedElements):
                             for es in elements_by_vocab.values())
                     else:
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
-
 
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
@@ -1065,6 +1069,16 @@ class ActivityStats(CommonSharedElements):
                 'document-link': all_and_not_empty(
                     valid_url(x) and x.find('category') is not None and x.find('category').attrib.get('code') in CODELISTS[self._major_version()]['DocumentCategory'] for x in bools['document-link']),
                 'activity-website': all_and_not_empty(map(valid_url, bools['activity-website'])),
+                'aid_type': (
+                    bools['aid_type'] and 
+                    # i) Value in default-aid-type/@code is found in the codelist
+                    (all_and_not_empty([code in CODELISTS[self._major_version()]['AidType'] for code in self.element.xpath('default-aid-type/@code')])
+                     # Or ii) Each transaction has a aid-type/@code which is found in the codelist
+                     or all_and_not_empty(
+                        [set(x).intersection(CODELISTS[self._major_version()]['AidType']) 
+                        for x in [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]]
+                        )
+                    ))
             })
             return bools
 

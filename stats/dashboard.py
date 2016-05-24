@@ -726,8 +726,11 @@ class ActivityStats(CommonSharedElements):
         
         # Compute the sum of all commitments
         # Build a list of tuples, each tuple contains: (currency, value, date)
-        commitment_transactions = [(get_currency(self, transaction), transaction.xpath('value/text()')[0], transaction_date(transaction))
-                                   for transaction in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))]
+        commitment_transactions = [(
+            get_currency(self, transaction), 
+            transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None, 
+            transaction_date(transaction)
+            ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))]
         
         # Convert transaction values to USD and aggregate
         commitment_transactions_usd_total = sum([get_USD_value(x[0], x[1], x[2].year)
@@ -735,12 +738,15 @@ class ActivityStats(CommonSharedElements):
 
         # Compute the sum of all disbursements and expenditures up to and including the inputted year
         # Build a list of tuples, each tuple contains: (currency, value, date)
-        exp_disb_transactions = [(get_currency(self, transaction), transaction.xpath('value/text()')[0], transaction_date(transaction))
-                                 for transaction in self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code()))]
+        exp_disb_transactions = [(
+            get_currency(self, transaction), 
+            transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None, 
+            transaction_date(transaction)
+            ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code()))]
 
         # If the transaction date this year or older, convert transaction values to USD and aggregate
         exp_disb_transactions_usd_total = sum([get_USD_value(x[0], x[1], x[2].year)
-                                              for x in exp_disb_transactions if x[2].year <= int(year) and None not in x])
+                                              for x in exp_disb_transactions if None not in x and x[2].year <= int(year)])
 
         if commitment_transactions_usd_total > 0:
             return convert_to_float(exp_disb_transactions_usd_total) / convert_to_float(commitment_transactions_usd_total)
@@ -1187,7 +1193,8 @@ class ActivityStats(CommonSharedElements):
         for transaction_type, data in self.sum_transactions_by_type_by_year().items():
             for currency, years in data.items():
                 for year, value in years.items():
-                    out[transaction_type]['USD'][year] += get_USD_value(currency, value, year)
+                    if None not in [currency, value, year]:
+                        out[transaction_type]['USD'][year] += get_USD_value(currency, value, year)
         return out
 
     @returns_numberdictdict

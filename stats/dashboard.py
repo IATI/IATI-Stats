@@ -125,7 +125,8 @@ with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv
                                                   '2015_ref_spend': line[6],
                                                   '2015_official_forecast': line[10],
                                                   'currency': line[11],
-                                                  'spend_data_error_reported': True if line[12] == 'Y' else False }
+                                                  'spend_data_error_reported': True if line[12] == 'Y' else False,
+                                                  'DAC': True if 'DAC' in line[3] else False }
 
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
@@ -1418,7 +1419,8 @@ class PublisherStats(object):
                      '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '', 
                                'currency': reference_spend_data[self.folder]['currency'], 
                                'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' },  
-                     'spend_data_error_reported': 1 if reference_spend_data[self.folder]['spend_data_error_reported'] else 0
+                     'spend_data_error_reported': 1 if reference_spend_data[self.folder]['spend_data_error_reported'] else 0,
+                     'DAC': 1 if reference_spend_data[self.folder]['DAC'] else 0
                    }
         else:
             return {}
@@ -1442,8 +1444,9 @@ class PublisherStats(object):
             output[year]['ref_spend'] = str(get_USD_value(data['currency'], data['ref_spend'], year)) if is_number(data['ref_spend']) else ''
             output[year]['official_forecast'] = data['official_forecast_usd'] if is_number(data['official_forecast_usd']) else ''
 
-        # Append the spend error boolean and return
+        # Append the spend error and DAC booleans and return
         output['spend_data_error_reported'] = self.reference_spend_data().get('spend_data_error_reported', 0)
+        output['DAC'] = self.reference_spend_data().get('DAC', 0)
         return output
 
     @returns_numberdict

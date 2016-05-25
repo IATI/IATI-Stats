@@ -1,6 +1,9 @@
+from lxml import etree
+import pytest
+
 from stats.common import budget_year
 from stats.dashboard import ActivityStats
-from lxml import etree
+from test_comprehensiveness import MockActivityStats
 
 def test_forwardlooking_is_current():
     activity_stats = ActivityStats()
@@ -80,3 +83,69 @@ def test_forwardlooking_is_current_2xx():
         <activity-date iso-date="9990-01-01" type="4" />
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_get_ratio_commitments_disbursements(major_version):
+    # Using expected data
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <transaction>
+                <transaction-type code="C"/>
+                <value currency="EUR" value-date="2012-10-24">100</value>
+                <transaction-date iso-date="2012-10-24" />
+            </transaction>
+            <transaction>
+                <transaction-type code="D"/>
+                <value currency="EUR" value-date="2012-10-24">50</value>
+                <transaction-date iso-date="2012-10-24" />
+            </transaction>
+            <transaction>
+                <transaction-type code="D"/>
+                <value currency="EUR" value-date="2013-10-24">50</value>
+                <transaction-date iso-date="2013-10-24" />
+            </transaction>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <transaction>
+                <transaction-type code="2"/>
+                <value currency="EUR" value-date="2012-10-24">100</value>
+                <transaction-date iso-date="2012-10-24" />
+            </transaction>
+            <transaction>
+                <transaction-type code="3"/>
+                <value currency="EUR" value-date="2012-10-24">50</value>
+                <transaction-date iso-date="2012-10-24" />
+            </transaction>
+            <transaction>
+                <transaction-type code="3"/>
+                <value currency="EUR" value-date="2013-10-24">50</value>
+                <transaction-date iso-date="2013-10-24" />
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats._get_ratio_commitments_disbursements(2012) == 0.5
+
+    # Missing transaction date, value and currency
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <transaction>
+                <transaction-type code="C"/>
+            </transaction>
+            <transaction>
+                <transaction-type code="D"/>
+            </transaction>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <transaction>
+                <transaction-type code="2"/>
+            </transaction>
+            <transaction>
+                <transaction-type code="3"/>
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats._get_ratio_commitments_disbursements(2012) == None

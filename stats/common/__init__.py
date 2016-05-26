@@ -45,7 +45,7 @@ def transaction_date(transaction):
        Returns None if neither found.
 
        Input:
-         transaction -- transaction object
+         transaction -- etree transaction object
        Returns:
          datetime object or None
     """
@@ -55,6 +55,13 @@ def transaction_date(transaction):
         return iso_date_match(transaction.find('value').attrib.get('value-date'))
 
 def budget_year(budget):
+    """Returns the year of an inputted object (normally a budget).
+
+       Input:
+         budget -- etree budget object
+       Returns:
+         year (integer) or None
+    """
     start = iso_date(budget.find('period-start'))
     end = iso_date(budget.find('period-end'))
 

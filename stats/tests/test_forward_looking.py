@@ -5,6 +5,7 @@ from stats.common import budget_year
 from stats.dashboard import ActivityStats
 from test_comprehensiveness import MockActivityStats
 
+
 def test_forwardlooking_is_current():
     activity_stats = ActivityStats()
 
@@ -43,8 +44,10 @@ def test_forwardlooking_is_current():
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
 
+
 def wrap_activity(activity):
     return etree.fromstring('<iati-activities version="2.01">{}</iati-activities>'.format(activity)).find('iati-activity')
+
 
 def test_forwardlooking_is_current_2xx():
     activity_stats = ActivityStats()
@@ -83,6 +86,7 @@ def test_forwardlooking_is_current_2xx():
         <activity-date iso-date="9990-01-01" type="4" />
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
+
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
 def test_get_ratio_commitments_disbursements(major_version):

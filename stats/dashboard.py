@@ -754,26 +754,31 @@ class ActivityStats(CommonSharedElements):
         else:
             return None
 
-    def _forwardlooking_exclude_in_calculations(self, year=datetime.date.today().year):
+    def _forwardlooking_exclude_in_calculations(self, year=datetime.date.today().year, date_code_runs=None):
         """ Tests if an activity should be excluded from the forward looking calculations.
             Activities are excluded if:
-              i) They end within six months of the input year OR
+              i) They end within six months from date_code_runs OR
               ii) At least 90% of the commitment transactions has been disbursed or expended 
                   within or before the input year
+
+            This arises from:
+            https://github.com/IATI/IATI-Dashboard/issues/388
+            https://github.com/IATI/IATI-Dashboard/issues/389
+
             Input:
               year -- The point in time to test the above criteria against
+              date_code_runs -- a date object for when this code is run
             Returns: 0 if not excluded
                      >0 if excluded
         """
-        # Fix date is this is a leap year. Otherwise will cause issues if incrementing a year
-        today = datetime.date.today()
-        if today.month == 2 and today.day == 29:
-            today = datetime.date(2000, 3, 1)
+
+        # Set date_code_runs. Defaults to self.now (as a date object)
+        date_code_runs = date_code_runs if date_code_runs else self.now.date()
 
         # If this activity has an end date, check that it will not end within the next six 
-        # months from the input year (this uses the current day and month as a base date)
+        # months from date_code_runs
         if self._get_end_date():
-            if (datetime.date(year, today.month, today.day) + relativedelta(months=+6)) > self._get_end_date():
+            if (date_code_runs + relativedelta(months=+6)) > self._get_end_date():
                 return 1
 
         if self._get_ratio_commitments_disbursements(year) >= 0.9 and self._get_ratio_commitments_disbursements(year) is not None:
@@ -800,7 +805,7 @@ class ActivityStats(CommonSharedElements):
            Returns iati-identifier and...: 0 if not excluded
                                            1 if excluded
         """
-        # Set the current year
+        # Set the current year. Defaults to self.now (as a date object)
         this_year = datetime.date.today().year
 
         # Retreive a dictionary with the activity identifier and the result for this and the next two years
@@ -809,20 +814,29 @@ class ActivityStats(CommonSharedElements):
 
 
     @returns_numberdict
-    def forwardlooking_activities_current(self):
+    def forwardlooking_activities_current(self, date_code_runs=None):
         """
         The number of current and non-excluded activities for this year and the following 2 years.
 
         Current activities: http://support.iatistandard.org/entries/52291985-Forward-looking-Activity-level-budgets-numerator
-        Non-excluded activities: https://github.com/IATI/IATI-Dashboard/issues/388
+
+        Note activities excluded according if they meet the logic in _forwardlooking_exclude_in_calculations()
 
         Note: this is a different definition of 'current' to the older annual
         report stats in this file, so does not re-use those functions.
 
+        Input:
+          date_code_runs -- a date object for when this code is run
+        Returns:
+          dictionary containing years with binary value if this activity is current
+
         """
 
-        this_year = datetime.date.today().year
-        return { year: int(self._forwardlooking_is_current(year) and not bool(self._forwardlooking_exclude_in_calculations(year)))
+        # Set date_code_runs. Defaults to self.now (as a date object)
+        date_code_runs = date_code_runs if date_code_runs else self.now.date()
+
+        this_year = date_code_runs.year
+        return { year: int(self._forwardlooking_is_current(year) and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                     for year in range(this_year, this_year+3) }
 
     @returns_numberdict
@@ -832,12 +846,20 @@ class ActivityStats(CommonSharedElements):
 
         http://support.iatistandard.org/entries/52292065-Forward-looking-Activity-level-budgets-denominator
 
-        """
-        this_year = int(date_code_runs.year) if date_code_runs else int(self.now.year)
-        budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
-        return { year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year)))
-                    for year in range(this_year, this_year+3) }
+        Note activities excluded according if they meet the logic in _forwardlooking_exclude_in_calculations()
 
+        Input:
+          date_code_runs -- a date object for when this code is run
+        Returns:
+          dictionary containing years with binary value if this activity is current and has a budget for the given year
+        """
+        # Set date_code_runs. Defaults to self.now (as a date object)
+        date_code_runs = date_code_runs if date_code_runs else self.now.date()
+
+        this_year = int(date_code_runs.year)
+        budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
+        return { year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
+                    for year in range(this_year, this_year+3) }
 
     @memoize
     def _comprehensiveness_is_current(self):

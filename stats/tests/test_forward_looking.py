@@ -221,7 +221,7 @@ def test_forwardlooking_activities_with_budgets_ends_in_six_months(major_version
         </iati-activity>
     ''')
     assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[9980] == 1
-    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[9981] == 0
+    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[9981] == 1
     assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[9982] == 0
 
 

@@ -1,3 +1,4 @@
+import datetime
 from lxml import etree
 import pytest
 
@@ -86,6 +87,142 @@ def test_forwardlooking_is_current_2xx():
         <activity-date iso-date="9990-01-01" type="4" />
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+@pytest.mark.parametrize('year', [9980, 9981, 9982])
+def test_forwardlooking_activities_with_budgets_true(major_version, year):
+    date_code_runs = datetime.date(year, 1, 1)
+    activity_stats = MockActivityStats(major_version)
+    # Activity with budgets for each year of operation
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="start-planned" />
+            <activity-date iso-date="9982-12-31" type="end-planned" />
+            <budget type="1">
+               <period-start iso-date="9980-01-01" />
+               <period-end iso-date="9980-12-31" />
+               <value currency="EUR" value-date="9980-01-01">1000</value>
+            </budget>
+            <budget type="1">
+               <period-start iso-date="9981-01-01" />
+               <period-end iso-date="9981-12-31" />
+               <value currency="EUR" value-date="9981-01-01">1000</value>
+            </budget>
+            <budget type="1">
+               <period-start iso-date="9982-01-01" />
+               <period-end iso-date="9982-12-31" />
+               <value currency="EUR" value-date="9982-01-01">1000</value>
+            </budget>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="1" />
+            <activity-date iso-date="9982-12-31" type="3" />
+            <budget type="1">
+               <period-start iso-date="9980-01-01" />
+               <period-end iso-date="9980-12-31" />
+               <value currency="EUR" value-date="9980-01-01">1000</value>
+            </budget>
+            <budget type="1">
+               <period-start iso-date="9981-01-01" />
+               <period-end iso-date="9981-12-31" />
+               <value currency="EUR" value-date="9981-01-01">1000</value>
+            </budget>
+            <budget type="1">
+               <period-start iso-date="9982-01-01" />
+               <period-end iso-date="9982-12-31" />
+               <value currency="EUR" value-date="9982-01-01">1000</value>
+            </budget>
+        </iati-activity>
+    ''')
+    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[year]
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+@pytest.mark.parametrize('year', [9980, 9981, 9982])
+def test_forwardlooking_activities_with_budgets_false(major_version, year):
+    date_code_runs = datetime.date(year, 1, 1)
+    activity_stats = MockActivityStats(major_version)
+    # Activity with no budgets for any year of operation
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="start-planned" />
+            <activity-date iso-date="9983-12-31" type="end-planned" />
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="1" />
+            <activity-date iso-date="9983-12-31" type="3" />
+        </iati-activity>
+    ''')
+    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[year] == 0
+
+    date_code_runs = datetime.date(year, 1, 1)
+    # Activity ends within six months, regardless that a budget is declared for the full year
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="start-planned" />
+            <activity-date iso-date="9980-05-31" type="end-planned" />
+            <budget type="1">
+               <period-start iso-date="9980-01-01" />
+               <period-end iso-date="9980-12-31" />
+               <value currency="EUR" value-date="9980-01-01">1000</value>
+            </budget>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="1" />
+            <activity-date iso-date="9980-05-31" type="3" />
+            <budget type="1">
+               <period-start iso-date="9980-01-01" />
+               <period-end iso-date="9980-12-31" />
+               <value currency="EUR" value-date="9980-01-01">1000</value>
+            </budget>
+        </iati-activity>
+    ''')
+    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[year] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_forwardlooking_activities_with_budgets_ends_in_six_months(major_version):
+    activity_stats = MockActivityStats(major_version)
+    # Activity ends in one year and six months of 9980-01-01, regardless that a budget is declared for both full years
+    date_code_runs = datetime.date(9980, 1, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="start-planned" />
+            <activity-date iso-date="9981-05-31" type="end-planned" />
+            <budget type="1">
+               <period-start iso-date="9980-01-01" />
+               <period-end iso-date="9980-12-31" />
+               <value currency="EUR" value-date="9980-01-01">1000</value>
+            </budget>
+            <budget type="1">
+               <period-start iso-date="9981-01-01" />
+               <period-end iso-date="9981-12-31" />
+               <value currency="EUR" value-date="9981-01-01">1000</value>
+            </budget>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <activity-date iso-date="9980-01-01" type="1" />
+            <activity-date iso-date="9981-05-31" type="3" />
+            <budget type="1">
+               <period-start iso-date="9980-01-01" />
+               <period-end iso-date="9980-12-31" />
+               <value currency="EUR" value-date="9980-01-01">1000</value>
+            </budget>
+            <budget type="1">
+               <period-start iso-date="9981-01-01" />
+               <period-end iso-date="9981-12-31" />
+               <value currency="EUR" value-date="9981-01-01">1000</value>
+            </budget>
+        </iati-activity>
+    ''')
+    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[9980] == 1
+    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[9981] == 0
+    assert activity_stats.forwardlooking_activities_with_budgets(date_code_runs)[9982] == 0
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])

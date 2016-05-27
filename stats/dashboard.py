@@ -826,17 +826,18 @@ class ActivityStats(CommonSharedElements):
                     for year in range(this_year, this_year+3) }
 
     @returns_numberdict
-    def forwardlooking_activities_with_budgets(self):
+    def forwardlooking_activities_with_budgets(self, date_code_runs=None):
         """
         The number of current activities with budgets for this year and the following 2 years.
 
         http://support.iatistandard.org/entries/52292065-Forward-looking-Activity-level-budgets-denominator
 
         """
-        this_year = datetime.date.today().year
+        this_year = int(date_code_runs.year) if date_code_runs else int(self.now.year)
         budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
         return { year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year)))
                     for year in range(this_year, this_year+3) }
+
 
     @memoize
     def _comprehensiveness_is_current(self):

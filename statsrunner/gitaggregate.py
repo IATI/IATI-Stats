@@ -22,7 +22,9 @@ blacklisted_stats_files = [
     'duplicate_identifiers',
     'publisher_duplicate_identifiers',
     'participating_orgs_text',
-    'transaction_dates'
+    'transaction_dates',
+    'comprehensiveness_current_activities',
+    'forwardlooking_excluded_activities'
     ]
 
 # Load the reference of commits to dates 

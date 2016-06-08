@@ -11,7 +11,7 @@ GITOUT_DIR = os.environ.get('GITOUT_DIR') or 'gitout'
 # Only aggregate certain json stats files at publisher level 
 # These should be small stats files that will not consume large amounts of 
 # memory/disk space if aggregated over time
-whitelisted_stats_files - [ 
+whitelisted_stats_files = [ 
     'activities',
     'activity_files',
     'bottom_hierarchy',

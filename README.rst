@@ -38,7 +38,7 @@ On Ubuntu:
 
 .. code-block:: bash
 
-    sudo apt-get install git python-virtualenv python-pip
+    sudo apt-get install git python-dev python-virtualenv python-pip
     sudo apt-get install libxml2-dev libxslt-dev
 
 

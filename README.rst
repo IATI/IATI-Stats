@@ -36,7 +36,8 @@ Requirements
 
 On Ubuntu:
 
-.. code-block::
+.. code-block:: bash
+
     sudo apt-get install git python-virtualenv python-pip
     sudo apt-get install libxml2-dev libxslt-dev
 

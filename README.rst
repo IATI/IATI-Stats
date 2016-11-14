@@ -37,6 +37,7 @@ Requirements
 On Ubuntu:
 
 ``sudo apt-get install git python-virtualenv python-pip
+
 sudo apt-get install libxml2-dev libxslt-dev``
 
 Getting some data to run stats on

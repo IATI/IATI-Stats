@@ -26,12 +26,18 @@ Requirements
 -  Git
 -  Python 2.7
 -  python-virtualenv
+-  pip
 -  Bash
 -  gcc
 -  Development files for libxml and libxslt e.g. ``libxml2-dev``,
    ``libxslt-dev`` (alternatively, you can install the python  dependencies in
    requirements.txt using your package manager, and skip the pip install step
    below)
+
+On Ubuntu:
+
+``sudo apt-get install git python-virtualenv python-pip
+sudo apt-get install libxml2-dev libxslt-dev``
 
 Getting some data to run stats on
 ---------------------------------

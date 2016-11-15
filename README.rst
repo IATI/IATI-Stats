@@ -34,7 +34,7 @@ Requirements
    requirements.txt using your package manager, and skip the pip install step
    below)
 
-On Ubuntu:
+For example, on Ubuntu these requirements can be installed by running:
 
 .. code-block:: bash
 

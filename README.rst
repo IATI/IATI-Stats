@@ -45,7 +45,7 @@ For example, on Ubuntu these requirements can be installed by running:
 Getting some data to run stats on
 ---------------------------------
 
-This stats code expects a ``data/ directory containing subdirectories`` for each publisher, where each subdirectory contains that publisher's XML files. All the data on the registry can be downloaded in this structure using the `IATI-Registry-Refresher <https://github.com/IATI/IATI-Registry-Refresher/>`__.
+This stats code expects a ``data/`` directory, containing a subdirectory for each publisher. Each publisher subdirectory contains that publisher's raw XML files.  All the data on the registry can be downloaded in this structure using the `IATI-Registry-Refresher <https://github.com/IATI/IATI-Registry-Refresher/>`__.
 
 The IATI Tech Team maintains an archive with a snapshot of this data taken every night, from which aggregate stats are produced for the dashboard, using the code in this repository. For political and security reasons this snapshot archive is not publicly available, but is available on request to others wishing to use it for aggregate calculations. Please email code [at] iatistandard [dot] org
 

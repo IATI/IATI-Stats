@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from lxml import etree
 import datetime
 import pytest
@@ -194,6 +196,7 @@ def test_comprehensiveness_empty(major_version):
         'recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
+        'aid_type': 0
     }
 
 
@@ -213,6 +216,7 @@ def test_comprehensiveness_full(major_version):
                 <activity-date type="start-actual" iso-date="9989-05-01" />
                 <sector vocabulary="DAC"/>
                 <recipient-country code="AI"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="C"/>
                     <value currency="" value-date="2014-01-01"/>
@@ -262,6 +266,7 @@ def test_comprehensiveness_full(major_version):
                 <activity-date type="2" iso-date="9989-05-01" />
                 <sector vocabulary="1"/>
                 <recipient-country code="AI"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="2"/><!-- Commitment -->
                     <value currency="" value-date="2014-01-01"/>
@@ -325,6 +330,7 @@ def test_comprehensiveness_full(major_version):
         'recipient_language': 1,
         'conditions_attached': 1,
         'result_indicator': 1,
+        'aid_type': 1
     }
 
     # Check recipient-region independently
@@ -352,6 +358,7 @@ def test_comprehensiveness_other_passes(major_version):
                 <transaction>
                     <transaction-type code="D"/>
                     <value value-date="2014-01-01"/>
+                    <aid-type code="A01" />
                 </transaction>
             </iati-activity>
         </iati-activities>
@@ -364,6 +371,7 @@ def test_comprehensiveness_other_passes(major_version):
                 <transaction>
                     <transaction-type code="3"/><!-- Disbursement -->
                     <value value-date="2014-01-01"/>
+                    <aid-type code="A01" />
                 </transaction>
             </iati-activity>
         </iati-activities>
@@ -396,6 +404,7 @@ def test_comprehensiveness_other_passes(major_version):
         'recipient_language': 0,
         'conditions_attached': 0,
         'result_indicator': 0,
+        'aid_type': 1
     }
 
 
@@ -439,6 +448,174 @@ def test_comprehensiveness_location_other_passes(major_version):
     ''')
     assert activity_stats.comprehensiveness()['location'] == 1
     assert activity_stats.comprehensiveness()['location_point_pos'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_recipient_language_passes(major_version):
+    # Set one and only one recipient-country
+    # Country code "AI" has valid language code "en" in helpers/transparency_indicator/country_lang_map.csv
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="en">Activity title</title>
+            <description type="1" xml:lang="en">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="en">Activity title</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="en">
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 1
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="en">Activity title</title>
+            <description type="1" xml:lang="en">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <recipient-country code="AI"/>
+            <activity-status code="2"/> 
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="en">Activity title</narrative>
+                <narrative xml:lang="fr">Titre de l'activité</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="en">
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+                <narrative xml:lang="fr">
+                    Activité générale du texte de description. Longue description de l'activité 
+                    sans structure particulière.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_recipient_language_fails(major_version):
+    # Set one and only one recipient-country
+    # Country code "AI" has valid language code "en" in helpers/transparency_indicator/country_lang_map.csv
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title>Activity title</title>
+            <description type="1">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative>Activity title</narrative>
+            </title>
+            <description type="1">
+                <narrative>
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 0
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="fr">Titre de l'activité</title>
+            <description type="1" xml:lang="fr">
+                Activité générale du texte de description. Longue description de l'activité 
+                sans structure particulière.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="fr">Titre de l'activité</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="fr">
+                    Activité générale du texte de description. Longue description de l'activité 
+                    sans structure particulière.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AI"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensiveness_recipient_language_fails_mulitple_countries(major_version):
+    # Set more than one recipient-country
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <title xml:lang="en">Activity title</title>
+            <description type="1" xml:lang="en">
+                General activity description text.  Long description of the activity with 
+                no particular structure.
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AF" percentage="50" />
+            <recipient-country code="AI" percentage="50" />
+        </iati-activity>
+    ''' if major_version == '1' else '''
+        <iati-activity>
+            <title>
+                <narrative xml:lang="en">Activity title</narrative>
+            </title>
+            <description type="1">
+                <narrative xml:lang="en">
+                    General activity description text.  Long description of the activity with 
+                    no particular structure.
+                </narrative>
+            </description>
+            <activity-status code="2"/> 
+            <recipient-country code="AF" percentage="50" />
+            <recipient-country code="AI" percentage="50" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['recipient_language'] == 0
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
@@ -490,16 +667,18 @@ def test_comprehensiveness_sector_other_passes(major_version):
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', [
-    'version', 'iati-identifier', 'participating-org', 'activity-status',
+    'version', 'participating-org', 'activity-status',
     'activity-date', 'sector', 'country_or_region',
     'transaction_commitment', 'transaction_currency',
     'budget',
-    'location_point_pos', 'sector_dac', 'document-link', 'activity-website'
+    'location_point_pos', 'sector_dac', 'document-link', 'activity-website',
+    'aid_type'
+    # iati_identifier is exluded as it does not validate for v1.xx data as a special case: https://github.com/IATI/IATI-Dashboard/issues/399
 ])
 def test_comprehensiveness_with_validation(key, major_version):
-    activity_stats = MockActivityStats(major_version)
-    activity_stats.today = datetime.date(2014, 1, 1)
-    root = etree.fromstring('''
+    activity_stats_not_valid = MockActivityStats(major_version)
+    activity_stats_not_valid.today = datetime.date(2014, 1, 1)
+    root_not_valid = etree.fromstring('''
         <iati-activities version="9.99">
             <iati-activity>
                 <reporting-org ref="BBB"/>
@@ -518,6 +697,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="RO" percentage="100" />
                 <recipient-country percentage="100"/>
                 <recipient-region percentage="100"/>
+                <default-aid-type code="non-valid-code" />
                 <transaction>
                     <transaction-type code="C"/>
                     <value value-date="" currency=""/>
@@ -557,6 +737,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="99" percentage="100" />
                 <recipient-country percentage="100"/>
                 <recipient-region percentage="100"/>
+                <default-aid-type code="non-valid-code" />
                 <transaction>
                     <transaction-type code="2"/>
                     <value value-date="" currency=""/>
@@ -581,7 +762,7 @@ def test_comprehensiveness_with_validation(key, major_version):
             </iati-activity>
         </iati-activities>
     ''')
-    activity_stats.element = root.find('iati-activity')
+    activity_stats_not_valid.element = root_not_valid.find('iati-activity')
     activity_stats_valid = MockActivityStats(major_version)
     activity_stats_valid.today = datetime.date(2014, 1, 1)
     root_valid = etree.fromstring('''
@@ -602,6 +783,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="RO" percentage="49" />
                 <recipient-country percentage="44.5"/>
                 <recipient-region percentage="55.5"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="C"/>
                     <value value-date="2014-01-01" currency="GBP">1.0</value>
@@ -646,6 +828,7 @@ def test_comprehensiveness_with_validation(key, major_version):
                 <sector vocabulary="99" percentage="49" />
                 <recipient-country percentage="44.5"/>
                 <recipient-region percentage="55.5"/>
+                <default-aid-type code="A01" />
                 <transaction>
                     <transaction-type code="2"/>
                     <value value-date="2014-01-01" currency="GBP">1.0</value>
@@ -676,8 +859,8 @@ def test_comprehensiveness_with_validation(key, major_version):
         </iati-activities>
     ''')
     activity_stats_valid.element = root_valid.find('iati-activity')
-    comprehensiveness = activity_stats.comprehensiveness()
-    not_valid = activity_stats.comprehensiveness_with_validation()
+    comprehensiveness = activity_stats_not_valid.comprehensiveness()
+    not_valid = activity_stats_not_valid.comprehensiveness_with_validation()
     valid = activity_stats_valid.comprehensiveness_with_validation()
     assert comprehensiveness[key] == 1
     assert not_valid[key] == 0
@@ -769,6 +952,198 @@ def test_valid_single_recipient_country(major_version):
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_with_validation()['country_or_region'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_passes(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="A01" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['aid_type'] == 1
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                <aid-type code="B01" />
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['aid_type'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_fails(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness()['aid_type'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_valid(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="A01" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 1
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="non-valid-code" />
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                <aid-type code="B01" />
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_aid_type_not_valid(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <default-aid-type code="non-valid-code" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 0
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                <aid-type code="A01" />
+            </transaction>
+            <transaction>
+                <aid-type code="non-valid-code" />
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 0
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <transaction>
+                
+            </transaction>
+            <transaction>
+                
+            </transaction>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['aid_type'] == 0
+
+
+# Note v1.xx data gets an automatic pass for iati_identifier as a special case: https://github.com/IATI/IATI-Dashboard/issues/399
+def test_iati_identifier_valid_v1_passes():
+    activity_stats = MockActivityStats('1')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="AA-AAA">Reporting ORG Name</reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <activity-status code="2"/> 
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+    activity_stats = MockActivityStats('1')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="AA-AAA">Reporting ORG Name</reporting-org>
+            <iati-identifier>NOT-PREFIXED-WITH-REPORTING-ORG_AA-AAA-1</iati-identifier>
+            <activity-status code="2"/> 
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+
+def test_iati_identifier_valid_v2_passes():
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="AA-AAA">
+                <narrative>Reporting ORG Name</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="BB-BBB">
+                <narrative>A new reporting org name (BB-BBB)</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <other-identifier ref="AA-AAA" type="B1">
+                <owner-org ref="BB-BBB">
+                    <narrative>Reporting org name (who previously were known as AA-AAA)</narrative>
+                </owner-org>   
+            </other-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 1
+
+
+def test_iati_identifier_valid_v2_fails():
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="BB-BBB">
+                <narrative>Reporting ORG Name</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 0
+
+    activity_stats = MockActivityStats('2')
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <reporting-org ref="BB-BBB">
+                <narrative>A new reporting org name (BB-BBB)</narrative>
+            </reporting-org>
+            <iati-identifier>AA-AAA-1</iati-identifier>
+            <other-identifier ref="AA-AAA" type="A1"><!-- @type set, but not of value 'B1'-->
+            </other-identifier>
+            <activity-status code="2"/>
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_with_validation()['iati-identifier'] == 0
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
@@ -1032,3 +1407,30 @@ def test_transaction_non_exclusions(key, major_version):
         </iati-activity>
     ''')
     assert activity_stats.comprehensiveness_denominators()[key] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensivness_denominator_recipient_language_true(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <recipient-country />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators()['recipient_language'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+def test_comprehensivness_denominator_recipient_language_false(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <activity-status code="2"/> 
+            <recipient-country code="AF" percentage="50" />
+            <recipient-country code="AG" percentage="50" />
+        </iati-activity>
+    ''')
+    assert activity_stats.comprehensiveness_denominators()['recipient_language'] == 0

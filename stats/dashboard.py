@@ -1,6 +1,6 @@
 """
 This is the default stats module used by calculate_stats.py
-You can choose a different set of tests by running calculate_stats.py with the ``--stats-module`` flag. 
+You can choose a different set of tests by running calculate_stats.py with the ``--stats-module`` flag.
 
 """
 from __future__ import print_function
@@ -80,7 +80,7 @@ def convert_to_float(x):
 
 
 # Import codelists
-## In order to test whether or not correct codelist values are being used in the data 
+## In order to test whether or not correct codelist values are being used in the data
 ## we need to pull in data about how codelists map to elements
 def get_codelist_mapping(major_version):
     codelist_mapping_xml = etree.parse('helpers/mapping-{}.xml'.format(major_version))
@@ -94,11 +94,11 @@ codelist_mappings = { major_version: get_codelist_mapping(major_version) for maj
 CODELISTS = {'1':{}, '2':{}}
 for major_version in ['1', '2']:
     for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory']:
-        CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data']) 
+        CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data'])
 
 
 # Import country language mappings, and save as a dictionary
-# Contains a dictionary of ISO 3166-1 country codes (as key) with a list of ISO 639-1 language codes (as value) 
+# Contains a dictionary of ISO 3166-1 country codes (as key) with a list of ISO 639-1 language codes (as value)
 reader = csv.reader(open('helpers/transparency_indicator/country_lang_map.csv'), delimiter=',')
 country_lang_map = {}
 for row in reader:
@@ -112,14 +112,14 @@ for row in reader:
 reference_spend_data = {}
 with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv_file:
     reader = csv.reader(csv_file, delimiter=',')
-    for line in reader: 
+    for line in reader:
         pub_registry_id = line[1]
 
         # Update the publisher registry ID, if this publisher has since updated their registry ID
         if pub_registry_id in get_registry_id_matches().keys():
             pub_registry_id = get_registry_id_matches()[pub_registry_id]
-        
-        reference_spend_data[pub_registry_id] = { 'publisher_name': line[0], 
+
+        reference_spend_data[pub_registry_id] = { 'publisher_name': line[0],
                                                   '2014_ref_spend': line[4],
                                                   '2015_ref_spend': line[7],
                                                   '2015_official_forecast': line[10],
@@ -131,7 +131,7 @@ def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """
     Converts an element and it's children to a dictionary containing the
     count for each xpath.
-    
+
     """
     if count_multiple:
         count_dict[path] += 1
@@ -256,8 +256,8 @@ def valid_coords(x):
 
 
 def get_currency(iati_activity_object, budget_pd_transaction):
-    """ Returns the currency used for a budget, planned disbursement or transaction value. This is based 
-        on either the currency specified in value/@currency, or the default currency specified in 
+    """ Returns the currency used for a budget, planned disbursement or transaction value. This is based
+        on either the currency specified in value/@currency, or the default currency specified in
         iati-activity/@default-currency).
     """
 
@@ -283,9 +283,9 @@ def has_xml_lang(obj):
 
 
 def get_language(major_version, iati_activity_obj, title_or_description_obj):
-    """ Returns the language (or languages if publishing to version 2.x) used for a single title or 
-        description element. This is based on either the language specified in @xml:lang 
-        (version 1.x) or narrative/@xml:lang (version 2.x), or the default language, as specified 
+    """ Returns the language (or languages if publishing to version 2.x) used for a single title or
+        description element. This is based on either the language specified in @xml:lang
+        (version 1.x) or narrative/@xml:lang (version 2.x), or the default language, as specified
         in iati-activity/@xml:lang).
         Input: iati_activity_object - An IATI Activity element. Will be self in most cases.
         Returns: List of language/s used in the given title_or_description_elem.
@@ -409,7 +409,7 @@ class ActivityStats(CommonSharedElements):
         currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
         currencies = [ c if c else self.element.get('default-currency') for c in currencies ]
         return dict( (c,1) for c in currencies )
-        
+
     def _planned_start_code(self):
         if self._major_version() == '1':
             return 'start-planned'
@@ -521,7 +521,7 @@ class ActivityStats(CommonSharedElements):
         for path in codelist_mappings[self._major_version()]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
-        return out 
+        return out
 
     @returns_numberdictdict
     def codelist_values_by_major_version(self):
@@ -539,12 +539,13 @@ class ActivityStats(CommonSharedElements):
                 'result/@aggregation-status',
                 'conditions/@attached',
                 'crs-add/aidtype-flag/@significance',
-                'fss/@priority'
+                'fss/@priority',
+                '@humanitarian'
                 ]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
-        return out 
-    
+        return out
+
     @returns_numberdict
     def provider_org(self):
         out = defaultdict(int)
@@ -566,7 +567,7 @@ class ActivityStats(CommonSharedElements):
     @returns_numberdict
     def transactions_incoming_funds(self):
         """
-        Counts the number of activities which contain at least one transaction with incoming funds. 
+        Counts the number of activities which contain at least one transaction with incoming funds.
         Also counts the number of transactions where the type is incoming funds
         """
         # Set default output
@@ -663,12 +664,12 @@ class ActivityStats(CommonSharedElements):
 
             # Set budget_value if a value exists for this budget. Else set to 0
             budget_value = 0 if value is None else Decimal(value.text)
-            
+
             out[budget_year(budget)][get_currency(self, budget)] += budget_value
         return out
 
     def _forwardlooking_is_current(self, year):
-        """Tests if an activity contains i) at least one (actual or planned) end year which is greater 
+        """Tests if an activity contains i) at least one (actual or planned) end year which is greater
            or equal to the year passed to this function, or ii) no (actual or planned) end years at all.
            Returns: True or False
         """
@@ -687,11 +688,11 @@ class ActivityStats(CommonSharedElements):
             Values are converted to USD to improve comparability.
             Returns: True or False
         """
-        
+
         # Compute the sum of all commitments
         # Get a list of commitment transactions
         commitment_transactions = self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))
-        
+
         # Convert transaction values to USD and aggregate
         commitment_transactions_usd_total = sum([get_USD_value(get_currency(self, transaction), transaction.xpath('value/text()')[0], iso_date(transaction.xpath('transaction-date')[0]).year) for transaction in commitment_transactions])
 
@@ -709,12 +710,12 @@ class ActivityStats(CommonSharedElements):
         """Returns True if this activity is deemed to be reported by a donor publisher.
            Methodology descibed in https://github.com/IATI/IATI-Dashboard/issues/377
         """
-        # If there is no 'reporting-org/@ref' element, return False to avoid a 'list index out of range' 
+        # If there is no 'reporting-org/@ref' element, return False to avoid a 'list index out of range'
         # error in the statement that follows
         if len(self.element.xpath('reporting-org/@ref')) < 1:
             return False
 
-        return ((self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(self._funding_code(), self._OrganisationRole_Extending_code()))) 
+        return ((self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(self._funding_code(), self._OrganisationRole_Extending_code())))
             and (self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(self._OrganisationRole_Implementing_code()))))
 
     @returns_dict
@@ -780,17 +781,17 @@ class ActivityStats(CommonSharedElements):
                 return True
 
         # If the actual end date is within the last year, then this is a current activity
-        for actual_end_date in activity_actual_end_dates: 
+        for actual_end_date in activity_actual_end_dates:
             if (actual_end_date>=add_years(self.today, -1)) and (actual_end_date <= self.today):
                 self.comprehensiveness_current_activity_status = 2
                 return True
-        
+
         # If the planned end date is greater than today, then this is a current activity
-        for planned_end_date in activity_planned_end_dates: 
+        for planned_end_date in activity_planned_end_dates:
             if planned_end_date>=self.today:
                 self.comprehensiveness_current_activity_status = 3
                 return True
-        
+
         # If got this far and not met one of the conditions to qualify as a current activity, return false
         self.comprehensiveness_current_activity_status = 0
         return False
@@ -801,7 +802,7 @@ class ActivityStats(CommonSharedElements):
         return {self.element.find('iati-identifier').text:self.comprehensiveness_current_activity_status}
 
     def _is_recipient_language_used(self):
-        """If there is only 1 recipient-country, test if one of the languages for that country is used 
+        """If there is only 1 recipient-country, test if one of the languages for that country is used
            in the title and description elements.
         """
 
@@ -816,11 +817,11 @@ class ActivityStats(CommonSharedElements):
             # Get lists of the languages used in the title and descripton elements
             langs_in_title = []
             for title_elem in self.element.findall('title'):
-               langs_in_title.extend(get_language(self._major_version(), self.element, title_elem)) 
-            
+               langs_in_title.extend(get_language(self._major_version(), self.element, title_elem))
+
             langs_in_description = []
             for descripton_elem in self.element.findall('description'):
-               langs_in_description.extend(get_language(self._major_version(), self.element, descripton_elem)) 
+               langs_in_description.extend(get_language(self._major_version(), self.element, descripton_elem))
 
 
             # Test if the languages used for the title and description are in the list of country langs
@@ -844,7 +845,7 @@ class ActivityStats(CommonSharedElements):
 
             If text is present return true, else false.
             """
-                
+
             # Use xpath to return a list of found text within the specified element name
             # The precise xpath needed will vary depending on the version
             if self._major_version() == '2':
@@ -861,11 +862,11 @@ class ActivityStats(CommonSharedElements):
 
             # Perform logic. If the list is not empty, return true. Otherwise false
             return True if textFound else False
-        
+
         return {
             'version': (self.element.getparent() is not None
                         and 'version' in self.element.getparent().attrib),
-            'reporting-org': (self.element.xpath('reporting-org/@ref') 
+            'reporting-org': (self.element.xpath('reporting-org/@ref')
                         and is_text_in_element('reporting-org')),
             'iati-identifier': self.element.xpath('iati-identifier/text()'),
             'participating-org': self.element.find('participating-org') is not None,
@@ -888,7 +889,7 @@ class ActivityStats(CommonSharedElements):
             'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code())),
             'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
             'transaction_currency': all_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-            'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) 
+            'transaction_traceability': all_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code())))
                                         or self._is_donor_publisher(),
             'budget': self.element.findall('budget'),
             'contact-info': self.element.findall('contact-info/email'),
@@ -944,7 +945,7 @@ class ActivityStats(CommonSharedElements):
                     bools['sector'] and
                     empty_or_percentage_sum_is_100('sector', by_vocab=True)),
                 'country_or_region': (
-                    bools['country_or_region'] and 
+                    bools['country_or_region'] and
                     empty_or_percentage_sum_is_100('recipient-country|recipient-region')),
                 'transaction_commitment': (
                     bools['transaction_commitment'] and
@@ -1147,7 +1148,7 @@ class GenericFileStats(object):
     @returns_numberdict
     def validation(self):
         version = self.root.attrib.get('version')
-        if version in [None, '1', '1.0', '1.00']: version = '1.01' 
+        if version in [None, '1', '1.0', '1.00']: version = '1.01'
         try:
             with open('helpers/schemas/{0}/{1}'.format(version, self.schema_name)) as f:
                 xmlschema_doc = etree.parse(f)
@@ -1158,7 +1159,7 @@ class GenericFileStats(object):
                     return {'fail':1}
         except IOError:
             debug(self, 'Unsupported version \'{0}\' '.format(version))
-            return {'fail':1} 
+            return {'fail':1}
 
     @returns_numberdict
     def wrong_roots(self):
@@ -1203,7 +1204,7 @@ class GenericFileStats(object):
     def updated_dates(self):
         return {self.updated().split(' ')[0]:1}
     """
-        
+
     @returns_number
     def empty(self):
         return 0
@@ -1221,7 +1222,7 @@ class GenericFileStats(object):
 
 
 
-    
+
 
 class ActivityFileStats(GenericFileStats):
     """ Stats calculated for an IATI Activity XML file. """
@@ -1293,18 +1294,18 @@ class PublisherStats(object):
 
     @returns_dict
     def reference_spend_data(self):
-        """Lookup the reference spend data (value and currency) for this publisher (obtained by using the 
+        """Lookup the reference spend data (value and currency) for this publisher (obtained by using the
            name of the folder), for years 2014 and 2015.
            Outputs an empty string for each element where there is no data.
         """
         if self.folder in reference_spend_data.keys():
-            # Note that the values may be strings or human-readable numbers (i.e. with commas to seperate thousands) 
-            return { '2014': { 'ref_spend': reference_spend_data[self.folder]['2014_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')) else '', 
-                               'currency': reference_spend_data[self.folder]['currency'], 
-                               'official_forecast_usd': '' }, 
-                     '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '', 
-                               'currency': reference_spend_data[self.folder]['currency'], 
-                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' },  
+            # Note that the values may be strings or human-readable numbers (i.e. with commas to seperate thousands)
+            return { '2014': { 'ref_spend': reference_spend_data[self.folder]['2014_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')) else '',
+                               'currency': reference_spend_data[self.folder]['currency'],
+                               'official_forecast_usd': '' },
+                     '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '',
+                               'currency': reference_spend_data[self.folder]['currency'],
+                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' },
                      'spend_data_error_reported': 1 if reference_spend_data[self.folder]['spend_data_error_reported'] else 0
                    }
         else:
@@ -1312,18 +1313,18 @@ class PublisherStats(object):
 
     @returns_dict
     def reference_spend_data_usd(self):
-        """For each year that there is reference spend data for this publisher, convert this 
+        """For each year that there is reference spend data for this publisher, convert this
            to the USD value for the given year
            Outputs an empty string for each element where there is no data.
         """
-        
+
         output = {}
 
         # Construct a list of reference spend data related to years 2015 & 2014 only
         ref_data_years = [x for x in self.reference_spend_data().items() if is_number(x[0])]
 
         # Loop over the years
-        for year, data in ref_data_years:    
+        for year, data in ref_data_years:
             # Construct output dictionary with USD values
             output[year] = {}
             output[year]['ref_spend'] = str(get_USD_value(data['currency'], data['ref_spend'], year)) if is_number(data['ref_spend']) else ''
@@ -1384,7 +1385,7 @@ class PublisherStats(object):
             return 'Annually'
         else:
             return ''
-   
+
     @no_aggregation
     @memoize
     def budget_length_median(self):
@@ -1479,7 +1480,7 @@ class OrganisationStats(CommonSharedElements):
     @returns_numberdict
     def element_versions(self):
         return { self.element.attrib.get('version'): 1 }
-        
+
 class AllDataStats(object):
     blank = False
 

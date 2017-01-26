@@ -1243,6 +1243,19 @@ class ActivityStats(CommonSharedElements):
             out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
         return out
 
+    @returns_numberdictdictdict
+    def sum_budgets_by_type_by_year_usd(self):
+        out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
+
+        # Loop over the values in computed in sum_budgets_by_type_by_year() and build a
+        # dictionary of USD values for the currency and year
+        for budget_type, data in self.sum_budgets_by_type_by_year().items():
+            for currency, years in data.items():
+                for year, value in years.items():
+                    if None not in [currency, value, year]:
+                        out[budget_type]['USD'][year] += get_USD_value(currency, value, year)
+        return out
+
     @returns_numberdict
     def count_planned_disbursements_by_year(self):
         out = defaultdict(int)

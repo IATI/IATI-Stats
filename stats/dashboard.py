@@ -95,7 +95,7 @@ codelist_mappings = { major_version: get_codelist_mapping(major_version) for maj
 CODELISTS = {'1':{}, '2':{}}
 for major_version in ['1', '2']:
     for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType']:
-        CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data']) 
+        CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data'])
 
 
 # Import country language mappings, and save as a dictionary
@@ -120,7 +120,7 @@ with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv
         if pub_registry_id in get_registry_id_matches().keys():
             pub_registry_id = get_registry_id_matches()[pub_registry_id]
 
-        reference_spend_data[pub_registry_id] = { 'publisher_name': line[0], 
+        reference_spend_data[pub_registry_id] = { 'publisher_name': line[0],
                                                   '2014_ref_spend': line[2],
                                                   '2015_ref_spend': line[6],
                                                   '2015_official_forecast': line[10],
@@ -540,7 +540,8 @@ class ActivityStats(CommonSharedElements):
                 'conditions/@attached',
                 'crs-add/aidtype-flag/@significance',
                 'fss/@priority',
-                '@humanitarian'
+                '@humanitarian',
+                'transaction/@humanitarian'
                 ]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
@@ -652,14 +653,14 @@ class ActivityStats(CommonSharedElements):
         return self._spend_currency_year(self.element.findall('transaction'))
 
     def _is_secondary_reported(self):
-        """Tests if this activity has been secondary reported. Test based on if the 
+        """Tests if this activity has been secondary reported. Test based on if the
            secondary-reporter flag is set.
         Input -- None
         Output:
           True -- Secondary-reporter flag set
           False -- Secondary-reporter flag not set, or evaulates to False
         """
-        return bool(filter(lambda x: int(x) if str(x).isdigit() else 0, 
+        return bool(filter(lambda x: int(x) if str(x).isdigit() else 0,
                      self.element.xpath('reporting-org/@secondary-reporter')))
 
     @returns_dict
@@ -687,15 +688,15 @@ class ActivityStats(CommonSharedElements):
         return out
 
     def _get_end_date(self):
-        """Gets the end date for the activity. An 'actual end date' is preferred 
+        """Gets the end date for the activity. An 'actual end date' is preferred
            over a 'planned end date'
            Inputs: None
            Output: a date object, or None if no value date found
         """
-        # Get enddate. An 'actual end date' is preferred over a 'planned end date'        
-        end_date_list = (self.element.xpath('activity-date[@type="{}"]'.format(self._actual_end_code())) or 
+        # Get enddate. An 'actual end date' is preferred over a 'planned end date'
+        end_date_list = (self.element.xpath('activity-date[@type="{}"]'.format(self._actual_end_code())) or
                          self.element.xpath('activity-date[@type="{}"]'.format(self._planned_end_code())))
-        
+
         # If there is a date, convert to a date object
         if end_date_list:
             return iso_date(end_date_list[0])
@@ -713,16 +714,16 @@ class ActivityStats(CommonSharedElements):
             for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_end_code(), self._actual_end_code()))
             if iso_date(x)
         ]
-        # Return boolean. True if activity_end_years is empty, or at least one of the actual/planned 
+        # Return boolean. True if activity_end_years is empty, or at least one of the actual/planned
         # end years is greater or equal to the year passed to this function
         return (not activity_end_years) or any(activity_end_year>=year for activity_end_year in activity_end_years)
 
     def _get_ratio_commitments_disbursements(self, year):
-        """ Calculates the ratio of commitments vs total amount disbursed or expended in or before the 
+        """ Calculates the ratio of commitments vs total amount disbursed or expended in or before the
             input year. Values are converted to USD to improve comparability.
             Input:
               year -- The point in time to aggregate expenditure and disbursements
-            Returns: 
+            Returns:
               Float: 0 represents no commitments disbursed, 1 represents all commitments disbursed.
         """
 
@@ -730,8 +731,8 @@ class ActivityStats(CommonSharedElements):
 
         # Build a list of tuples, each tuple contains: (currency, value, date)
         commitment_transactions = [(
-            get_currency(self, transaction), 
-            transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None, 
+            get_currency(self, transaction),
+            transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None,
             transaction_date(transaction)
             ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))]
 
@@ -742,8 +743,8 @@ class ActivityStats(CommonSharedElements):
         # Compute the sum of all disbursements and expenditures up to and including the inputted year
         # Build a list of tuples, each tuple contains: (currency, value, date)
         exp_disb_transactions = [(
-            get_currency(self, transaction), 
-            transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None, 
+            get_currency(self, transaction),
+            transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None,
             transaction_date(transaction)
             ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code()))]
 
@@ -760,7 +761,7 @@ class ActivityStats(CommonSharedElements):
         """ Tests if an activity should be excluded from the forward looking calculations.
             Activities are excluded if:
               i) They end within six months from date_code_runs OR
-              ii) At least 90% of the commitment transactions has been disbursed or expended 
+              ii) At least 90% of the commitment transactions has been disbursed or expended
                   within or before the input year
 
             This arises from:
@@ -777,7 +778,7 @@ class ActivityStats(CommonSharedElements):
         # Set date_code_runs. Defaults to self.now (as a date object)
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
 
-        # If this activity has an end date, check that it will not end within the next six 
+        # If this activity has an end date, check that it will not end within the next six
         # months from date_code_runs
         if self._get_end_date():
             if (date_code_runs + relativedelta(months=+6)) > self._get_end_date():
@@ -1007,14 +1008,14 @@ class ActivityStats(CommonSharedElements):
             'conditions_attached': self.element.xpath('conditions/@attached'),
             'result_indicator': self.element.xpath('result/indicator'),
             'aid_type': (
-                all_and_not_empty(self.element.xpath('default-aid-type/@code')) 
+                all_and_not_empty(self.element.xpath('default-aid-type/@code'))
                 or all_and_not_empty([transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')])
                 )
             # Alternative: all(map(all_and_not_empty, [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]))
         }
 
     def _comprehensiveness_with_validation_bools(self):
-            
+
             def element_ref(element_obj):
                 """Get the ref attribute of a given element
 
@@ -1022,7 +1023,7 @@ class ActivityStats(CommonSharedElements):
                   Value in the 'ref' attribute or None if none found
                 """
                 return element_obj.attrib.get('ref') if element_obj is not None else None
-            
+
             bools = copy.copy(self._comprehensiveness_bools())
             reporting_org_ref = element_ref(self.element.find('reporting-org'))
             previous_reporting_org_refs = [element_ref(x) for x in self.element.xpath('other-identifier[@type="B1"]') if element_ref(x) is not None]
@@ -1053,11 +1054,11 @@ class ActivityStats(CommonSharedElements):
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
                 'iati-identifier': (
-                    bools['iati-identifier'] and 
+                    bools['iati-identifier'] and
                     (
                         # Give v1.xx data an automatic pass on this sub condition: https://github.com/IATI/IATI-Dashboard/issues/399
-                        (reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or 
-                        any([self.element.find('iati-identifier').text.startswith(x) for x in previous_reporting_org_refs]) 
+                        (reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or
+                        any([self.element.find('iati-identifier').text.startswith(x) for x in previous_reporting_org_refs])
                         if self._major_version() is not '1' else True
                     )),
                 'participating-org': bools['participating-org'] and self._funding_code() in self.element.xpath('participating-org/@role'),
@@ -1106,12 +1107,12 @@ class ActivityStats(CommonSharedElements):
                     valid_url(x) and x.find('category') is not None and x.find('category').attrib.get('code') in CODELISTS[self._major_version()]['DocumentCategory'] for x in bools['document-link']),
                 'activity-website': all_and_not_empty(map(valid_url, bools['activity-website'])),
                 'aid_type': (
-                    bools['aid_type'] and 
+                    bools['aid_type'] and
                     # i) Value in default-aid-type/@code is found in the codelist
                     (all_and_not_empty([code in CODELISTS[self._major_version()]['AidType'] for code in self.element.xpath('default-aid-type/@code')])
                      # Or ii) Each transaction has a aid-type/@code which is found in the codelist
                      or all_and_not_empty(
-                        [set(x).intersection(CODELISTS[self._major_version()]['AidType']) 
+                        [set(x).intersection(CODELISTS[self._major_version()]['AidType'])
                         for x in [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]]
                         )
                     ))
@@ -1171,7 +1172,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdictdict
     def transaction_dates(self):
-        """Generates a dictionary of dates for reported transactions, together 
+        """Generates a dictionary of dates for reported transactions, together
            with the number of times they appear.
         """
         out = defaultdict(lambda: defaultdict(int))
@@ -1214,7 +1215,7 @@ class ActivityStats(CommonSharedElements):
     def sum_transactions_by_type_by_year_usd(self):
         out = defaultdict(lambda: defaultdict(lambda: defaultdict(Decimal)))
 
-        # Loop over the values in computed in sum_transactions_by_type_by_year() and build a 
+        # Loop over the values in computed in sum_transactions_by_type_by_year() and build a
         # dictionary of USD values for the currency and year
         for transaction_type, data in self.sum_transactions_by_type_by_year().items():
             for currency, years in data.items():
@@ -1438,13 +1439,13 @@ class PublisherStats(object):
         """
         if self.folder in reference_spend_data.keys():
 
-            # Note that the values may be strings or human-readable numbers (i.e. with commas to seperate thousands) 
-            return { '2014': { 'ref_spend': reference_spend_data[self.folder]['2014_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')) else '', 
-                               'currency': reference_spend_data[self.folder]['currency'], 
-                               'official_forecast_usd': '' }, 
-                     '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '', 
-                               'currency': reference_spend_data[self.folder]['currency'], 
-                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' },  
+            # Note that the values may be strings or human-readable numbers (i.e. with commas to seperate thousands)
+            return { '2014': { 'ref_spend': reference_spend_data[self.folder]['2014_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2014_ref_spend'].replace(',','')) else '',
+                               'currency': reference_spend_data[self.folder]['currency'],
+                               'official_forecast_usd': '' },
+                     '2015': { 'ref_spend': reference_spend_data[self.folder]['2015_ref_spend'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_ref_spend'].replace(',','')) else '',
+                               'currency': reference_spend_data[self.folder]['currency'],
+                               'official_forecast_usd': reference_spend_data[self.folder]['2015_official_forecast'].replace(',','') if is_number(reference_spend_data[self.folder]['2015_official_forecast'].replace(',','')) else '' },
                      'spend_data_error_reported': 1 if reference_spend_data[self.folder]['spend_data_error_reported'] else 0,
                      'DAC': 1 if reference_spend_data[self.folder]['DAC'] else 0
                    }
@@ -1579,7 +1580,7 @@ class PublisherStats(object):
 
     @no_aggregation
     def most_recent_transaction_date(self):
-        """Computes the latest non-future transaction data across a dataset 
+        """Computes the latest non-future transaction data across a dataset
         """
         nonfuture_transaction_dates = filter(lambda x: x is not None and x <= self.today,
             map(iso_date_match, sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])))

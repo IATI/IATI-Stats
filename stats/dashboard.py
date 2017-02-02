@@ -535,10 +535,12 @@ class ActivityStats(CommonSharedElements):
     def boolean_values(self):
         out = defaultdict(lambda: defaultdict(int))
         for path in [
+		'reporting-org/@secondary-reporter',
                 'result/indicator/@ascending',
                 'result/@aggregation-status',
                 'conditions/@attached',
                 'crs-add/aidtype-flag/@significance',
+		'crs-add/other-flags/@significance',
                 'fss/@priority',
                 '@humanitarian',
                 'transaction/@humanitarian'

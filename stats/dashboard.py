@@ -537,10 +537,10 @@ class ActivityStats(CommonSharedElements):
         for path in [
                 'conditions/@attached',
                 'crs-add/aidtype-flag/@significance',
-		'crs-add/other-flags/@significance',
+                'crs-add/other-flags/@significance',
                 'fss/@priority',
                 '@humanitarian',
-		'reporting-org/@secondary-reporter',
+                'reporting-org/@secondary-reporter',
                 'result/indicator/@ascending',
                 'result/@aggregation-status',
                 'transaction/@humanitarian'

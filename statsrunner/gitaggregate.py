@@ -30,7 +30,8 @@ whitelisted_stats_files = [
     'publishers_validation',
     'unique_identifiers',
     'validation',
-    'versions'
+    'versions',
+    'teststat'
     ]
 
 # Load the reference of commits to dates 

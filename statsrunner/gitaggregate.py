@@ -31,7 +31,7 @@ whitelisted_stats_files = [
     'unique_identifiers',
     'validation',
     'versions',
-    'teststat'
+    'teststat' # Extra 'stat' added as the test_gitaggregate.py assumes a file with this name is present
     ]
 
 # Load the reference of commits to dates 

@@ -16,15 +16,21 @@ git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-dated' if dated else 'gitag
 # Exclude some json stats files from being aggregated
 # These are typically the largest stats files that would consume large amounts of 
 # memory/disk space if aggregated over time
-blacklisted_stats_files = [
-    'codelist_values',
-    'iati_identifiers',
-    'duplicate_identifiers',
-    'publisher_duplicate_identifiers',
-    'participating_orgs_text',
-    'transaction_dates',
-    'comprehensiveness_current_activities',
-    'forwardlooking_excluded_activities'
+whitelisted_stats_files = [
+    'activities',
+    'activity_files',
+    'file_size_bins',
+    'file_size',
+    'invalidxml',
+    'nonstandardroots',
+    'organisation_files',
+    'publisher_has_org_file',
+    'publishers_per_version',
+    'publishers',
+    'publishers_validation',
+    'unique_identifiers',
+    'validation',
+    'versions'
     ]
 
 # Load the reference of commits to dates 
@@ -50,7 +56,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
         
         k = fname[:-5] # remove '.json' from the filename
         # Ignore certain files
-        if k in blacklisted_stats_files:
+        if k not in whitelisted_stats_files:
            continue
 
         print 'Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname)

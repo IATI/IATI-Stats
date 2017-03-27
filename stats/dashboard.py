@@ -351,6 +351,7 @@ class CommonSharedElements(object):
     @returns_numberdict
     @memoize
     def _major_version(self):
+        # TODO: Refactor to use _version
         parent = self.element.getparent()
         if parent is None:
             print('No parent of iati-activity, is this a test? Assuming version 1.xx')
@@ -360,6 +361,20 @@ class CommonSharedElements(object):
             return '2'
         else:
             return '1'
+
+    @returns_numberdict
+    @memoize
+    def _version(self):
+        allowed_versions = CODELISTS['2']['Version']
+        parent = self.element.getparent()
+        if parent is None:
+            print('No parent of iati-activity, is this a test? Assuming version 1.01')
+            return '1.01'
+        version = self.element.getparent().attrib.get('version')
+        if version and version in allowed_versions:
+            return version
+        else:
+            return '1.01'
 
     @returns_numberdict
     def ruleset_passes(self):

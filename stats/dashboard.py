@@ -1278,8 +1278,6 @@ class ActivityStats(CommonSharedElements):
         return out
 
 
-
-import json
 ckan = json.load(open('helpers/ckan.json'))
 publisher_re = re.compile('(.*)\-[^\-]')
 

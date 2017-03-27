@@ -13,6 +13,9 @@ class MockActivityStats(ActivityStats):
     def _major_version(self):
         return self.major_version
 
+    def _version(self):
+        return self._major_version() + '.02'
+
 @pytest.mark.parametrize('major_version', ['2'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_attrib_true(major_version, hum_attrib_val):
@@ -27,6 +30,7 @@ def test_humanitarian_attrib_true(major_version, hum_attrib_val):
     '''.format(hum_attrib_val))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 1
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -44,6 +48,7 @@ def test_humanitarian_attrib_false(major_version, hum_attrib_val):
     '''.format(hum_attrib_val))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -69,6 +74,7 @@ def test_humanitarian_sector_true(major_version, sector, xml):
     activity_stats.element = etree.fromstring(xml.format(sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -87,6 +93,7 @@ def test_humanitarian_sector_false_bad_codes(major_version, sector):
     '''.format(sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -105,6 +112,7 @@ def test_humanitarian_sector_false_bad_vocab(major_version, sector):
     '''.format(sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -126,6 +134,7 @@ def test_humanitarian_attrib_true_sector_anything(major_version, sector, hum_att
     '''.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 1
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -145,6 +154,7 @@ def test_humanitarian_attrib_false_sector_true(major_version, sector, hum_attrib
     '''.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -164,6 +174,7 @@ def test_humanitarian_attrib_false_sector_false(major_version, sector, hum_attri
     '''.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
@@ -181,4 +192,132 @@ def test_humanitarian_attrib_false_sector_false(major_version, hum_attrib_val):
     '''.format(hum_attrib_val))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
+def test_humanitarian_elements_valid_version(version, hum_attrib_val):
+    """
+    Tests that humanitarian elements are detected at supported versions.
+    """
+
+    activity_stats = ActivityStats()
+
+    tree = etree.fromstring('''
+        <iati-activities version="{0}">
+           <iati-activity humanitarian="{1}">
+              <humanitarian-scope type="" code="" />
+           </iati-activity>
+        </iati-activities>
+    '''.format(version, hum_attrib_val))
+
+    activity_stats.element = tree.getchildren()[0]
+
+    assert activity_stats.humanitarian()['is_humanitarian'] == 1
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 1
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 1
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', 'unknown version'])
+@pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
+def test_humanitarian_elements_invalid_version(version, hum_attrib_val):
+    """
+    Tests that humanitarian elements are detected at supported versions.
+    """
+
+    activity_stats = ActivityStats()
+
+    tree = etree.fromstring('''
+        <iati-activities version="{0}">
+           <iati-activity humanitarian="{1}">
+              <humanitarian-scope type="" code="" />
+           </iati-activity>
+        </iati-activities>
+    '''.format(version, hum_attrib_val))
+
+    activity_stats.element = tree.getchildren()[0]
+
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['2'])
+def test_humanitarian_scope_valid(major_version):
+    """
+    Detect that an activity contains a humanitarian-scope element and required attributes.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+           <humanitarian-scope type="" code="" />
+        </iati-activity>
+    ''')
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['2'])
+def test_humanitarian_scope_invalid(major_version):
+    """
+    Detect that an activity contains a humanitarian-scope element without required attributes.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+           <humanitarian-scope />
+        </iati-activity>
+    ''')
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['2'])
+def test_humanitarian_clusters_valid(major_version):
+    """
+    Detect that an activity contains a sector defined by the 'Humanitarian Global Clusters' sector vocabulary.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+           <sector vocabulary="10" />
+        </iati-activity>
+    ''')
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 1
+
+
+@pytest.mark.parametrize('major_version', ['1'])
+def test_humanitarian_clusters_version_1(major_version):
+    """
+    Detect that a version 1 activity containing a sector defined by the 'Humanitarian Global Clusters' sector vocabulary is not detected.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+           <sector vocabulary="10" />
+        </iati-activity>
+    ''')
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['2'])
+@pytest.mark.parametrize('sector_vocabulary_code', ['', '1', 'internal vocabulary'])
+def test_humanitarian_clusters_invalid(major_version, sector_vocabulary_code):
+    """
+    Detect that an activity does not contain a sector defined by the 'Humanitarian Global Clusters' sector vocabulary.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+           <sector vocabulary="{0}" />
+        </iati-activity>
+    '''.format(sector_vocabulary_code))
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+ 

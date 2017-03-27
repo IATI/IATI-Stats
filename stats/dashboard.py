@@ -1165,6 +1165,21 @@ class ActivityStats(CommonSharedElements):
                 'transaction_traceability': 0
             }
 
+    @returns_numberdict
+    def humanitarian(self):
+        humanitarian_sectors_dac = ['72010', '74010']
+
+        is_humanitarian_by_attrib = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) else 0
+        # import pdb;pdb.set_trace()
+        is_humanitarian_by_sector = 1 if set(self.element.xpath('sector[@vocabulary="1" or not(@vocabulary)]/@code')).intersection(humanitarian_sectors_dac) else 0
+
+        return {
+            'is_humanitarian': 1 if (is_humanitarian_by_attrib or is_humanitarian_by_sector) else 0,
+            'is_humanitarian_by_attrib': is_humanitarian_by_attrib,
+            'contains_humanitarian_scope': 1 if (self.element.xpath('humanitarian-scope/@type') and self.element.xpath('humanitarian-scope/@code')) else 0,
+            'uses_humanitarian_clusters_vocab': 1 if self.element.xpath('sector/@vocabulary="10"') else 0
+        }
+
     def _transaction_type_code(self, transaction):
         type_code = None
         transaction_type = transaction.find('transaction-type')

@@ -1169,8 +1169,7 @@ class ActivityStats(CommonSharedElements):
     def humanitarian(self):
         humanitarian_sectors_dac = ['72010', '74010']
 
-        is_humanitarian_by_attrib = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) else 0
-        # import pdb;pdb.set_trace()
+        is_humanitarian_by_attrib = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) and (self._major_version() in ['2']) else 0
         is_humanitarian_by_sector = 1 if set(self.element.xpath('sector[@vocabulary="1" or not(@vocabulary)]/@code')).intersection(humanitarian_sectors_dac) else 0
 
         return {

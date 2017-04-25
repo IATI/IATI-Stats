@@ -16,6 +16,9 @@ class MockActivityStats(ActivityStats):
     def _version(self):
         return self._major_version() + '.02'
 
+HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
+HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
+
 @pytest.mark.parametrize('major_version', ['2'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_attrib_true(major_version, hum_attrib_val):
@@ -53,7 +56,7 @@ def test_humanitarian_attrib_false(major_version, hum_attrib_val):
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
-@pytest.mark.parametrize('sector', [72010, 74010])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('xml', ['''
         <iati-activity>
         	<sector code="{0}" />
@@ -66,6 +69,28 @@ def test_humanitarian_attrib_false(major_version, hum_attrib_val):
 def test_humanitarian_sector_true(major_version, sector, xml):
     """
     Detects an activity to be humanitarian using sector codes considered to relate to humanitarian.
+
+    Also checks that the appropriate vocabulary is provided or assumed.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring(xml.format(sector))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 1
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS)
+@pytest.mark.parametrize('xml', ['''
+        <iati-activity>
+            <sector code="{0}" vocabulary="2" />
+        </iati-activity>
+    '''])
+def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
+    """
+    Detects an activity to be humanitarian using 3-digit sector codes considered to relate to humanitarian.
 
     Also checks that the appropriate vocabulary is provided or assumed.
     """
@@ -98,8 +123,9 @@ def test_humanitarian_sector_false_bad_codes(major_version, sector):
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
-@pytest.mark.parametrize('sector', [72010, 74010])
-def test_humanitarian_sector_false_bad_vocab(major_version, sector):
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
+@pytest.mark.parametrize('vocab', [2, 99])
+def test_humanitarian_sector_false_bad_vocab(major_version, sector, vocab):
     """
     Detects an activity not to be humanitarian due to specification of an incorrect vocabulary despite @code values that are considered to relate to humanitarian by default.
     """
@@ -107,9 +133,31 @@ def test_humanitarian_sector_false_bad_vocab(major_version, sector):
 
     activity_stats.element = etree.fromstring('''
         <iati-activity>
-        	<sector code="{0}" vocabulary="99" />
+        	<sector code="{0}" vocabulary="{1}" />
         </iati-activity>
-    '''.format(sector))
+    '''.format(sector, vocab))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('major_version', ['1', '2'])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS)
+@pytest.mark.parametrize('vocab', [1, 99])
+def test_humanitarian_sector_false_bad_vocab_3_digit(major_version, sector, vocab):
+    """
+    Detects an activity to be humanitarian using 3-digit sector codes considered to relate to humanitarian.
+
+    Also checks that the appropriate vocabulary is provided or assumed.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <sector code="{0}" vocabulary="{1}" />
+        </iati-activity>
+    '''.format(sector, vocab))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
@@ -117,7 +165,7 @@ def test_humanitarian_sector_false_bad_vocab(major_version, sector):
 
 
 @pytest.mark.parametrize('major_version', ['2'])
-@pytest.mark.parametrize('sector', [72010, 74010, -89, 'not_a_code'])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS + [89, 'not_a_code'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_attrib_true_sector_anything(major_version, sector, hum_attrib_val):
     """
@@ -139,7 +187,7 @@ def test_humanitarian_attrib_true_sector_anything(major_version, sector, hum_att
 
 
 @pytest.mark.parametrize('major_version', ['2'])
-@pytest.mark.parametrize('sector', [72010, 74010])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('hum_attrib_val', ['0', 'false', 'True', 'False', ''])
 def test_humanitarian_attrib_false_sector_true(major_version, sector, hum_attrib_val):
     """
@@ -320,4 +368,4 @@ def test_humanitarian_clusters_invalid(major_version, sector_vocabulary_code):
         </iati-activity>
     '''.format(sector_vocabulary_code))
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
- 
+

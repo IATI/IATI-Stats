@@ -2,6 +2,14 @@ from stats.dashboard import valid_coords, valid_date, valid_url, valid_value
 from lxml import etree
 
 def test_valid_coords():
+    """
+    Check that coordinates for a location on Earth are correctly detected as valid or not.
+
+    Coordinates are located within an `iati-activity/location/point/pos`, though the validity function takes only the text.
+
+    Note:
+        The `(0, 0)` coordinate is permitted data against the IATI Standard, though is deemed invalid for Stats purposes since there is no reasonable reason an Activity would be undertaken there - it's in international waters in the ocean.
+    """
     # empty values
     assert not valid_coords(etree.fromstring('<pos/>').text)
     assert not valid_coords(etree.fromstring('<pos />').text)

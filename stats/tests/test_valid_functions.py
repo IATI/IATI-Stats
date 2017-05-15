@@ -1,5 +1,41 @@
-from stats.dashboard import valid_date, valid_url, valid_value
+from stats.dashboard import valid_coords, valid_date, valid_url, valid_value
 from lxml import etree
+
+def test_valid_coords():
+    # empty values
+    assert not valid_coords(etree.fromstring('<pos/>').text)
+    assert not valid_coords(etree.fromstring('<pos />').text)
+    assert not valid_coords(etree.fromstring('<pos></pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>  </pos>').text)
+    # incorrect spacing
+    assert not valid_coords(etree.fromstring('<pos> 1 2 </pos>').text)
+    assert not valid_coords(etree.fromstring('<pos> 1 2</pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>1 2 </pos>').text)
+    # invalid characters
+    assert not valid_coords(etree.fromstring('<pos>a b</pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>one two</pos>').text)
+    # incorrect number of values
+    assert not valid_coords(etree.fromstring('<pos>1</pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>1 2 3</pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>1 2.3 4</pos>').text)
+    # beyond boundary values
+    assert not valid_coords(etree.fromstring('<pos>-90.00001 -180.00001</pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>-90.00001 180.00001</pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>90.00001 -180.00001</pos>').text)
+    assert not valid_coords(etree.fromstring('<pos>90.00001 180.00001</pos>').text)
+
+    # general permitted values
+    assert valid_coords(etree.fromstring('<pos>1 2</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>0 0</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>1.2 2.3</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>1.23456789 2.34567890</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>-1.2 -2.3</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>-1.23456789 -2.34567890</pos>').text)
+    # boundary values
+    assert valid_coords(etree.fromstring('<pos>-90 -180</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>-90 180</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>90 -180</pos>').text)
+    assert valid_coords(etree.fromstring('<pos>90 180</pos>').text)
 
 def test_valid_date():
     assert not valid_date(etree.XML('<activity-date iso-date=""/>'))

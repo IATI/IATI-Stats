@@ -252,7 +252,7 @@ def valid_coords(x):
     try:
         x = decimal.Decimal(coords[0])
         y = decimal.Decimal(coords[1])
-        if x == 0 and y ==0:
+        if x == 0 and y == 0:
             return False
         elif x < -90 or x > 90 or y < -180 or y > 180:
             return False

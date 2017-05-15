@@ -23,10 +23,11 @@ def test_valid_coords():
     assert not valid_coords(etree.fromstring('<pos>-90.00001 180.00001</pos>').text)
     assert not valid_coords(etree.fromstring('<pos>90.00001 -180.00001</pos>').text)
     assert not valid_coords(etree.fromstring('<pos>90.00001 180.00001</pos>').text)
+    # value deemed invalid for Stats purposes (though valid against the Standard)
+    assert not valid_coords(etree.fromstring('<pos>0 0</pos>').text)
 
     # general permitted values
     assert valid_coords(etree.fromstring('<pos>1 2</pos>').text)
-    assert valid_coords(etree.fromstring('<pos>0 0</pos>').text)
     assert valid_coords(etree.fromstring('<pos>1.2 2.3</pos>').text)
     assert valid_coords(etree.fromstring('<pos>1.23456789 2.34567890</pos>').text)
     assert valid_coords(etree.fromstring('<pos>-1.2 -2.3</pos>').text)

@@ -250,13 +250,13 @@ def valid_coords(x):
     if len(coords) != 2:
         return False
     try:
-        x = decimal.Decimal(coords[0])
-        y = decimal.Decimal(coords[1])
+        lat = decimal.Decimal(coords[0])
+        lng = decimal.Decimal(coords[1])
         # the (0, 0) coordinate is invalid since it's in the ocean in international waters and near-certainly not actual data
-        if x == 0 and y == 0:
+        if lat == 0 and lng == 0:
             return False
         # values outside the valid (lat, lng) coordinate space are invalid
-        elif x < -90 or x > 90 or y < -180 or y > 180:
+        elif lat < -90 or lat > 90 or lng < -180 or lng > 180:
             return False
         else:
             return True

@@ -243,7 +243,10 @@ def valid_value(value_element):
 
 
 def valid_coords(x):
-    coords = x.split(' ')
+    try:
+        coords = x.split(' ')
+    except AttributeError:
+        return False
     if len(coords) != 2:
         return False
     try:

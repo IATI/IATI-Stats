@@ -351,6 +351,7 @@ class CommonSharedElements(object):
     @returns_numberdict
     @memoize
     def _major_version(self):
+        # TODO: Refactor to use _version
         parent = self.element.getparent()
         if parent is None:
             print('No parent of iati-activity, is this a test? Assuming version 1.xx')
@@ -360,6 +361,20 @@ class CommonSharedElements(object):
             return '2'
         else:
             return '1'
+
+    @returns_numberdict
+    @memoize
+    def _version(self):
+        allowed_versions = CODELISTS['2']['Version']
+        parent = self.element.getparent()
+        if parent is None:
+            print('No parent of iati-activity, is this a test? Assuming version 1.01')
+            return '1.01'
+        version = self.element.getparent().attrib.get('version')
+        if version and version in allowed_versions:
+            return version
+        else:
+            return '1.01'
 
     @returns_numberdict
     def ruleset_passes(self):
@@ -1165,6 +1180,23 @@ class ActivityStats(CommonSharedElements):
                 'transaction_traceability': 0
             }
 
+    @returns_numberdict
+    def humanitarian(self):
+        humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010']
+        humanitarian_sectors_dac_3_digit = ['720', '730', '740']
+
+        is_humanitarian_by_attrib = 1 if (self._version() in ['2.02']) and ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) else 0
+        is_humanitarian_by_sector_5_digit = 1 if set(self.element.xpath('sector[@vocabulary="1" or not(@vocabulary)]/@code')).intersection(humanitarian_sectors_dac_5_digit) else 0
+        is_humanitarian_by_sector_3_digit = 1 if set(self.element.xpath('sector[@vocabulary="2"]/@code')).intersection(humanitarian_sectors_dac_3_digit) else 0
+        is_humanitarian_by_sector = is_humanitarian_by_sector_5_digit or is_humanitarian_by_sector_3_digit
+
+        return {
+            'is_humanitarian': 1 if (is_humanitarian_by_attrib or is_humanitarian_by_sector) else 0,
+            'is_humanitarian_by_attrib': is_humanitarian_by_attrib,
+            'contains_humanitarian_scope': 1 if (self._version() in ['2.02']) and self.element.xpath('humanitarian-scope/@type') and self.element.xpath('humanitarian-scope/@code') else 0,
+            'uses_humanitarian_clusters_vocab': 1 if (self._major_version() in ['2']) and self.element.xpath('sector/@vocabulary="10"') else 0
+        }
+
     def _transaction_type_code(self, transaction):
         type_code = None
         transaction_type = transaction.find('transaction-type')
@@ -1278,8 +1310,6 @@ class ActivityStats(CommonSharedElements):
         return out
 
 
-
-import json
 ckan = json.load(open('helpers/ckan.json'))
 publisher_re = re.compile('(.*)\-[^\-]')
 

@@ -76,6 +76,7 @@ for commit in $commits; do
         if [ $directory_len -lt 6 ]
         then
             echo "Skipping empty data directory on commit: $commit"
+            cd .. || exit $?
             continue
         fi
 

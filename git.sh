@@ -75,6 +75,7 @@ for commit in $commits; do
         directory_len=`ls -la | wc -l`
         if [ $directory_len -lt 6 ]
         then
+            echo "Skipping empty data directory on commit: $commit"
             continue
         fi
 

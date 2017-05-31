@@ -16,12 +16,8 @@ class MockActivityStats(ActivityStats):
     def _version(self):
         return self._major_version() + '.02'
 
-CODES_5_DIGITS_MIN = 72010
-CODES_5_DIGITS_MAX = 74010
-CODES_3_DIGITS_MIN = 720
-CODES_3_DIGITS_MAX = 740
-HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010] + [random.randint(CODES_5_DIGITS_MIN, CODES_5_DIGITS_MAX) for _ in range(0, 10)]
-HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740] + [random.randint(CODES_3_DIGITS_MIN, CODES_3_DIGITS_MAX) for _ in range(0, 10)]
+HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
+HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
 
 @pytest.mark.parametrize('major_version', ['2'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
@@ -108,7 +104,7 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
-@pytest.mark.parametrize('sector', [-89, 'not_a_code', CODES_5_DIGITS_MIN-1, CODES_5_DIGITS_MAX+1, CODES_3_DIGITS_MIN-1, CODES_3_DIGITS_MAX+1])
+@pytest.mark.parametrize('sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1]-1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1]-1])
 def test_humanitarian_sector_false_bad_codes(major_version, sector):
     """
     Detects an activity not to be humanitarian using sector codes that are not considered to relate to humanitarian.

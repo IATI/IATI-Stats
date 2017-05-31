@@ -147,9 +147,7 @@ def test_humanitarian_sector_false_bad_vocab(major_version, sector, vocab):
 @pytest.mark.parametrize('vocab', [1, 99, 'DAC'])
 def test_humanitarian_sector_false_bad_vocab_3_digit(major_version, sector, vocab):
     """
-    Detects an activity to be humanitarian using 3-digit sector codes considered to relate to humanitarian.
-
-    Also checks that the appropriate vocabulary is provided or assumed.
+    Detects an activity not to be humanitarian due to specification of an incorrect vocabulary despite 3-digit @code values that are considered to relate to humanitarian by default.
     """
     activity_stats = MockActivityStats(major_version)
 

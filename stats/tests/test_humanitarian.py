@@ -1,5 +1,4 @@
 # coding=utf-8
-import random
 from lxml import etree
 import pytest
 

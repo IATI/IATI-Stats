@@ -1182,9 +1182,8 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def humanitarian(self):
-        # [str(x) for x in range(72010, 74011)]
-        humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010']
-        humanitarian_sectors_dac_3_digit = ['720', '730', '740']
+        humanitarian_sectors_dac_5_digit = [str(x) for x in range(72010, 74011)]
+        humanitarian_sectors_dac_3_digit = [str(x) for x in range(720, 741)]
 
         is_humanitarian_by_attrib = 1 if (self._version() in ['2.02']) and ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) else 0
         is_humanitarian_by_sector_5_digit = 1 if set(self.element.xpath('sector[@vocabulary="{0}" or not(@vocabulary)]/@code'.format(self._dac_5_code()))).intersection(humanitarian_sectors_dac_5_digit) else 0

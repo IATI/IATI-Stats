@@ -164,6 +164,44 @@ def test_humanitarian_sector_false_bad_vocab_3_digit(major_version, sector, voca
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS + HUMANITARIAN_SECTOR_CODES_5_DIGITS)
+@pytest.mark.parametrize('vocab', ['1', '2', ''])
+def test_humanitarian_sector_false_bad_major_version_1(sector, vocab, major_version='1'):
+    """
+    Detects an activity not to be humanitarian due to specification of a vocabulary that is valid at an alternative major version of the Standard.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <sector code="{0}" vocabulary="{1}" />
+        </iati-activity>
+    '''.format(sector, vocab))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS + HUMANITARIAN_SECTOR_CODES_5_DIGITS)
+@pytest.mark.parametrize('vocab', ['DAC', 'DAC-3', ''])
+def test_humanitarian_sector_false_bad_major_version_2(sector, vocab, major_version='2'):
+    """
+    Detects an activity not to be humanitarian due to specification of a vocabulary that is valid at an alternative major version of the Standard.
+    """
+    activity_stats = MockActivityStats(major_version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+            <sector code="{0}" vocabulary="{1}" />
+        </iati-activity>
+    '''.format(sector, vocab))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
 @pytest.mark.parametrize('major_version', ['2'])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS + [89, 'not_a_code'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])

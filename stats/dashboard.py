@@ -1182,6 +1182,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def humanitarian(self):
+        # [str(x) for x in range(72010, 74011)]
         humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010']
         humanitarian_sectors_dac_3_digit = ['720', '730', '740']
 

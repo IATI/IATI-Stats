@@ -1,5 +1,5 @@
 # coding=utf-8
-
+import random
 from lxml import etree
 import pytest
 
@@ -16,8 +16,12 @@ class MockActivityStats(ActivityStats):
     def _version(self):
         return self._major_version() + '.02'
 
-HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
-HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
+CODES_5_DIGITS_MIN = 72010
+CODES_5_DIGITS_MAX = 74010
+CODES_3_DIGITS_MIN = 720
+CODES_3_DIGITS_MAX = 740
+HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010] + [random.randint(CODES_5_DIGITS_MIN, CODES_5_DIGITS_MAX) for _ in range(0, 10)]
+HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740] + [random.randint(CODES_3_DIGITS_MIN, CODES_3_DIGITS_MAX) for _ in range(0, 10)]
 
 @pytest.mark.parametrize('major_version', ['2'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])

@@ -108,7 +108,7 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
-@pytest.mark.parametrize('sector', [-89, 'not_a_code'])
+@pytest.mark.parametrize('sector', [-89, 'not_a_code', CODES_5_DIGITS_MIN-1, CODES_5_DIGITS_MAX+1, CODES_3_DIGITS_MIN-1, CODES_3_DIGITS_MAX+1])
 def test_humanitarian_sector_false_bad_codes(major_version, sector):
     """
     Detects an activity not to be humanitarian using sector codes that are not considered to relate to humanitarian.

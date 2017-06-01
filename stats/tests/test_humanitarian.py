@@ -26,7 +26,7 @@ class MockActivityStats(ActivityStats):
 HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
 HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
 
-@pytest.mark.parametrize('major_version', ['2'])
+@pytest.mark.parametrize('version', ['2.02'])
 @pytest.mark.parametrize('hum_attrib_val_true', ['1', 'true'])
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 @pytest.mark.parametrize('xml', ['''
@@ -60,11 +60,11 @@ HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
             <transaction humanitarian="{1}" />
         </iati-activity>
     '''])
-def test_humanitarian_attrib_true(major_version, hum_attrib_val_true, hum_attrib_val_false, xml):
+def test_humanitarian_attrib_true(version, hum_attrib_val_true, hum_attrib_val_false, xml):
     """
     Detect an activity to be humanitarian using @humanitarian values that evaluate to true.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring(xml.format(hum_attrib_val_true, hum_attrib_val_false))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
@@ -120,7 +120,7 @@ def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, 
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['2'])
+@pytest.mark.parametrize('version', ['2.02'])
 @pytest.mark.parametrize('hum_attrib_val', ['0', 'false', 'True', 'False', ''])
 @pytest.mark.parametrize('xml', ['''
         <iati-activity humanitarian="{0}">
@@ -134,11 +134,11 @@ def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, 
             <transaction humanitarian="{0}" />
         </iati-activity>
     '''])
-def test_humanitarian_attrib_false(major_version, hum_attrib_val, xml):
+def test_humanitarian_attrib_false(version, hum_attrib_val, xml):
     """
     Detect an activity to not be humanitarian using @humanitarian values that evaluate to false.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring(xml.format(hum_attrib_val))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
@@ -350,14 +350,14 @@ def test_humanitarian_attrib_true_sector_anything(major_version, sector, hum_att
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['2'])
+@pytest.mark.parametrize('version', ['2.02'])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('hum_attrib_val', ['0', 'false', 'True', 'False', ''])
-def test_humanitarian_attrib_false_sector_true(major_version, sector, hum_attrib_val):
+def test_humanitarian_attrib_false_sector_true(version, sector, hum_attrib_val):
     """
     Detect an activity to be humanitarian using sector codes that are deemed to be humanitarian, in combination with a @humanitarian value which evaluates to false.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity humanitarian="{0}">
@@ -370,14 +370,14 @@ def test_humanitarian_attrib_false_sector_true(major_version, sector, hum_attrib
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['2'])
+@pytest.mark.parametrize('version', ['2.02'])
 @pytest.mark.parametrize('sector', [-89, 'not_a_code'])
 @pytest.mark.parametrize('hum_attrib_val', ['0', 'false', 'True', 'False', ''])
-def test_humanitarian_attrib_false_sector_false(major_version, sector, hum_attrib_val):
+def test_humanitarian_attrib_false_sector_false(version, sector, hum_attrib_val):
     """
     Detect an activity not to be humanitarian using sector codes that are deemed not to be humanitarian, in combination with a @humanitarian value which evaluates to false.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity humanitarian="{0}">
@@ -390,7 +390,7 @@ def test_humanitarian_attrib_false_sector_false(major_version, sector, hum_attri
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['1'])
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', 'unknown version'])
 @pytest.mark.parametrize('hum_attrib_val_true', ['1', 'true'])
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 @pytest.mark.parametrize('xml', ['''
@@ -409,11 +409,11 @@ def test_humanitarian_attrib_false_sector_false(major_version, sector, hum_attri
             <transaction humanitarian="{0}" />
         </iati-activity>
     '''])
-def test_humanitarian_attrib_false_sector_false(major_version, hum_attrib_val_true, hum_attrib_val_false, xml):
+def test_humanitarian_attrib_false_sector_false(version, hum_attrib_val_true, hum_attrib_val_false, xml):
     """
-    Detect an activity not to be humanitarian at version 1 of the standard when a @humanitarian value that evaluates to true is present.
+    Detect an activity not to be humanitarian at versions of the standard not expecting @humanitarian when a @humanitarian value that evaluates to true is present.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring(xml.format(hum_attrib_val_true, hum_attrib_val_false))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
@@ -464,12 +464,12 @@ def test_humanitarian_elements_invalid_version(version, hum_attrib_val):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['2'])
-def test_humanitarian_scope_valid(major_version):
+@pytest.mark.parametrize('version', ['2.02'])
+def test_humanitarian_scope_valid(version):
     """
     Detect that an activity contains a humanitarian-scope element and required attributes.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -479,12 +479,12 @@ def test_humanitarian_scope_valid(major_version):
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 1
 
 
-@pytest.mark.parametrize('major_version', ['2'])
-def test_humanitarian_scope_invalid(major_version):
+@pytest.mark.parametrize('version', ['2.02'])
+def test_humanitarian_scope_invalid(version):
     """
     Detect that an activity contains a humanitarian-scope element without required attributes.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity>

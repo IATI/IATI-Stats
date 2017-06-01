@@ -159,6 +159,14 @@ def test_humanitarian_attrib_false(version, hum_attrib_val, xml):
         <iati-activity>
         	<sector code="{0}" vocabulary="{1}" />
         </iati-activity>
+    ''', '''
+        <!-- both activity and transaction level sector -->
+        <iati-activity>
+            <sector code="{0}" />
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
     '''])
 def test_humanitarian_sector_true(major_version, sector, xml):
     """
@@ -235,7 +243,7 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
         <iati-activity>
             <sector code="{2}" />
             <transaction>
-                <sector code="{1}" vocabulary="{1}" />
+                <sector code="{0}" vocabulary="{1}" />
             </transaction>
         </iati-activity>
     '''])
@@ -266,14 +274,6 @@ def test_humanitarian_sector_true_transaction(version, hum_sector, not_hum_secto
     ''', '''
         <!-- transaction level sector, explicit vocab -->
         <iati-activity>
-            <transaction>
-                <sector code="{0}" vocabulary="{1}" />
-            </transaction>
-        </iati-activity>
-    ''', '''
-        <!-- both activity and transaction level sector -->
-        <iati-activity>
-            <sector code="{0}" />
             <transaction>
                 <sector code="{0}" vocabulary="{1}" />
             </transaction>

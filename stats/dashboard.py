@@ -1208,8 +1208,6 @@ class ActivityStats(CommonSharedElements):
         if is_not_humanitarian_by_attrib_activity:
             is_humanitarian = 0
 
-        # is_humanitarian_by_sector = False if not is_humanitarian_by_sector_activity else is_humanitarian_by_sector
-
         return {
             'is_humanitarian': is_humanitarian,
             'is_humanitarian_by_attrib': is_humanitarian_by_attrib,

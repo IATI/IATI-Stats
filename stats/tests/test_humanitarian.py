@@ -159,28 +159,6 @@ def test_humanitarian_attrib_false(version, hum_attrib_val, xml):
         <iati-activity>
         	<sector code="{0}" vocabulary="{1}" />
         </iati-activity>
-    ''', '''
-        <!-- transaction level sector, assumed vocab -->
-        <iati-activity>
-            <transaction>
-                <sector code="{0}" />
-            </transaction>
-        </iati-activity>
-    ''', '''
-        <!-- transaction level sector, explicit vocab -->
-        <iati-activity>
-            <transaction>
-                <sector code="{0}" vocabulary="{1}" />
-            </transaction>
-        </iati-activity>
-    ''', '''
-        <!-- both activity and transaction level sector -->
-        <iati-activity>
-            <sector code="{0}" />
-            <transaction>
-                <sector code="{0}" vocabulary="{1}" />
-            </transaction>
-        </iati-activity>
     '''])
 def test_humanitarian_sector_true(major_version, sector, xml):
     """
@@ -214,6 +192,86 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
 
     activity_stats.element = etree.fromstring(xml.format(sector, activity_stats._dac_3_code()))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['2.01', '2.02'])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
+@pytest.mark.parametrize('xml', ['''
+        <!-- transaction level sector, assumed vocab -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" />
+            </transaction>
+        </iati-activity>
+    ''', '''
+        <!-- transaction level sector, explicit vocab -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
+    ''', '''
+        <!-- both activity and transaction level sector -->
+        <iati-activity>
+            <sector code="{0}" />
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
+    '''])
+def test_humanitarian_sector_true_transaction(version, sector, xml):
+    """
+    Detects an activity to be humanitarian using sector codes at transaction level considered to relate to humanitarian.
+
+    Also checks that the appropriate vocabulary is provided or assumed.
+    """
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring(xml.format(sector, activity_stats._dac_5_code()))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 1
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', 'unknown version'])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
+@pytest.mark.parametrize('xml', ['''
+        <!-- transaction level sector, assumed vocab -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" />
+            </transaction>
+        </iati-activity>
+    ''', '''
+        <!-- transaction level sector, explicit vocab -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
+    ''', '''
+        <!-- both activity and transaction level sector -->
+        <iati-activity>
+            <sector code="{0}" />
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
+    '''])
+def test_humanitarian_sector_true_transaction_invalid_version(version, sector, xml):
+    """
+    Detects an activity to be humanitarian using sector codes at transaction level considered to relate to humanitarian.
+
+    Also checks that the appropriate vocabulary is provided or assumed.
+    """
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring(xml.format(sector, activity_stats._dac_5_code()))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0

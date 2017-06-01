@@ -78,33 +78,33 @@ def test_humanitarian_attrib_true(major_version, hum_attrib_val_true, hum_attrib
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 @pytest.mark.parametrize('xml', ['''
         <!-- activity level true -->
-        <iati-activity humanitarian="{1}" version="{0}">
+        <iati-activity humanitarian="{0}">
         </iati-activity>
     ''', '''
         <!-- transaction level true -->
-        <iati-activity version="{0}">
-            <transaction humanitarian="{1}" />
+        <iati-activity>
+            <transaction humanitarian="{0}" />
         </iati-activity>
     ''', '''
         <!-- activity level true, transaction false -->
-        <iati-activity humanitarian="{1}" version="{0}">
-            <transaction humanitarian="{2}" />
+        <iati-activity humanitarian="{0}">
+            <transaction humanitarian="{1}" />
         </iati-activity>
     ''', '''
         <!-- transaction level true, activity false -->
-        <iati-activity humanitarian="{2}" version="{0}">
-            <transaction humanitarian="{1}" />
+        <iati-activity humanitarian="{1}">
+            <transaction humanitarian="{0}" />
         </iati-activity>
     ''', '''
         <!-- activity and transaction level both true -->
-        <iati-activity humanitarian="{1}" version="{0}">
-            <transaction humanitarian="{1}" />
+        <iati-activity humanitarian="{0}">
+            <transaction humanitarian="{0}" />
         </iati-activity>
     ''', '''
         <!-- transaction level both true and false -->
-        <iati-activity version="{0}">
+        <iati-activity>
+            <transaction humanitarian="{0}" />
             <transaction humanitarian="{1}" />
-            <transaction humanitarian="{2}" />
         </iati-activity>
     '''])
 def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, hum_attrib_val_false, xml):
@@ -113,7 +113,7 @@ def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, 
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(xml.format(version, hum_attrib_val_true, hum_attrib_val_false))
+    activity_stats.element = etree.fromstring(xml.format(hum_attrib_val_true, hum_attrib_val_false))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0

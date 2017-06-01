@@ -36,6 +36,10 @@ HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
         <iati-activity humanitarian="{1}">
             <transaction humanitarian="{0}" />
         </iati-activity>
+    ''', '''
+        <iati-activity humanitarian="{0}">
+            <transaction humanitarian="{0}" />
+        </iati-activity>
     '''])
 def test_humanitarian_attrib_true(major_version, hum_attrib_val_true, hum_attrib_val_false, xml):
     """

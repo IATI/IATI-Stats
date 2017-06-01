@@ -137,8 +137,16 @@ def test_humanitarian_sector_true(major_version, sector, xml):
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS)
 @pytest.mark.parametrize('xml', ['''
+        <!-- activity level sector -->
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
+        </iati-activity>
+    ''', '''
+        <!-- transaction level sector -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
         </iati-activity>
     '''])
 def test_humanitarian_sector_true_3_digit(major_version, sector, xml):

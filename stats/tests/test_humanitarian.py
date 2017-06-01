@@ -5,15 +5,23 @@ import pytest
 from stats.dashboard import ActivityStats
 
 class MockActivityStats(ActivityStats):
-    def __init__(self, major_version):
-        self.major_version = major_version
+    def __init__(self, version):
+        if len(version) == 1 or len(version.split('.')) < 2:
+            self.major_version = version
+            self.minor_version = '02'
+        else:
+            self.major_version = version.split('.')[0]
+            self.minor_version = version.split('.')[1]
         return super(MockActivityStats, self).__init__()
 
     def _major_version(self):
         return self.major_version
 
+    def _minor_version(self):
+        return self.minor_version
+
     def _version(self):
-        return self._major_version() + '.02'
+        return self._major_version() + '.' + self._minor_version()
 
 HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
 HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
@@ -61,6 +69,53 @@ def test_humanitarian_attrib_true(major_version, hum_attrib_val_true, hum_attrib
     activity_stats.element = etree.fromstring(xml.format(hum_attrib_val_true, hum_attrib_val_false))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 1
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', 'unknown version'])
+@pytest.mark.parametrize('hum_attrib_val_true', ['1', 'true'])
+@pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
+@pytest.mark.parametrize('xml', ['''
+        <!-- activity level true -->
+        <iati-activity humanitarian="{1}" version="{0}">
+        </iati-activity>
+    ''', '''
+        <!-- transaction level true -->
+        <iati-activity version="{0}">
+            <transaction humanitarian="{1}" />
+        </iati-activity>
+    ''', '''
+        <!-- activity level true, transaction false -->
+        <iati-activity humanitarian="{1}" version="{0}">
+            <transaction humanitarian="{2}" />
+        </iati-activity>
+    ''', '''
+        <!-- transaction level true, activity false -->
+        <iati-activity humanitarian="{2}" version="{0}">
+            <transaction humanitarian="{1}" />
+        </iati-activity>
+    ''', '''
+        <!-- activity and transaction level both true -->
+        <iati-activity humanitarian="{1}" version="{0}">
+            <transaction humanitarian="{1}" />
+        </iati-activity>
+    ''', '''
+        <!-- transaction level both true and false -->
+        <iati-activity version="{0}">
+            <transaction humanitarian="{1}" />
+            <transaction humanitarian="{2}" />
+        </iati-activity>
+    '''])
+def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, hum_attrib_val_false, xml):
+    """
+    Detect an activity to be humanitarian using @humanitarian values that evaluate to true, but at a version of the standard that does not support the attribute.
+    """
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring(xml.format(version, hum_attrib_val_true, hum_attrib_val_false))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 

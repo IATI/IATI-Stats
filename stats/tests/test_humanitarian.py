@@ -122,6 +122,7 @@ def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, 
 
 @pytest.mark.parametrize('version', ['2.02'])
 @pytest.mark.parametrize('hum_attrib_val', ['0', 'false', 'True', 'False', ''])
+@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('xml', ['''
         <iati-activity humanitarian="{0}">
         </iati-activity>
@@ -133,14 +134,32 @@ def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, 
         <iati-activity humanitarian="{0}">
             <transaction humanitarian="{0}" />
         </iati-activity>
+    ''', '''
+        <iati-activity humanitarian="{0}">
+            <sector code="{1}" />
+        </iati-activity>
+    ''', '''
+        <iati-activity>
+            <transaction humanitarian="{0}">
+                <sector code="{1}" />
+            </transaction>
+        </iati-activity>
+    ''', '''
+        <iati-activity humanitarian="{0}">
+            <transaction>
+                <sector code="{1}" />
+            </transaction>
+        </iati-activity>
     '''])
-def test_humanitarian_attrib_false(version, hum_attrib_val, xml):
+def test_humanitarian_attrib_false(version, hum_attrib_val, sector, xml):
     """
     Detect an activity to not be humanitarian using @humanitarian values that evaluate to false.
+
+    If there is a sector generally deemed to be humanitarian, the attribute shall take precedence.
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(xml.format(hum_attrib_val))
+    activity_stats.element = etree.fromstring(xml.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
@@ -166,6 +185,11 @@ def test_humanitarian_attrib_false(version, hum_attrib_val, xml):
             <transaction>
                 <sector code="{0}" vocabulary="{1}" />
             </transaction>
+        </iati-activity>
+    ''', '''
+        <iati-activity>
+            <sector code="{1}" />
+            <transaction humanitarian="{0}" />
         </iati-activity>
     '''])
 def test_humanitarian_sector_true(major_version, sector, xml):

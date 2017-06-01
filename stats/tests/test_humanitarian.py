@@ -198,7 +198,8 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
 
 
 @pytest.mark.parametrize('version', ['2.01', '2.02'])
-@pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
+@pytest.mark.parametrize('hum_sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
+@pytest.mark.parametrize('not_hum_sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1]-1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1]-1])
 @pytest.mark.parametrize('xml', ['''
         <!-- transaction level sector, assumed vocab -->
         <iati-activity>
@@ -221,8 +222,24 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
                 <sector code="{0}" vocabulary="{1}" />
             </transaction>
         </iati-activity>
+    ''', '''
+        <!-- both activity and transaction level sector, hum at transaction level -->
+        <iati-activity>
+            <sector code="{0}" />
+            <transaction>
+                <sector code="{2}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
+    ''', '''
+        <!-- both activity and transaction level sector, hum at activity level -->
+        <iati-activity>
+            <sector code="{2}" />
+            <transaction>
+                <sector code="{1}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
     '''])
-def test_humanitarian_sector_true_transaction(version, sector, xml):
+def test_humanitarian_sector_true_transaction(version, hum_sector, not_hum_sector, xml):
     """
     Detects an activity to be humanitarian using sector codes at transaction level considered to relate to humanitarian.
 
@@ -230,7 +247,7 @@ def test_humanitarian_sector_true_transaction(version, sector, xml):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(xml.format(sector, activity_stats._dac_5_code()))
+    activity_stats.element = etree.fromstring(xml.format(hum_sector, activity_stats._dac_5_code(), not_hum_sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0

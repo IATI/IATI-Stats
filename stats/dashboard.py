@@ -1191,8 +1191,9 @@ class ActivityStats(CommonSharedElements):
 
         is_humanitarian_by_sector_5_digit_activity = 1 if set(self.element.xpath('sector[@vocabulary="{0}" or not(@vocabulary)]/@code'.format(self._dac_5_code()))).intersection(humanitarian_sectors_dac_5_digit) else 0
         is_humanitarian_by_sector_5_digit_transaction = 1 if set(self.element.xpath('transaction/sector[@vocabulary="{0}" or not(@vocabulary)]/@code'.format(self._dac_5_code()))).intersection(humanitarian_sectors_dac_5_digit) else 0
-        is_humanitarian_by_sector_3_digit = 1 if set(self.element.xpath('sector[@vocabulary="{0}"]/@code'.format(self._dac_3_code()))).intersection(humanitarian_sectors_dac_3_digit) else 0
-        is_humanitarian_by_sector = is_humanitarian_by_sector_5_digit_activity or is_humanitarian_by_sector_5_digit_transaction or is_humanitarian_by_sector_3_digit
+        is_humanitarian_by_sector_3_digit_activity = 1 if set(self.element.xpath('sector[@vocabulary="{0}"]/@code'.format(self._dac_3_code()))).intersection(humanitarian_sectors_dac_3_digit) else 0
+        is_humanitarian_by_sector_3_digit_transaction = 1 if set(self.element.xpath('transaction/sector[@vocabulary="{0}"]/@code'.format(self._dac_3_code()))).intersection(humanitarian_sectors_dac_3_digit) else 0
+        is_humanitarian_by_sector = is_humanitarian_by_sector_5_digit_activity or is_humanitarian_by_sector_5_digit_transaction or is_humanitarian_by_sector_3_digit_activity or is_humanitarian_by_sector_3_digit_transaction
 
         return {
             'is_humanitarian': 1 if (is_humanitarian_by_attrib or is_humanitarian_by_sector) else 0,

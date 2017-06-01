@@ -371,9 +371,7 @@ def test_humanitarian_sector_true_transaction(version, hum_sector, not_hum_secto
     '''])
 def test_humanitarian_sector_true_transaction_invalid_version(version, sector, xml):
     """
-    Detects an activity to be humanitarian using sector codes at transaction level considered to relate to humanitarian.
-
-    Also checks that the appropriate vocabulary is provided or assumed.
+    Detects an activity to be not humanitarian due to an invalid version despite correctly formed transactions.
     """
     activity_stats = MockActivityStats(version)
 

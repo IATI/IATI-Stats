@@ -1186,8 +1186,8 @@ class ActivityStats(CommonSharedElements):
         humanitarian_sectors_dac_3_digit = ['720', '730', '740']
 
         is_humanitarian_by_attrib = 1 if (self._version() in ['2.02']) and ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) else 0
-        is_humanitarian_by_sector_5_digit = 1 if set(self.element.xpath('sector[@vocabulary="1" or not(@vocabulary)]/@code')).intersection(humanitarian_sectors_dac_5_digit) else 0
-        is_humanitarian_by_sector_3_digit = 1 if set(self.element.xpath('sector[@vocabulary="2"]/@code')).intersection(humanitarian_sectors_dac_3_digit) else 0
+        is_humanitarian_by_sector_5_digit = 1 if set(self.element.xpath('sector[@vocabulary="{0}" or not(@vocabulary)]/@code'.format(self._dac_5_code()))).intersection(humanitarian_sectors_dac_5_digit) else 0
+        is_humanitarian_by_sector_3_digit = 1 if set(self.element.xpath('sector[@vocabulary="{0}"]/@code'.format(self._dac_3_code()))).intersection(humanitarian_sectors_dac_3_digit) else 0
         is_humanitarian_by_sector = is_humanitarian_by_sector_5_digit or is_humanitarian_by_sector_3_digit
 
         return {

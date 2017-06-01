@@ -95,12 +95,28 @@ def test_humanitarian_attrib_false(major_version, hum_attrib_val, xml):
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('xml', ['''
+        <!-- activity level sector, assumed vocab -->
         <iati-activity>
         	<sector code="{0}" />
         </iati-activity>
     ''', '''
+        <!-- activity level sector, explicit vocab -->
         <iati-activity>
         	<sector code="{0}" vocabulary="{1}" />
+        </iati-activity>
+    ''', '''
+        <!-- transaction level sector, assumed vocab -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" />
+            </transaction>
+        </iati-activity>
+    ''', '''
+        <!-- transaction level sector, explicit vocab -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
         </iati-activity>
     '''])
 def test_humanitarian_sector_true(major_version, sector, xml):

@@ -145,16 +145,8 @@ def test_humanitarian_sector_true(major_version, sector, xml):
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS)
 @pytest.mark.parametrize('xml', ['''
-        <!-- activity level sector -->
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
-        </iati-activity>
-    ''', '''
-        <!-- transaction level sector -->
-        <iati-activity>
-            <transaction>
-                <sector code="{0}" vocabulary="{1}" />
-            </transaction>
         </iati-activity>
     '''])
 def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
@@ -175,16 +167,8 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1]-1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1]-1])
 @pytest.mark.parametrize('xml', ['''
-        <!-- activity level sector -->
         <iati-activity>
             <sector code="{0}" />
-        </iati-activity>
-    ''', '''
-        <!-- transaction level sector -->
-        <iati-activity>
-            <transaction>
-                <sector code="{0}" />
-            </transaction>
         </iati-activity>
     '''])
 def test_humanitarian_sector_false_bad_codes(major_version, sector, xml):
@@ -204,16 +188,8 @@ def test_humanitarian_sector_false_bad_codes(major_version, sector, xml):
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('vocab', [2, 99, 'DAC-3'])
 @pytest.mark.parametrize('xml', ['''
-        <!-- activity level sector -->
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
-        </iati-activity>
-    ''', '''
-        <!-- transaction level sector -->
-        <iati-activity>
-            <transaction>
-                <sector code="{0}" vocabulary="{1}" />
-            </transaction>
         </iati-activity>
     '''])
 def test_humanitarian_sector_false_bad_vocab(major_version, sector, vocab, xml):
@@ -233,16 +209,8 @@ def test_humanitarian_sector_false_bad_vocab(major_version, sector, vocab, xml):
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS)
 @pytest.mark.parametrize('vocab', [1, 99, 'DAC'])
 @pytest.mark.parametrize('xml', ['''
-        <!-- activity level sector -->
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
-        </iati-activity>
-    ''', '''
-        <!-- transaction level sector -->
-        <iati-activity>
-            <transaction>
-                <sector code="{0}" vocabulary="{1}" />
-            </transaction>
         </iati-activity>
     '''])
 def test_humanitarian_sector_false_bad_vocab_3_digit(major_version, sector, vocab, xml):
@@ -261,16 +229,8 @@ def test_humanitarian_sector_false_bad_vocab_3_digit(major_version, sector, voca
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS + HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('vocab', ['1', '2', ''])
 @pytest.mark.parametrize('xml', ['''
-        <!-- activity level sector -->
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
-        </iati-activity>
-    ''', '''
-        <!-- transaction level sector -->
-        <iati-activity>
-            <transaction>
-                <sector code="{0}" vocabulary="{1}" />
-            </transaction>
         </iati-activity>
     '''])
 def test_humanitarian_sector_false_bad_major_version_1(sector, vocab, xml, major_version='1'):
@@ -288,17 +248,25 @@ def test_humanitarian_sector_false_bad_major_version_1(sector, vocab, xml, major
 
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_3_DIGITS + HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('vocab', ['DAC', 'DAC-3', ''])
-def test_humanitarian_sector_false_bad_major_version_2(sector, vocab, major_version='2'):
+@pytest.mark.parametrize('xml', ['''
+        <iati-activity>
+            <sector code="{0}" vocabulary="{1}" />
+        </iati-activity>
+    ''', '''
+        <!-- transaction level sector - valid at V2, but not V1 -->
+        <iati-activity>
+            <transaction>
+                <sector code="{0}" vocabulary="{1}" />
+            </transaction>
+        </iati-activity>
+    '''])
+def test_humanitarian_sector_false_bad_major_version_2(sector, vocab, xml, major_version='2'):
     """
     Detects an activity not to be humanitarian due to specification of a vocabulary that is valid at an alternative major version of the Standard.
     """
     activity_stats = MockActivityStats(major_version)
 
-    activity_stats.element = etree.fromstring('''
-        <iati-activity>
-            <sector code="{0}" vocabulary="{1}" />
-        </iati-activity>
-    '''.format(sector, vocab))
+    activity_stats.element = etree.fromstring(xml.format(sector, vocab))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0

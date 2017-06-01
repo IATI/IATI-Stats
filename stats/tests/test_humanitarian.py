@@ -639,12 +639,12 @@ def test_humanitarian_scope_invalid(version):
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['2'])
-def test_humanitarian_clusters_valid(major_version):
+@pytest.mark.parametrize('version', ['2.02'])
+def test_humanitarian_clusters_valid(version):
     """
     Detect that an activity contains a sector defined by the 'Humanitarian Global Clusters' sector vocabulary.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -654,12 +654,12 @@ def test_humanitarian_clusters_valid(major_version):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 1
 
 
-@pytest.mark.parametrize('major_version', ['1'])
-def test_humanitarian_clusters_version_1(major_version):
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', 'unknown version'])
+def test_humanitarian_clusters_version_1(version):
     """
-    Detect that a version 1 activity containing a sector defined by the 'Humanitarian Global Clusters' sector vocabulary is not detected.
+    Detect that a pre-2.02 activity containing a sector defined by the 'Humanitarian Global Clusters' sector vocabulary is not detected.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity>
@@ -669,13 +669,13 @@ def test_humanitarian_clusters_version_1(major_version):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['2'])
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', '2.02', 'unknown version'])
 @pytest.mark.parametrize('sector_vocabulary_code', ['', '1', 'internal vocabulary'])
-def test_humanitarian_clusters_invalid(major_version, sector_vocabulary_code):
+def test_humanitarian_clusters_invalid(version, sector_vocabulary_code):
     """
     Detect that an activity does not contain a sector defined by the 'Humanitarian Global Clusters' sector vocabulary.
     """
-    activity_stats = MockActivityStats(major_version)
+    activity_stats = MockActivityStats(version)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity>

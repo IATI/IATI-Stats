@@ -429,17 +429,13 @@ def test_humanitarian_elements_valid_version(version, hum_attrib_val):
     Tests that humanitarian elements are detected at supported versions.
     """
 
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats(version)
 
-    tree = etree.fromstring('''
-        <iati-activities version="{0}">
-           <iati-activity humanitarian="{1}">
+    activity_stats.element = etree.fromstring('''
+           <iati-activity humanitarian="{0}">
               <humanitarian-scope type="" code="" />
            </iati-activity>
-        </iati-activities>
-    '''.format(version, hum_attrib_val))
-
-    activity_stats.element = tree.getchildren()[0]
+    '''.format(hum_attrib_val))
 
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 1

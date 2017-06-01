@@ -19,17 +19,31 @@ HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
 HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
 
 @pytest.mark.parametrize('major_version', ['2'])
-@pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
-def test_humanitarian_attrib_true(major_version, hum_attrib_val):
+@pytest.mark.parametrize('hum_attrib_val_true', ['1', 'true'])
+@pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
+@pytest.mark.parametrize('xml', ['''
+        <iati-activity humanitarian="{0}">
+        </iati-activity>
+    ''', '''
+        <iati-activity>
+            <transaction humanitarian="{0}" />
+        </iati-activity>
+    ''', '''
+        <iati-activity humanitarian="{0}">
+            <transaction humanitarian="{1}" />
+        </iati-activity>
+    ''', '''
+        <iati-activity humanitarian="{1}">
+            <transaction humanitarian="{0}" />
+        </iati-activity>
+    '''])
+def test_humanitarian_attrib_true(major_version, hum_attrib_val_true, hum_attrib_val_false, xml):
     """
     Detect an activity to be humanitarian using @humanitarian values that evaluate to true.
     """
     activity_stats = MockActivityStats(major_version)
 
-    activity_stats.element = etree.fromstring('''
-        <iati-activity humanitarian="{0}">
-        </iati-activity>
-    '''.format(hum_attrib_val))
+    activity_stats.element = etree.fromstring(xml.format(hum_attrib_val_true, hum_attrib_val_false))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 1
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0

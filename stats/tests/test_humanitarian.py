@@ -22,23 +22,34 @@ HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
 @pytest.mark.parametrize('hum_attrib_val_true', ['1', 'true'])
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 @pytest.mark.parametrize('xml', ['''
+        <!-- activity level true -->
         <iati-activity humanitarian="{0}">
         </iati-activity>
     ''', '''
+        <!-- transaction level true -->
         <iati-activity>
             <transaction humanitarian="{0}" />
         </iati-activity>
     ''', '''
+        <!-- activity level true, transaction false -->
         <iati-activity humanitarian="{0}">
             <transaction humanitarian="{1}" />
         </iati-activity>
     ''', '''
+        <!-- transaction level true, activity false -->
         <iati-activity humanitarian="{1}">
             <transaction humanitarian="{0}" />
         </iati-activity>
     ''', '''
+        <!-- activity and transaction level both true -->
         <iati-activity humanitarian="{0}">
             <transaction humanitarian="{0}" />
+        </iati-activity>
+    ''', '''
+        <!-- transaction level both true and false -->
+        <iati-activity>
+            <transaction humanitarian="{0}" />
+            <transaction humanitarian="{1}" />
         </iati-activity>
     '''])
 def test_humanitarian_attrib_true(major_version, hum_attrib_val_true, hum_attrib_val_false, xml):

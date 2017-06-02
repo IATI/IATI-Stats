@@ -243,13 +243,20 @@ def valid_value(value_element):
 
 
 def valid_coords(x):
-    coords = x.split(' ')
+    try:
+        coords = x.split(' ')
+    except AttributeError:
+        return False
     if len(coords) != 2:
         return False
     try:
-        x = decimal.Decimal(coords[0])
-        y = decimal.Decimal(coords[1])
-        if x == 0 and y ==0:
+        lat = decimal.Decimal(coords[0])
+        lng = decimal.Decimal(coords[1])
+        # the (0, 0) coordinate is invalid since it's in the ocean in international waters and near-certainly not actual data
+        if lat == 0 and lng == 0:
+            return False
+        # values outside the valid (lat, lng) coordinate space are invalid
+        elif lat < -90 or lat > 90 or lng < -180 or lng > 180:
             return False
         else:
             return True

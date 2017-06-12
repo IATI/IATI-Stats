@@ -1,6 +1,8 @@
 data
 out
 gitout
+.coverage
+gitdate.json
 
 helpers/ckan/
 helpers/ckan.json

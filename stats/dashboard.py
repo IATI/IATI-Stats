@@ -243,13 +243,20 @@ def valid_value(value_element):
 
 
 def valid_coords(x):
-    coords = x.split(' ')
+    try:
+        coords = x.split(' ')
+    except AttributeError:
+        return False
     if len(coords) != 2:
         return False
     try:
-        x = decimal.Decimal(coords[0])
-        y = decimal.Decimal(coords[1])
-        if x == 0 and y ==0:
+        lat = decimal.Decimal(coords[0])
+        lng = decimal.Decimal(coords[1])
+        # the (0, 0) coordinate is invalid since it's in the ocean in international waters and near-certainly not actual data
+        if lat == 0 and lng == 0:
+            return False
+        # values outside the valid (lat, lng) coordinate space are invalid
+        elif lat < -90 or lat > 90 or lng < -180 or lng > 180:
             return False
         else:
             return True
@@ -351,6 +358,7 @@ class CommonSharedElements(object):
     @returns_numberdict
     @memoize
     def _major_version(self):
+        # TODO: Refactor to use _version
         parent = self.element.getparent()
         if parent is None:
             print('No parent of iati-activity, is this a test? Assuming version 1.xx')
@@ -360,6 +368,20 @@ class CommonSharedElements(object):
             return '2'
         else:
             return '1'
+
+    @returns_numberdict
+    @memoize
+    def _version(self):
+        allowed_versions = CODELISTS['2']['Version']
+        parent = self.element.getparent()
+        if parent is None:
+            print('No parent of iati-activity, is this a test? Assuming version 1.01')
+            return '1.01'
+        version = self.element.getparent().attrib.get('version')
+        if version and version in allowed_versions:
+            return version
+        else:
+            return '1.01'
 
     @returns_numberdict
     def ruleset_passes(self):
@@ -1165,6 +1187,41 @@ class ActivityStats(CommonSharedElements):
                 'transaction_traceability': 0
             }
 
+    @returns_numberdict
+    def humanitarian(self):
+        humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010']
+        humanitarian_sectors_dac_3_digit = ['720', '730', '740']
+
+        # logic around use of the @humanitarian attribute
+        is_humanitarian_by_attrib_activity = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) else 0
+        is_not_humanitarian_by_attrib_activity = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['0', 'false']) else 0
+        is_humanitarian_by_attrib_transaction = 1 if set(self.element.xpath('transaction/@humanitarian')).intersection(['1', 'true']) else 0
+        is_not_humanitarian_by_attrib_transaction = 1 if not is_humanitarian_by_attrib_transaction and set(self.element.xpath('transaction/@humanitarian')).intersection(['0', 'false']) else 0
+        is_humanitarian_by_attrib = (self._version() in ['2.02']) and (is_humanitarian_by_attrib_activity or (is_humanitarian_by_attrib_transaction and not is_not_humanitarian_by_attrib_activity))
+
+        # logic around DAC sector codes deemed to be humanitarian
+        is_humanitarian_by_sector_5_digit_activity = 1 if set(self.element.xpath('sector[@vocabulary="{0}" or not(@vocabulary)]/@code'.format(self._dac_5_code()))).intersection(humanitarian_sectors_dac_5_digit) else 0
+        is_humanitarian_by_sector_5_digit_transaction = 1 if set(self.element.xpath('transaction[not(@humanitarian="0" or @humanitarian="false")]/sector[@vocabulary="{0}" or not(@vocabulary)]/@code'.format(self._dac_5_code()))).intersection(humanitarian_sectors_dac_5_digit) else 0
+        is_humanitarian_by_sector_3_digit_activity = 1 if set(self.element.xpath('sector[@vocabulary="{0}"]/@code'.format(self._dac_3_code()))).intersection(humanitarian_sectors_dac_3_digit) else 0
+        is_humanitarian_by_sector_3_digit_transaction = 1 if set(self.element.xpath('transaction[not(@humanitarian="0" or @humanitarian="false")]/sector[@vocabulary="{0}"]/@code'.format(self._dac_3_code()))).intersection(humanitarian_sectors_dac_3_digit) else 0
+        # helper variables to help make logic easier to read
+        is_humanitarian_by_sector_activity = is_humanitarian_by_sector_5_digit_activity or is_humanitarian_by_sector_3_digit_activity
+        is_humanitarian_by_sector_transaction = is_humanitarian_by_sector_5_digit_transaction or is_humanitarian_by_sector_3_digit_transaction
+        is_humanitarian_by_sector = is_humanitarian_by_sector_activity or (is_humanitarian_by_sector_transaction and (self._major_version() in ['2']))
+
+        # combine the various ways in which an activity may be humanitarian
+        is_humanitarian = 1 if (is_humanitarian_by_attrib or is_humanitarian_by_sector) else 0
+        # deal with some edge cases that have veto
+        if is_not_humanitarian_by_attrib_activity:
+            is_humanitarian = 0
+
+        return {
+            'is_humanitarian': is_humanitarian,
+            'is_humanitarian_by_attrib': is_humanitarian_by_attrib,
+            'contains_humanitarian_scope': 1 if (self._version() in ['2.02']) and self.element.xpath('humanitarian-scope/@type') and self.element.xpath('humanitarian-scope/@code') else 0,
+            'uses_humanitarian_clusters_vocab': 1 if (self._version() in ['2.02']) and self.element.xpath('sector/@vocabulary="10"') else 0
+        }
+
     def _transaction_type_code(self, transaction):
         type_code = None
         transaction_type = transaction.find('transaction-type')
@@ -1278,8 +1335,6 @@ class ActivityStats(CommonSharedElements):
         return out
 
 
-
-import json
 ckan = json.load(open('helpers/ckan.json'))
 publisher_re = re.compile('(.*)\-[^\-]')
 

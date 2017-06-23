@@ -19,6 +19,7 @@ def decimal_default(obj):
         return common.decimal_default(obj)
 
 def dict_sum_inplace(d1, d2):
+    """Merge values from dictionary2 into dictionary1."""
     if d1 is None: return
     for k,v in d2.items():
         if type(v) == dict or type(v) == defaultdict:
@@ -34,6 +35,7 @@ def dict_sum_inplace(d1, d2):
             d1[k] += v
 
 def make_blank(stats_module):
+    """Return dictionary of stats functions for enabled stats_modules."""
     blank = {}
     for stats_object in [ stats_module.ActivityStats(), stats_module.ActivityFileStats(), stats_module.OrganisationStats(), stats_module.OrganisationFileStats(), stats_module.PublisherStats(), stats_module.AllDataStats() ]:
         stats_object.blank = True
@@ -43,6 +45,7 @@ def make_blank(stats_module):
     return blank
 
 def aggregate_file(stats_module, stats_json, output_dir):
+    """Create JSON file for each stats_module function."""
     subtotal = make_blank(stats_module) # FIXME This may be inefficient
     for activity_json in stats_json['elements']:
         dict_sum_inplace(subtotal, activity_json)
@@ -51,7 +54,7 @@ def aggregate_file(stats_module, stats_json, output_dir):
     try:
         os.makedirs(output_dir)
     except OSError: pass
-    for aggregate_name,aggregate in subtotal.items():
+    for aggregate_name, aggregate in subtotal.items():
         with open(os.path.join(output_dir, aggregate_name+'.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
 
@@ -60,7 +63,7 @@ def aggregate_file(stats_module, stats_json, output_dir):
 def aggregate(args):
     import importlib
     stats_module = importlib.import_module(args.stats_module)
-    
+
     for newdir in ['aggregated-publisher', 'aggregated-file', 'aggregated']:
         try:
             os.mkdir(os.path.join(args.output, newdir))
@@ -115,4 +118,3 @@ def aggregate(args):
     for aggregate_name,aggregate in total.items():
         with open(os.path.join(args.output, 'aggregated', aggregate_name+'.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
-

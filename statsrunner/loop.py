@@ -4,8 +4,6 @@ import inspect
 import json
 import sys
 import traceback
-import decimal
-import argparse
 import statsrunner.shared
 import statsrunner.aggregate
 from statsrunner.common import decimal_default
@@ -28,7 +26,7 @@ def call_stats(this_stats, args):
 def process_file((inputfile, output_dir, folder, xmlfile, args)):
     import importlib
     stats_module = importlib.import_module(args.stats_module)
-    
+
     if args.verbose_loop:
         try: os.makedirs(os.path.join(output_dir,'loop',folder))
         except OSError: pass
@@ -122,4 +120,3 @@ def loop(args):
         pool.map(process_file, files)
     else:
         map(process_file, files)
-

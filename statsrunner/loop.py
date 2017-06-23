@@ -16,7 +16,7 @@ def call_stats(this_stats, args):
 
     Args:
       this_stats: stats_module class object that specifies calculations for
-      relevant input, processe by internal methods of process_file().
+      relevant input, processed by internal methods of process_file().
     """
     this_out = {}
     # For each method within this_stats object check the method is an enabled
@@ -24,7 +24,8 @@ def call_stats(this_stats, args):
     for name, function in inspect.getmembers(this_stats, predicate=inspect.ismethod):
         # If method is an enabled stat, add the method to the this_out dictionary,
         # unless the exception criteria are met.
-        if not statsrunner.shared.use_stat(this_stats, name): continue
+        if not statsrunner.shared.use_stat(this_stats, name):
+            continue
         try:
             this_out[name] = function()
         except KeyboardInterrupt:
@@ -44,8 +45,10 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
     # When args.verbose_loop is true, create directory and set outputfile
     # according to loop path.
     if args.verbose_loop:
-        try: os.makedirs(os.path.join(output_dir, 'loop', folder))
-        except OSError: pass
+        try:
+            os.makedirs(os.path.join(output_dir, 'loop', folder))
+        except OSError:
+            pass
         outputfile = os.path.join(output_dir, 'loop', folder, xmlfile)
     # If args.verbose_loop is false, set outputfile according to aggregated-file
     # path.
@@ -61,7 +64,9 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
         file_size = os.stat(inputfile).st_size
         # If the file size is greater than the registry limit, set stats_json file
         # value to 'too large'.
-        if file_size > 50000000:  # Use same limit as registry https://github.com/okfn/ckanext-iati/blob/606e0919baf97552a14b7c608529192eb7a04b19/ckanext/iati/archiver.py#L23
+        # Registry limit:
+        # https://github.com/okfn/ckanext-iati/blob/606e0919baf97552a14b7c608529192eb7a04b19/ckanext/iati/archiver.py#L23
+        if file_size > 50000000:
             stats_json = {'file': {'toolarge': 1, 'file_size': file_size}, 'elements': []}
         # If file size is within limit, set doc to the value of the complete
         # inputfile document, and set root to the root of element tree for doc.
@@ -83,7 +88,8 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
             def process_stats_element(ElementStats, tagname=None):
                 """Generate object elements and yeild to call_stats()."""
                 for element in root:
-                    if tagname and tagname != element.tag: continue
+                    if tagname and tagname != element.tag:
+                        continue
                     element_stats = ElementStats()
                     element_stats.element = element
                     element_stats.strict = args.strict

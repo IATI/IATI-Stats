@@ -55,11 +55,13 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
     else:
         outputfile = os.path.join(output_dir, 'aggregated-file', folder, xmlfile)
 
-    # If args.new is true, check for existing file and return.
+    # If default args is set to only create new files, check for existing file
+    # and return.
     if args.new:
         if os.path.exists(outputfile):
             return
-    # If args.new is false try setting file_size to size of file in bytes.
+    # If default args are not set to only create new files try setting
+    # file_size to size of file in bytes.
     try:
         file_size = os.stat(inputfile).st_size
         # If the file size is greater than the registry limit, set stats_json file

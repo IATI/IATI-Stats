@@ -4,7 +4,6 @@ import json
 import os
 import copy
 import decimal
-import argparse
 import statsrunner
 import datetime
 from statsrunner import common
@@ -60,7 +59,7 @@ def aggregate_file(stats_module, stats_json, output_dir):
 def aggregate(args):
     import importlib
     stats_module = importlib.import_module(args.stats_module)
-    
+
     for newdir in ['aggregated-publisher', 'aggregated-file', 'aggregated']:
         try:
             os.mkdir(os.path.join(args.output, newdir))
@@ -115,4 +114,3 @@ def aggregate(args):
     for aggregate_name,aggregate in total.items():
         with open(os.path.join(args.output, 'aggregated', aggregate_name+'.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
-

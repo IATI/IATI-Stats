@@ -149,7 +149,7 @@ def loop(args):
     """Loops through all specified folders to convert data to JSON output.
 
     Args:
-        args: See __init__ for current defaults for statsrunner.
+        args: Object containing program run options (set by CLI arguments at runtime. See __init__ for more details).
     """
     if args.folder:
         files = loop_folder(args.folder, args, data_dir=args.data, output_dir=args.output)

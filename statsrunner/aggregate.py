@@ -21,7 +21,7 @@ def decimal_default(obj):
 
 
 def dict_sum_inplace(d1, d2):
-    """Merge values from dictionary2 into dictionary1."""
+    """Merge values from dictionary d2 into d1."""
     if d1 is None:
         return
     for k, v in d2.items():

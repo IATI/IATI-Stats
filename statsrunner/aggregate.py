@@ -4,7 +4,6 @@ import json
 import os
 import copy
 import decimal
-import argparse
 import statsrunner
 import datetime
 from statsrunner import common

@@ -4,8 +4,6 @@ import inspect
 import json
 import sys
 import traceback
-import decimal
-import argparse
 import statsrunner.shared
 import statsrunner.aggregate
 from statsrunner.common import decimal_default

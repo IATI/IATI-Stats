@@ -1436,56 +1436,12 @@ def test_comprehensivness_denominator_recipient_language_false(major_version):
     assert activity_stats.comprehensiveness_denominators()['recipient_language'] == 0
 
 
-@pytest.mark.parametrize('major_version', ['1', '2'])
-def test_comprehensiveness_dac_sector_codes(major_version):
+@pytest.mark.parametrize('major_version', ['2'])
+def test_comprehensiveness_dac_sector_codes_v2(major_version):
     """Check that DAC sector codes in transactions in version 2 are also included."""
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
     root = etree.fromstring('''
-        <iati-activities version="1.05">
-            <iati-activity xml:lang="en">
-                <reporting-org ref="AA-AAA">Reporting ORG Name</reporting-org>
-                <iati-identifier>AA-AAA-1</iati-identifier>
-                <participating-org/>
-                <title>A title</title>
-                <description>A description</description>
-                <activity-status code="2"/>
-                <activity-date type="start-actual" iso-date="9989-05-01" />
-                <sector vocabulary="DAC"/>
-                <recipient-country code="AI"/>
-                <default-aid-type code="A01" />
-                <transaction>
-                    <transaction-type code="C"/>
-                    <value currency="" value-date="2014-01-01"/>
-                </transaction>
-                <transaction>
-                    <transaction-type code="E"/>
-                    <value currency="" value-date="2014-01-01"/>
-                </transaction>
-                <transaction>
-                    <provider-org provider-activity-id="AAA"/>
-                    <transaction-type code="IF"/>
-                    <value currency="" value-date="2014-01-01"/>
-                </transaction>
-                <budget/>
-                <contact-info>
-                    <email>test@example.org</email>
-                </contact-info>
-                <location>
-                    <point srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
-                        <pos>31.616944 65.716944</pos>
-                    </point>
-                </location>
-                <capital-spend percentage=""/>
-                <document-link/>
-                <activity-website/>
-                <conditions attached="0"/>
-                <result>
-                    <indicator/>
-                </result>
-            </iati-activity>
-        </iati-activities>
-    ''' if major_version == '1' else '''
         <iati-activities version="2.01">
             <iati-activity xml:lang="en">
                 <reporting-org ref="AA-AAA">
@@ -1572,13 +1528,177 @@ def test_comprehensiveness_dac_sector_codes(major_version):
         'aid_type': 1
     }
 
-    # Check recipient-region independently
-    activity_stats.element = etree.fromstring('''
-        <iati-activity>
-            <transaction>
-                <recipient-region/>
-            </transaction>
-        </iati-activity>
+@pytest.mark.parametrize('major_version', ['2'])
+def test_comprehensiveness_dac_sector_codes_v2_incomplete(major_version):
+    """Check that DAC sector codes in transactions in version 2 return False when sector not included in every transaction."""
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    root = etree.fromstring('''
+        <iati-activities version="2.01">
+            <iati-activity xml:lang="en">
+                <reporting-org ref="AA-AAA">
+                    <narrative>Reporting ORG Name</narrative>
+                </reporting-org>
+                <iati-identifier>AA-AAA-1</iati-identifier>
+                <participating-org/>
+                <title>
+                    <narrative>A title</narrative>
+                </title>
+                <description>
+                    <narrative>A description</narrative>
+                </description>
+                <activity-status code="2"/>
+                <activity-date type="2" iso-date="9989-05-01" />
+                <recipient-country code="AI"/>
+                <default-aid-type code="A01" />
+                <transaction>
+                    <transaction-type code="2"/><!-- Commitment -->
+                    <sector vocabulary="1"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction>
+                    <transaction-type code="3"/><!-- Expenditure -->
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction>
+                    <provider-org provider-activity-id="AAA"/>
+                    <transaction-type code="1"/><!-- Incoming Funds -->
+                    <sector vocabulary="1"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <budget/>
+                <contact-info>
+                    <email>test@example.org</email>
+                </contact-info>
+                <location>
+                    <point srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+                        <pos>31.616944 65.716944</pos>
+                    </point>
+                </location>
+                <capital-spend percentage=""/>
+                <document-link/>
+                <document-link>
+                    <!-- Activity website -->
+                    <category code="A12" />
+                </document-link>
+                <conditions attached="0"/>
+                <result>
+                    <indicator/>
+                </result>
+            </iati-activity>
+        </iati-activities>
     ''')
-    comprehensiveness = activity_stats.comprehensiveness()
-    assert comprehensiveness['country_or_region'] == 1
+    activity_stats.element = root.find('iati-activity')
+    assert all(type(x) == int for x in activity_stats.comprehensiveness().values())
+    assert activity_stats.comprehensiveness() == {
+        'version': 1,
+        'reporting-org': 1,
+        'iati-identifier': 1,
+        'participating-org': 1,
+        'title': 1,
+        'description': 1,
+        'activity-status': 1,
+        'activity-date': 1,
+        'sector': 0,
+        'country_or_region': 1,
+        'transaction_commitment': 1,
+        'transaction_spend': 1,
+        'transaction_currency': 1,
+        'transaction_traceability': 1,
+        'budget': 1,
+        'contact-info': 1,
+        'location': 1,
+        'location_point_pos': 1,
+        'sector_dac': 0,
+        'capital-spend': 1,
+        'document-link': 1,
+        'activity-website': 1,
+        'recipient_language': 1,
+        'conditions_attached': 1,
+        'result_indicator': 1,
+        'aid_type': 1
+    }
+
+
+@pytest.mark.parametrize('major_version', ['1'])
+def test_comprehensiveness_v1_returns_false(major_version):
+    """Check that V1 activity returns false when no valid sector element entered at activity level."""
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.today = datetime.date(9990, 6, 1)
+    root = etree.fromstring('''
+        <iati-activities version="1.05">
+            <iati-activity xml:lang="en">
+                <reporting-org ref="AA-AAA">Reporting ORG Name</reporting-org>
+                <iati-identifier>AA-AAA-1</iati-identifier>
+                <participating-org/>
+                <title>A title</title>
+                <description>A description</description>
+                <activity-status code="2"/>
+                <activity-date type="start-actual" iso-date="9989-05-01" />
+                <recipient-country code="AI"/>
+                <default-aid-type code="A01" />
+                <transaction>
+                    <transaction-type code="C"/>
+                    <sector vocabulary="DAC"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction>
+                    <transaction-type code="E"/>
+                    <sector vocabulary="DAC"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <transaction>
+                    <provider-org provider-activity-id="AAA"/>
+                    <sector vocabulary="DAC"/>
+                    <transaction-type code="IF"/>
+                    <value currency="" value-date="2014-01-01"/>
+                </transaction>
+                <budget/>
+                <contact-info>
+                    <email>test@example.org</email>
+                </contact-info>
+                <location>
+                    <point srsName="http://www.opengis.net/def/crs/EPSG/0/4326">
+                        <pos>31.616944 65.716944</pos>
+                    </point>
+                </location>
+                <capital-spend percentage=""/>
+                <document-link/>
+                <activity-website/>
+                <conditions attached="0"/>
+                <result>
+                    <indicator/>
+                </result>
+            </iati-activity>
+        </iati-activities>
+    ''')
+    activity_stats.element = root.find('iati-activity')
+    assert all(type(x) == int for x in activity_stats.comprehensiveness().values())
+    assert activity_stats.comprehensiveness() == {
+        'version': 1,
+        'reporting-org': 1,
+        'iati-identifier': 1,
+        'participating-org': 1,
+        'title': 1,
+        'description': 1,
+        'activity-status': 1,
+        'activity-date': 1,
+        'sector': 0,
+        'country_or_region': 1,
+        'transaction_commitment': 1,
+        'transaction_spend': 1,
+        'transaction_currency': 1,
+        'transaction_traceability': 1,
+        'budget': 1,
+        'contact-info': 1,
+        'location': 1,
+        'location_point_pos': 1,
+        'sector_dac': 0,
+        'capital-spend': 1,
+        'document-link': 1,
+        'activity-website': 1,
+        'recipient_language': 1,
+        'conditions_attached': 1,
+        'result_indicator': 1,
+        'aid_type': 1
+    }

@@ -1024,7 +1024,9 @@ class ActivityStats(CommonSharedElements):
             'contact-info': self.element.findall('contact-info/email'),
             'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
             'location_point_pos': self.element.xpath('location/point/pos'),
-            'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())) or all_and_not_empty([transaction.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())) for transaction in self.element.xpath('transaction')]),
+            'sector_dac': self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())) if self._major_version() == '1'
+            else self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())) or
+            all_and_not_empty([transaction.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code())) for transaction in self.element.xpath('transaction')]),
             'capital-spend': self.element.xpath('capital-spend/@percentage'),
             'document-link': self.element.findall('document-link'),
             'activity-website': self.element.xpath('activity-website' if self._major_version() == '1' else 'document-link[category/@code="A12"]'),

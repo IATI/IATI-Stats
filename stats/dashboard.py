@@ -1026,7 +1026,7 @@ class ActivityStats(CommonSharedElements):
             'location_point_pos': self.element.xpath('location/point/pos'),
             'sector_dac': (
                 all_and_not_empty(self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code()))) or all_and_not_empty(
-                    [transaction.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code()) for transaction in self.element.xpath('transaction'))])
+                    [transaction.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]').format(self._dac_5_code(), self._dac_3_code()) for transaction in self.element.xpath('transaction')])
                  ),
             'capital-spend': self.element.xpath('capital-spend/@percentage'),
             'document-link': self.element.findall('document-link'),

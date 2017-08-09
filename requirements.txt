@@ -1,5 +1,5 @@
-lxml==3.7.1
-python-dateutil==2.6.0
+lxml==3.8.0
+python-dateutil==2.6.1
 git+https://github.com/IATI/IATI-Rulesets.git#egg=iatirulesets
 
 # These are dependencies of the above, but are specificied explicitly in order to pin versions

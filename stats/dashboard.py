@@ -42,7 +42,12 @@ def add_years(d, years):
 
 
 def all_true_and_not_empty(bool_iterable):
-    """ For a given list, check that all elements return true and that the list is not empty."""
+    """For a given list, check that all elements return true and that the list is not empty.
+
+    Args:
+        bool_iterable (iterable of bool): An iterable containing values that can be cast to a bool.
+
+    """
 
     # Ensure that the given list is indeed a simple list
     bool_list = list(bool_iterable)
@@ -1039,6 +1044,7 @@ class ActivityStats(CommonSharedElements):
         }
 
     def _is_sector_dac(self):
+        """Determine whether an activity has comprehensive DAC sectors against the validation methodology."""
         sector_dac_activity_level = self.element.xpath('sector[@vocabulary="{}" or @vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code(), self._dac_3_code()))
 
         if self._major_version() != '1':

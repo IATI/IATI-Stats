@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
 for x in 105 202; do
     i=$(echo $x | head -c 1)
     mkdir -p codelists/$i

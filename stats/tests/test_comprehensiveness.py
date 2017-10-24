@@ -49,9 +49,8 @@ def test_comprehensiveness_is_current(major_version):
         Create an activity_stats element with a specified 'end-planned' date.
         Also sets the current date to 9990-06-01
 
-        Keyword arguments:
-        datestring -- An ISO date to be used as the 'end-planned' date for the
-            activity_stats element to be returned.
+        Args:
+            datestring (str): An ISO date to be used as the 'end-planned' date for the activity_stats element to be returned.
         """
         activity_stats = MockActivityStats(major_version)
         activity_stats.today = datetime.date(9990, 6, 1)

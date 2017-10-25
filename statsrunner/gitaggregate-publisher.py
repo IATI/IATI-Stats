@@ -1,3 +1,4 @@
+import datetime
 import decimal
 import json
 import os
@@ -43,7 +44,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
     print "gitaggregate-publisher for commit {}".format(commit)
     
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
-        print "Currently looping over publisher {}".format(publisher)
+        print "{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher)
         
         # Set output directory for this publisher and attempt to make the directory. Pass if it already exists
         git_out_dir = os.path.join(GITOUT_DIR,'gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)

@@ -14,6 +14,8 @@ def call_stats(this_stats, args):
 
     Args:
       this_stats (cls): stats_module that specifies calculations for relevant input, processed by internal methods of process_file().
+
+      args: Object containing program run options (set by CLI arguments at runtime. See __init__ for more details).
     """
     this_out = {}
     # For each method within this_stats object check the method is an enabled stat, if it is not enabled continue to next method.

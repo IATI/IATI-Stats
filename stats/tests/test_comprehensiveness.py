@@ -276,7 +276,7 @@ def test_comprehensiveness_full(major_version):
                 </transaction>
                 <transaction>
                     <provider-org provider-activity-id="AAA"/>
-                    <transaction-type code="1"/><!-- Incoming Funds -->
+                    <transaction-type code="11"/><!-- Incoming Commitment -->
                     <value currency="" value-date="2014-01-01"/>
                 </transaction>
                 <budget/>

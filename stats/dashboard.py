@@ -1023,7 +1023,7 @@ class ActivityStats(CommonSharedElements):
             'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="11"]'.format(self._commitment_code())),
             'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
             'transaction_currency': all_true_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-            'transaction_traceability': all_true_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code())))
+            'transaction_traceability': all_true_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="11" or transaction-type/@code="13"]'.format(self._incoming_funds_code())))
                                         or self._is_donor_publisher(),
             'budget': self.element.findall('budget'),
             'contact-info': self.element.findall('contact-info/email'),
@@ -1194,7 +1194,7 @@ class ActivityStats(CommonSharedElements):
             return {
                 'recipient_language': 1 if len(self.element.findall('recipient-country')) == 1 else 0,
                 'transaction_spend': 1 if start_date and start_date < self.today and (self.today - start_date) > datetime.timedelta(days=365) else 0,
-                'transaction_traceability': 1 if (self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) or self._is_donor_publisher() else 0,
+                'transaction_traceability': 1 if (self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="11" or transaction-type/@code="13"]'.format(self._incoming_funds_code()))) or self._is_donor_publisher() else 0,
             }
         else:
             return {

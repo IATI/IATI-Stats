@@ -363,13 +363,7 @@ class CommonSharedElements(object):
     @returns_numberdict
     @memoize
     def _major_version(self):
-        # TODO: Refactor to use _version
-        parent = self.element.getparent()
-        if parent is None:
-            print('No parent of iati-activity, is this a test? Assuming version 1.xx')
-            return '1'
-        version = self.element.getparent().attrib.get('version')
-        if version and version.startswith('2.'):
+        if self._version().startswith('2.'):
             return '2'
         else:
             return '1'
@@ -382,7 +376,7 @@ class CommonSharedElements(object):
         if parent is None:
             print('No parent of iati-activity, is this a test? Assuming version 1.01')
             return '1.01'
-        version = self.element.getparent().attrib.get('version')
+        version = parent.attrib.get('version')
         if version and version in allowed_versions:
             return version
         else:

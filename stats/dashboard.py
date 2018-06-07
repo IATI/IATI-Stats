@@ -1215,7 +1215,7 @@ class ActivityStats(CommonSharedElements):
         is_not_humanitarian_by_attrib_transaction = 1 if not is_humanitarian_by_attrib_transaction and set(self.element.xpath('transaction/@humanitarian')).intersection(['0', 'false']) else 0
         is_humanitarian_by_attrib = (self._version() in ['2.02']) and (is_humanitarian_by_attrib_activity or (is_humanitarian_by_attrib_transaction and not is_not_humanitarian_by_attrib_activity))
 
-        is_humanitarian_by_scope = (self._version() in ['2.02']) and (self.element.xpath('humanitarian-scope') != [])
+        is_humanitarian_by_scope = (self._version() in ['2.02', '2.03']) and (self.element.xpath('humanitarian-scope') != [])
 
         # logic around DAC sector codes deemed to be humanitarian
         is_humanitarian_by_sector_5_digit_activity = 1 if set(self.element.xpath('sector[@vocabulary="{0}" or not(@vocabulary)]/@code'.format(self._dac_5_code()))).intersection(humanitarian_sectors_dac_5_digit) else 0

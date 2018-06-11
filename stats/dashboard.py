@@ -1213,7 +1213,7 @@ class ActivityStats(CommonSharedElements):
         is_not_humanitarian_by_attrib_activity = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['0', 'false']) else 0
         is_humanitarian_by_attrib_transaction = 1 if set(self.element.xpath('transaction/@humanitarian')).intersection(['1', 'true']) else 0
         is_not_humanitarian_by_attrib_transaction = 1 if not is_humanitarian_by_attrib_transaction and set(self.element.xpath('transaction/@humanitarian')).intersection(['0', 'false']) else 0
-        is_humanitarian_by_attrib = (self._version() in ['2.02']) and (is_humanitarian_by_attrib_activity or (is_humanitarian_by_attrib_transaction and not is_not_humanitarian_by_attrib_activity))
+        is_humanitarian_by_attrib = (self._version() in ['2.02', '2.03']) and (is_humanitarian_by_attrib_activity or (is_humanitarian_by_attrib_transaction and not is_not_humanitarian_by_attrib_activity))
 
         is_humanitarian_by_scope = (self._version() in ['2.02', '2.03']) and (self.element.xpath('humanitarian-scope') != [])
 
@@ -1237,7 +1237,7 @@ class ActivityStats(CommonSharedElements):
             'is_humanitarian': is_humanitarian,
             'is_humanitarian_by_attrib': is_humanitarian_by_attrib,
             'contains_humanitarian_scope': 1 if is_humanitarian_by_scope and self.element.xpath('humanitarian-scope/@type') and self.element.xpath('humanitarian-scope/@code') else 0,
-            'uses_humanitarian_clusters_vocab': 1 if (self._version() in ['2.02']) and self.element.xpath('sector/@vocabulary="10"') else 0
+            'uses_humanitarian_clusters_vocab': 1 if (self._version() in ['2.02', '2.03']) and self.element.xpath('sector/@vocabulary="10"') else 0
         }
 
     def _transaction_type_code(self, transaction):

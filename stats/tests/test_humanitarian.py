@@ -26,7 +26,7 @@ class MockActivityStats(ActivityStats):
 HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
 HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('hum_attrib_val_true', ['1', 'true'])
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 @pytest.mark.parametrize('xml', ['''
@@ -115,7 +115,7 @@ def test_humanitarian_attrib_true_invalid_version(version, hum_attrib_val_true, 
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('hum_attrib_val', ['0', 'false'])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('xml', ['''
@@ -166,7 +166,7 @@ def test_humanitarian_attrib_false(version, hum_attrib_val, sector, xml):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('hum_attrib_val', ['True', 'False', ''])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('xml', ['''
@@ -201,7 +201,7 @@ def test_humanitarian_attrib_invalid_sector(version, hum_attrib_val, sector, xml
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('hum_attrib_val', ['True', 'False', ''])
 @pytest.mark.parametrize('sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('xml', ['''
@@ -289,7 +289,7 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.01', '2.02'])
+@pytest.mark.parametrize('version', ['2.01', '2.02', '2.03'])
 @pytest.mark.parametrize('hum_sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
 @pytest.mark.parametrize('not_hum_sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1]-1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1]-1])
 @pytest.mark.parametrize('xml', ['''
@@ -513,7 +513,7 @@ def test_humanitarian_attrib_true_sector_anything(major_version, sector, hum_att
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('sector', [-89, 'not_a_code'])
 @pytest.mark.parametrize('hum_attrib_val', ['0', 'false', 'True', 'False', ''])
 def test_humanitarian_attrib_false_sector_false(version, sector, hum_attrib_val):
@@ -565,7 +565,7 @@ def test_humanitarian_attrib_false_sector_false(version, hum_attrib_val_true, hu
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_elements_valid_version(version, hum_attrib_val):
     """
@@ -607,7 +607,7 @@ def test_humanitarian_elements_invalid_version(version, hum_attrib_val):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 def test_humanitarian_scope_valid(version):
     """
     Detect that an activity contains a humanitarian-scope element and required attributes.
@@ -625,7 +625,7 @@ def test_humanitarian_scope_valid(version):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 def test_humanitarian_scope_invalid(version):
     """
     Detect that an activity contains a humanitarian-scope element without required attributes.
@@ -643,7 +643,7 @@ def test_humanitarian_scope_invalid(version):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02'])
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 def test_humanitarian_clusters_valid(version):
     """
     Detect that an activity contains a sector defined by the 'Humanitarian Global Clusters' sector vocabulary.
@@ -673,7 +673,7 @@ def test_humanitarian_clusters_version_1(version):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', '2.02', 'unknown version'])
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', '2.02', '2.03', 'unknown version'])
 @pytest.mark.parametrize('sector_vocabulary_code', ['', '1', 'internal vocabulary'])
 def test_humanitarian_clusters_invalid(version, sector_vocabulary_code):
     """

@@ -389,7 +389,7 @@ class CommonSharedElements(object):
             return '1.01'
 
     @returns_numberdict
-    def ruleset_passes(self):
+    def _ruleset_passes(self):
         out = {}
         for ruleset_name in ['standard']:
             ruleset = json.load(open('helpers/rulesets/{0}.json'.format(ruleset_name)), object_pairs_hook=OrderedDict)

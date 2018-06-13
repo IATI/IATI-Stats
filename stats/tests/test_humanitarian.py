@@ -642,6 +642,27 @@ def test_humanitarian_scope_invalid(version, hum_attrib_val):
 
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])
+def test_humanitarian_scope_but_not_humanitarian(version):
+    """
+    Tests that humanitarian scope is only valid if the activity
+    is humanitarian
+    """
+
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring('''
+       <iati-activity>
+          <humanitarian-scope type="" code="" />
+       </iati-activity>
+    ''')
+
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_clusters_valid(version, hum_attrib_val):
     """
@@ -656,6 +677,24 @@ def test_humanitarian_clusters_valid(version, hum_attrib_val):
     '''.format(hum_attrib_val))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 1
+
+
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
+def test_humanitarian_clusters_invalid(version):
+    """
+    Detect that even if an activity contains a sector defined by the
+    'Humanitarian Global Clusters' sector vocabulary, it must be
+    humanitarian to count
+    """
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity>
+           <sector vocabulary="10" />
+        </iati-activity>
+    ''')
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
 @pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', 'unknown version'])

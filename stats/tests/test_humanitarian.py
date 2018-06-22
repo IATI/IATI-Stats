@@ -619,10 +619,7 @@ def test_humanitarian_scope_valid(version):
            <humanitarian-scope type="" code="" />
         </iati-activity>
     ''')
-    assert activity_stats.humanitarian()['is_humanitarian'] == 1
-    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 1
-    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])
@@ -637,10 +634,7 @@ def test_humanitarian_scope_invalid(version):
            <humanitarian-scope />
         </iati-activity>
     ''')
-    assert activity_stats.humanitarian()['is_humanitarian'] == 1
-    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
-    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])

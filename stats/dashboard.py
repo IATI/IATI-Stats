@@ -86,18 +86,29 @@ def convert_to_float(x):
 
 
 # Import codelists
-## In order to test whether or not correct codelist values are being used in the data
-## we need to pull in data about how codelists map to elements
+# In order to test whether or not correct codelist values are being
+# used in the data we need to pull in data about how codelists map
+# to elements
 def get_codelist_mapping(major_version):
-    codelist_mapping_xml = etree.parse('helpers/mapping-{}.xml'.format(major_version))
-    codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
-    codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
-    codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
-    return codelist_mappings
+    codelist_mapping_xml = etree.parse('helpers/mapping-{}.xml'.format(
+        major_version))
+    codelist_mappings = codelist_mapping_xml.xpath('mapping')
+    codelist_conditions = [x.find('condition').text
+                           if x.find('condition') is not None else None
+                           for x in codelist_mappings]
+    codelist_paths = [x.find('path').text for x in codelist_mappings]
+    codelist_paths = [re.sub(r'^\/\/iati-activity', './', path)
+                      for path in codelist_paths]
+    codelist_paths = [re.sub(r'^\/\/', './/', path)
+                      for path in codelist_paths]
+    return codelist_paths
 
-codelist_mappings = { major_version: get_codelist_mapping(major_version) for major_version in ['1', '2'] }
 
-CODELISTS = {'1':{}, '2':{}}
+codelist_mappings = {major_version: get_codelist_mapping(major_version)
+                     for major_version in ['1', '2']}
+
+
+CODELISTS = {'1': {}, '2': {}}
 for major_version in ['1', '2']:
     for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType']:
         CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data'])
@@ -550,7 +561,7 @@ class ActivityStats(CommonSharedElements):
         for path in codelist_mappings[self._major_version()]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
-        return { self._major_version(): out  }
+        return {self._major_version(): out}
 
     @returns_numberdictdict
     def boolean_values(self):

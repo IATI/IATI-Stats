@@ -101,7 +101,18 @@ def get_codelist_mapping(major_version):
                       for path in codelist_paths]
     codelist_paths = [re.sub(r'^\/\/', './/', path)
                       for path in codelist_paths]
-    return codelist_paths
+    codelist_condition_paths = []
+    for path, mapping in zip(codelist_paths, codelist_mappings):
+        condition = mapping.find('condition')
+        if condition is not None:
+            condition = condition.text
+            pref, attr = path.rsplit('/', 1)
+            condition_path = '{0}[{1}]/{2}'.format(pref, condition, attr)
+        else:
+            condition_path = None
+        codelist_condition_paths.append((path, condition_path))
+
+    return codelist_condition_paths
 
 
 codelist_mappings = {major_version: get_codelist_mapping(major_version)
@@ -549,8 +560,12 @@ class ActivityStats(CommonSharedElements):
 
     def _codelist_values(self):
         out = defaultdict(lambda: defaultdict(int))
-        for path in codelist_mappings[self._major_version()]:
-            for value in self.element.xpath(path):
+        for path, condition_path in codelist_mappings[self._major_version()]:
+            if condition_path is not None:
+                values = self.element.xpath(condition_path)
+            else:
+                values = self.element.xpath(path)
+            for value in values:
                 out[path][value] += 1
         return out
 

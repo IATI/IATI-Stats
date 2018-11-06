@@ -29,8 +29,8 @@ Requirements
 -  pip
 -  Bash
 -  gcc
--  Development files for libxml and libxslt e.g. ``libxml2-dev``,
-   ``libxslt-dev`` (alternatively, you can install the python  dependencies in
+-  Development files for libxml, libxslt and libz e.g. ``libxml2-dev``,
+   ``libxslt-dev``, ``lib32z1-dev`` (alternatively, you can install the python  dependencies in
    requirements.txt using your package manager, and skip the pip install step
    below)
 
@@ -78,7 +78,7 @@ Getting started
     wget "https://raw.githubusercontent.com/IATI/IATI-Dashboard/live/registry_id_relationships.csv"
     cd ..
 
-    # Calculate some stats 
+    # Calculate some stats
     python calculate_stats.py loop [--folder publisher-registry-id]
     python calculate_stats.py aggregate
     python calculate_stats.py invert
@@ -129,7 +129,7 @@ To calculate a new stat, add a function to the appropriate class in
 Running for every commit in the data directory
 ----------------------------------------------
 
-If the data directory is a git repository (e.g. as a result of running `IATI-Registry-Refresher's git.sh <https://github.com/IATI/IATI-Registry-Refresher#creating-a-git-data-snapshot>`__), you can run the code: 
+If the data directory is a git repository (e.g. as a result of running `IATI-Registry-Refresher's git.sh <https://github.com/IATI/IATI-Registry-Refresher#creating-a-git-data-snapshot>`__), you can run the code:
 
 .. code-block:: bash
 

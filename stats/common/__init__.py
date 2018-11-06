@@ -40,12 +40,28 @@ def iso_date(element):
     return iso_date_match(raw_date)
 
 def transaction_date(transaction):
+    """Returns a datetime object for an input transaction object. 
+       A transaction-date is preferred, although if not available, returns value/value-date
+       Returns None if neither found.
+
+       Input:
+         transaction -- etree transaction object
+       Returns:
+         datetime object or None
+    """
     if transaction.find('transaction-date') is not None:
         return iso_date(transaction.find('transaction-date'))
     elif transaction.find('value') is not None:
         return iso_date_match(transaction.find('value').attrib.get('value-date'))
 
 def budget_year(budget):
+    """Returns the year of an inputted object (normally a budget).
+
+       Input:
+         budget -- etree budget object
+       Returns:
+         year (integer) or None
+    """
     start = iso_date(budget.find('period-start'))
     end = iso_date(budget.find('period-end'))
 

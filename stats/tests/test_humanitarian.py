@@ -569,7 +569,7 @@ def test_humanitarian_attrib_false_sector_false(version, hum_attrib_val_true, hu
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_elements_valid_version(version, hum_attrib_val):
     """
-    Detect that an activity contains a humanitarian-scope element (with required non-empty attributes).
+    Detect that an activity containing a humanitarian-scope element (with required non-empty attributes) count as humanitarian.
     """
 
     activity_stats = MockActivityStats(version)
@@ -611,7 +611,7 @@ def test_humanitarian_elements_invalid_version(version, hum_attrib_val):
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_scope_invalid(version, hum_attrib_val):
     """
-    Detect that an activity contains a humanitarian-scope element without required attributes.
+    Detect that even if an activity (at an expected version) contains a humanitarian-scope element, it must include the required attributes to count as humanitarian.
     """
     activity_stats = MockActivityStats(version)
 
@@ -628,7 +628,7 @@ def test_humanitarian_scope_invalid(version, hum_attrib_val):
 @pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
 def test_humanitarian_scope_invalid_empty_values(version, hum_attrib_val):
     """
-    Detect that even if the humanitarian-scope element is present (with required attributes), there must be non-empty data within the @type and @code attributes for it to count as humanitarian.
+    Detect that even if the humanitarian-scope (at an expected version) element is present (with required attributes), there must be non-empty data within the @type and @code attributes for it to count as humanitarian.
     """
     activity_stats = MockActivityStats(version)
 
@@ -641,10 +641,10 @@ def test_humanitarian_scope_invalid_empty_values(version, hum_attrib_val):
     assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02', '2.03'])
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', '2.02', '2.03', 'unknown version'])
 def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
     """
-    Detect that even if the humanitarian-scope element is present, the humanitarian
+    Detect that even if an activity (of any version) contains the humanitarian-scope element, the humanitarian
     attribute must be present and marked as true to count.
     """
 
@@ -662,11 +662,11 @@ def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 
 
-@pytest.mark.parametrize('version', ['2.02', '2.03'])
+@pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', '2.02', '2.03', 'unknown version'])
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 def test_humanitarian_scope_but_humanitarian_is_false(version, hum_attrib_val_false):
     """
-    Detect that even if the humanitarian-scope element is present, the humanitarian
+    Detect that even if an activity (at any version) contains a humanitarian-scope element is present, the humanitarian
     attribute must be present and marked as true to count.
     """
 

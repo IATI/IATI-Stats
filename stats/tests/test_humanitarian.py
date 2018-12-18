@@ -642,10 +642,10 @@ def test_humanitarian_scope_invalid(version, hum_attrib_val):
 
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])
-def test_humanitarian_scope_but_not_humanitarian(version):
+def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
     """
-    Tests that humanitarian scope is only valid if the activity
-    is humanitarian
+    Detect that even if the humanitarian-scope element is present, the humanitarian
+    attribute must be present and marked as true to count.
     """
 
     activity_stats = MockActivityStats(version)
@@ -655,6 +655,28 @@ def test_humanitarian_scope_but_not_humanitarian(version):
           <humanitarian-scope type="" code="" />
        </iati-activity>
     ''')
+
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
+@pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
+def test_humanitarian_scope_but_humanitarian_is_false(version, hum_attrib_val_false):
+    """
+    Detect that even if the humanitarian-scope element is present, the humanitarian
+    attribute must be present and marked as true to count.
+    """
+
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring('''
+       <iati-activity humanitarian="{0}">
+          <humanitarian-scope type="" code="" />
+       </iati-activity>
+    '''.format(hum_attrib_val_false))
 
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['is_humanitarian_by_attrib'] == 0
@@ -680,11 +702,11 @@ def test_humanitarian_clusters_valid(version, hum_attrib_val):
 
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])
-def test_humanitarian_clusters_invalid(version):
+def test_humanitarian_clusters_invalid_no_attrib(version):
     """
     Detect that even if an activity contains a sector defined by the
-    'Humanitarian Global Clusters' sector vocabulary, it must be
-    humanitarian to count
+    'Humanitarian Global Clusters' sector vocabulary, the humanitarian
+    attribute must be present and marked as true to count.
     """
     activity_stats = MockActivityStats(version)
 
@@ -693,6 +715,25 @@ def test_humanitarian_clusters_invalid(version):
            <sector vocabulary="10" />
         </iati-activity>
     ''')
+    assert activity_stats.humanitarian()['is_humanitarian'] == 0
+    assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
+
+
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
+@pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
+def test_humanitarian_clusters_invalid_humanitarian_is_false(version, hum_attrib_val_false):
+    """
+    Detect that even if an activity contains a sector defined by the
+    'Humanitarian Global Clusters' sector vocabulary, the humanitarian
+    attribute must be present and marked as true to count.
+    """
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity humanitarian="{0}">
+           <sector vocabulary="10" />
+        </iati-activity>
+    '''.format(hum_attrib_val_false))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
 

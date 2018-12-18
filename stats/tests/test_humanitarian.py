@@ -576,7 +576,7 @@ def test_humanitarian_elements_valid_version(version, hum_attrib_val):
 
     activity_stats.element = etree.fromstring('''
        <iati-activity humanitarian="{0}">
-          <humanitarian-scope type="" code="" />
+          <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
     '''.format(hum_attrib_val))
 
@@ -617,7 +617,7 @@ def test_humanitarian_scope_valid(version, hum_attrib_val):
 
     activity_stats.element = etree.fromstring('''
         <iati-activity humanitarian="{0}">
-           <humanitarian-scope type="" code="" />
+           <humanitarian-scope type="xx" code="xx" />
         </iati-activity>
     '''.format(hum_attrib_val))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
@@ -642,6 +642,23 @@ def test_humanitarian_scope_invalid(version, hum_attrib_val):
 
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])
+@pytest.mark.parametrize('hum_attrib_val', ['1', 'true'])
+def test_humanitarian_scope_invalid_empty_values(version, hum_attrib_val):
+    """
+    Detect that even if the humanitarian-scope element is present (with required attributes), there must be non-empty data within the @type and @code attributes for it to count as humanitarian.
+    """
+    activity_stats = MockActivityStats(version)
+
+    activity_stats.element = etree.fromstring('''
+        <iati-activity humanitarian="{0}">
+           <humanitarian-scope type="" code="" />
+        </iati-activity>
+    '''.format(hum_attrib_val))
+    assert activity_stats.humanitarian()['is_humanitarian'] == 1
+    assert activity_stats.humanitarian()['contains_humanitarian_scope'] == 0
+
+
+@pytest.mark.parametrize('version', ['2.02', '2.03'])
 def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
     """
     Detect that even if the humanitarian-scope element is present, the humanitarian
@@ -652,7 +669,7 @@ def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
 
     activity_stats.element = etree.fromstring('''
        <iati-activity>
-          <humanitarian-scope type="" code="" />
+          <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
     ''')
 
@@ -771,4 +788,3 @@ def test_humanitarian_clusters_invalid(version, hum_attrib_val,
         </iati-activity>
     '''.format(hum_attrib_val, sector_vocabulary_code))
     assert activity_stats.humanitarian()['uses_humanitarian_clusters_vocab'] == 0
-

@@ -597,7 +597,7 @@ def test_humanitarian_elements_invalid_version(version, hum_attrib_val):
 
     activity_stats.element = etree.fromstring('''
        <iati-activity humanitarian="{1}">
-          <humanitarian-scope type="" code="" />
+          <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
     '''.format(version, hum_attrib_val))
 
@@ -674,7 +674,7 @@ def test_humanitarian_scope_but_humanitarian_is_false(version, hum_attrib_val_fa
 
     activity_stats.element = etree.fromstring('''
        <iati-activity humanitarian="{0}">
-          <humanitarian-scope type="" code="" />
+          <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
     '''.format(hum_attrib_val_false))
 

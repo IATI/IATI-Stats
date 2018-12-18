@@ -644,8 +644,7 @@ def test_humanitarian_scope_invalid_empty_values(version, hum_attrib_val):
 @pytest.mark.parametrize('version', ['1.01', '1.02', '1.03', '1.04', '1.05', '2.01', '2.02', '2.03', 'unknown version'])
 def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
     """
-    Detect that even if an activity (of any version) contains the humanitarian-scope element, the humanitarian
-    attribute must be present and marked as true to count.
+    Detect that even if an activity (of any version) contains the humanitarian-scope element, the humanitarian attribute must be present and marked as true to count.
     """
 
     activity_stats = MockActivityStats(version)
@@ -666,8 +665,7 @@ def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 def test_humanitarian_scope_but_humanitarian_is_false(version, hum_attrib_val_false):
     """
-    Detect that even if an activity (at any version) contains a humanitarian-scope element is present, the humanitarian
-    attribute must be present and marked as true to count.
+    Detect that even if an activity (at any version) contains a humanitarian-scope element is present, the humanitarian attribute must be present and marked as true to count.
     """
 
     activity_stats = MockActivityStats(version)
@@ -704,9 +702,7 @@ def test_humanitarian_clusters_valid(version, hum_attrib_val):
 @pytest.mark.parametrize('version', ['2.02', '2.03'])
 def test_humanitarian_clusters_invalid_no_attrib(version):
     """
-    Detect that even if an activity contains a sector defined by the
-    'Humanitarian Global Clusters' sector vocabulary, the humanitarian
-    attribute must be present and marked as true to count.
+    Detect that even if an activity contains a sector defined by the 'Humanitarian Global Clusters' sector vocabulary, the humanitarian attribute must be present and marked as true to count.
     """
     activity_stats = MockActivityStats(version)
 
@@ -723,9 +719,7 @@ def test_humanitarian_clusters_invalid_no_attrib(version):
 @pytest.mark.parametrize('hum_attrib_val_false', ['0', 'false', 'True', 'False', ''])
 def test_humanitarian_clusters_invalid_humanitarian_is_false(version, hum_attrib_val_false):
     """
-    Detect that even if an activity contains a sector defined by the
-    'Humanitarian Global Clusters' sector vocabulary, the humanitarian
-    attribute must be present and marked as true to count.
+    Detect that even if an activity contains a sector defined by the 'Humanitarian Global Clusters' sector vocabulary, the humanitarian attribute must be present and marked as true to count.
     """
     activity_stats = MockActivityStats(version)
 

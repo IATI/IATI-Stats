@@ -17,7 +17,15 @@ def test_budget_not_provided_fails():
             <iati-activity>
             </iati-activity>
     ''')
-    assert activity_stats._budget_not_provided() == None
+    assert activity_stats._budget_not_provided() == {'budget-not-provided': '0'}
+
+def test_budget_not_provided_value():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+            <iati-activity budget-not-provided="1">
+            </iati-activity>
+    ''')
+    assert int(activity_stats._budget_not_provided().values()[0]) == 1
 
 
 class CommonSharedElements(object):
@@ -36,3 +44,5 @@ class ActivityStats(CommonSharedElements):
     def _budget_not_provided(self):
         if self.element.attrib.get('budget-not-provided'):
             return {'budget-not-provided': self.element.attrib.get('budget-not-provided')}
+        else:
+            return {'budget-not-provided': '0'}

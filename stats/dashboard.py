@@ -415,6 +415,8 @@ class ActivityStats(CommonSharedElements):
     def _budget_not_provided(self):
         if self.element.attrib.get('budget-not-provided'):
             return {'budget-not-provided': self.element.attrib.get('budget-not-provided')}
+        else:
+            return {'budget-not-provided': '0'}
 
     def by_hierarchy(self):
         out = {}
@@ -895,10 +897,9 @@ class ActivityStats(CommonSharedElements):
     def forwardlooking_activities_with_budget_not_provided(self, date_code_runs=None):
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
         this_year = int(date_code_runs.year)
-        bnp = self._budget_not_provided()
-        if bnp:
-            return {year: int(self._forwardlooking_is_current(year) and bnp and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
-                    for year in range(this_year, this_year+3)}
+        bnp = int(self._budget_not_provided().values()[0]) > 0
+        return {year: int(self._forwardlooking_is_current(year) and bnp and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
+                for year in range(this_year, this_year+3)}
 
     @memoize
     def _comprehensiveness_is_current(self):

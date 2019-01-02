@@ -412,10 +412,16 @@ class ActivityStats(CommonSharedElements):
     def hierarchies(self):
         return {self.element.attrib.get('hierarchy'):1}
 
+    def _budget_not_provided(self):
+        if self.element.attrib.get('budget-not-provided'):
+            return {'budget-not-provided': self.element.attrib.get('budget-not-provided')}
+        else:
+            return {'budget-not-provided': '0'}
+
     def by_hierarchy(self):
         out = {}
         for stat in ['activities', 'elements', 'elements_total',
-                     'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets',
+                     'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets', 'forwardlooking_activities_with_budget_not_provided',
                      'comprehensiveness', 'comprehensiveness_with_validation', 'comprehensiveness_denominators', 'comprehensiveness_denominator_default'
                      ]:
             out[stat] = copy.deepcopy(getattr(self, stat)())
@@ -886,6 +892,14 @@ class ActivityStats(CommonSharedElements):
         budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
         return { year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                     for year in range(this_year, this_year+3) }
+
+    @returns_numberdict
+    def forwardlooking_activities_with_budget_not_provided(self, date_code_runs=None):
+        date_code_runs = date_code_runs if date_code_runs else self.now.date()
+        this_year = int(date_code_runs.year)
+        bnp = int(self._budget_not_provided().values()[0]) > 0
+        return {year: int(self._forwardlooking_is_current(year) and bnp and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
+                for year in range(this_year, this_year+3)}
 
     @memoize
     def _comprehensiveness_is_current(self):

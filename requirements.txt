@@ -1,4 +1,4 @@
-lxml==4.2.6
+lxml==4.3.0
 python-dateutil==2.7.5
 git+https://github.com/IATI/IATI-Rulesets.git#egg=iatirulesets
 

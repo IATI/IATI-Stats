@@ -19,6 +19,15 @@ def test_budget_not_provided_fails():
     ''')
     assert activity_stats._budget_not_provided() == None
 
+def test_budget_validation_bools():
+    activity_stats = ActivityStats()
+    activity_stats.element = etree.fromstring('''
+            <iati-activity budget-not-provided="3">
+                <budget></budget>
+            </iati-activity>
+    ''')
+    assert not (len(activity_stats.element.findall('budget'))>0) == False
+
 class CommonSharedElements(object):
     blank = False
 

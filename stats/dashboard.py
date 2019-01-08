@@ -99,7 +99,7 @@ codelist_mappings = { major_version: get_codelist_mapping(major_version) for maj
 
 CODELISTS = {'1':{}, '2':{}}
 for major_version in ['1', '2']:
-    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType']:
+    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType', 'BudgetNotProvided']:
         CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data'])
 
 
@@ -1033,8 +1033,9 @@ class ActivityStats(CommonSharedElements):
             'transaction_currency': all_true_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
             'transaction_traceability': all_true_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code())))
                                         or self._is_donor_publisher(),
-            'budget': self.element.findall('budget'),
-            'budget-not-provided': self._budget_not_provided() is not None,
+            'budget': (
+                self.element.findall('budget') or
+                self._budget_not_provided() is not None),
             'contact-info': self.element.findall('contact-info/email'),
             'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
             'location_point_pos': self.element.xpath('location/point/pos'),
@@ -1139,16 +1140,14 @@ class ActivityStats(CommonSharedElements):
                     ),
                 'budget': (
                     bools['budget'] and
-                    all(
-                        valid_date(budget.find('period-start')) and
-                        valid_date(budget.find('period-end')) and
-                        valid_date(budget.find('value')) and
-                        valid_value(budget.find('value'))
-                        for budget in bools['budget'])),
-                'budget-not-provided': (
-                    bools['budget-not-provided'] and
-                    not self.element.findall('budget') and
-                    str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided']),
+                        (all(
+                            valid_date(budget.find('period-start')) and
+                            valid_date(budget.find('period-end')) and
+                            valid_date(budget.find('value')) and
+                            valid_value(budget.find('value'))
+                            for budget in bools['budget']) or
+                        (not (len(self.element.findall('budget')) > 0) and
+                        self._budget_not_provided() in CODELISTS[self._major_version()]['BudgetNotProvided']))),
                 'location_point_pos': all_true_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (

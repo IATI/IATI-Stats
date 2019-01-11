@@ -413,7 +413,7 @@ class ActivityStats(CommonSharedElements):
         return {self.element.attrib.get('hierarchy'):1}
 
     def _budget_not_provided(self):
-        if self.element.attrib.get('budget-not-provided'):
+        if self.element.attrib.get('budget-not-provided') is not Noneb:
             return int(self.element.attrib.get('budget-not-provided'))
         else:
             return None
@@ -897,8 +897,8 @@ class ActivityStats(CommonSharedElements):
     def forwardlooking_activities_with_budget_not_provided(self, date_code_runs=None):
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
         this_year = int(date_code_runs.year)
-        bnp = self._budget_not_provided() is not None
-        return {year: int(self._forwardlooking_is_current(year) and bnp and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
+        bnp = self._budget_not_provided() is not None 
+        return {year: int(self._forwardlooking_is_current(year) and bnp > 0 and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                 for year in range(this_year, this_year+3)}
 
     @memoize
@@ -1100,7 +1100,8 @@ class ActivityStats(CommonSharedElements):
                             for es in elements_by_vocab.values())
                     else:
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
-
+            if(self._budget_not_provided()):
+                import pdb; pdb.set_trace()
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
                 'iati-identifier': (
@@ -1147,7 +1148,7 @@ class ActivityStats(CommonSharedElements):
                             valid_value(budget.find('value'))
                             for budget in bools['budget']) or
                         (not (len(self.element.findall('budget')) > 0) and
-                        self._budget_not_provided() in CODELISTS[self._major_version()]['BudgetNotProvided']))),
+                        str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided']))),
                 'location_point_pos': all_true_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (

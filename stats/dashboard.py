@@ -1006,10 +1006,10 @@ class ActivityStats(CommonSharedElements):
             return True if textFound else False
 
         return {
-            'version': (self.element.getparent() is not None
-                        and 'version' in self.element.getparent().attrib),
-            'reporting-org': (self.element.xpath('reporting-org/@ref')
-                        and is_text_in_element('reporting-org')),
+            'version': (self.element.getparent() is not None and
+                        'version' in self.element.getparent().attrib),
+            'reporting-org': (self.element.xpath('reporting-org/@ref') and
+                        is_text_in_element('reporting-org')),
             'iati-identifier': self.element.xpath('iati-identifier/text()'),
             'participating-org': self.element.find('participating-org') is not None,
             'title': is_text_in_element('title'),
@@ -1021,9 +1021,9 @@ class ActivityStats(CommonSharedElements):
                         for transaction in self.element.findall('transaction')
                 )),
             'country_or_region': (
-                self.element.find('recipient-country') is not None
-                or self.element.find('recipient-region') is not None
-                or (self._major_version() != '1' and all_true_and_not_empty(
+                self.element.find('recipient-country') is not None or
+                self.element.find('recipient-region') is not None or
+                (self._major_version() != '1' and all_true_and_not_empty(
                     (transaction.find('recipient-country') is not None or
                      transaction.find('recipient-region') is not None)
                         for transaction in self.element.findall('transaction')
@@ -1031,8 +1031,8 @@ class ActivityStats(CommonSharedElements):
             'transaction_commitment': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="11"]'.format(self._commitment_code())),
             'transaction_spend': self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code())),
             'transaction_currency': all_true_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
-            'transaction_traceability': all_true_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code())))
-                                        or self._is_donor_publisher(),
+            'transaction_traceability': all_true_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) or
+                                        self._is_donor_publisher(),
             'budget': (
                 self.element.findall('budget') or
                 self._budget_not_provided() is not None),
@@ -1047,8 +1047,8 @@ class ActivityStats(CommonSharedElements):
             'conditions_attached': self.element.xpath('conditions/@attached'),
             'result_indicator': self.element.xpath('result/indicator'),
             'aid_type': (
-                all_true_and_not_empty(self.element.xpath('default-aid-type/@code'))
-                or all_true_and_not_empty([transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')])
+                all_true_and_not_empty(self.element.xpath('default-aid-type/@code')) or
+                all_true_and_not_empty([transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')])
                 )
             # Alternative: all(map(all_true_and_not_empty, [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]))
         }
@@ -1068,7 +1068,7 @@ class ActivityStats(CommonSharedElements):
     def _comprehensiveness_with_validation_bools(self):
 
             def element_ref(element_obj):
-                """Get the ref attribute of a given element
+                """Get the ref attribute of a given element.
 
                 Returns:
                   Value in the 'ref' attribute or None if none found
@@ -1100,8 +1100,6 @@ class ActivityStats(CommonSharedElements):
                             for es in elements_by_vocab.values())
                     else:
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
-            if(self._budget_not_provided()):
-                import pdb; pdb.set_trace()
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
                 'iati-identifier': (
@@ -1147,8 +1145,7 @@ class ActivityStats(CommonSharedElements):
                             valid_date(budget.find('value')) and
                             valid_value(budget.find('value'))
                             for budget in bools['budget']) or
-                        (not (len(self.element.findall('budget')) > 0) and
-                        str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided']))),
+                        (len(self.element.findall('budget')) == 0))),
                 'location_point_pos': all_true_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (

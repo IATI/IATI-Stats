@@ -17,6 +17,7 @@ def test_budget_not_provided_works():
     ''')
     assert activity_stats._budget_not_provided() == 1
 
+
 def test_budget_not_provided_fails():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
@@ -24,6 +25,7 @@ def test_budget_not_provided_fails():
             </iati-activity>
     ''')
     assert activity_stats._budget_not_provided() is None
+
 
 def test_budget_validation_bools():
     activity_stats = ActivityStats()

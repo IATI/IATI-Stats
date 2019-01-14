@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-for x in 105 202; do
+for x in 105 203; do
     i=$(echo $x | head -c 1)
     mkdir -p codelists/$i
     wget "http://iatistandard.org/$x/codelists/downloads/clv2/json/en/Version.json" -O codelists/$i/Version.json

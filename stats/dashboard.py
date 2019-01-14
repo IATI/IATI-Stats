@@ -413,7 +413,7 @@ class ActivityStats(CommonSharedElements):
         return {self.element.attrib.get('hierarchy'):1}
 
     def _budget_not_provided(self):
-        if self.element.attrib.get('budget-not-provided') is not Noneb:
+        if self.element.attrib.get('budget-not-provided') is not None:
             return int(self.element.attrib.get('budget-not-provided'))
         else:
             return None

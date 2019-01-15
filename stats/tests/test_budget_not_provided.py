@@ -1,13 +1,8 @@
-import json
 from lxml import etree
 
 from collections import defaultdict, OrderedDict
 from stats.common.decorators import *
 
-
-CODELISTS = {'1':{}, '2':{}}
-for major_version in ['1', '2']:
-    CODELISTS[major_version]['BudgetNotProvided'] = set(c['code'] for c in json.load(open('../../helpers/codelists/{}/{}.json'.format(major_version, 'BudgetNotProvided')))['data'])
 
 def test_budget_not_provided_works():
     activity_stats = ActivityStats()
@@ -33,7 +28,7 @@ def test_budget_validation_bools():
             <iati-activity budget-not-provided="3">
             </iati-activity>
     ''')
-    assert (not (len(activity_stats.element.findall('budget')) > 0) and str(activity_stats._budget_not_provided()) in CODELISTS['2']['BudgetNotProvided'])
+    assert (len(activity_stats.element.findall('budget')) == 0)
 
 
 

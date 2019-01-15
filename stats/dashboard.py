@@ -413,7 +413,7 @@ class ActivityStats(CommonSharedElements):
         return {self.element.attrib.get('hierarchy'):1}
 
     def _budget_not_provided(self):
-        if self.element.attrib.get('budget-not-provided') is not Noneb:
+        if self.element.attrib.get('budget-not-provided') is not None:
             return int(self.element.attrib.get('budget-not-provided'))
         else:
             return None
@@ -1145,7 +1145,8 @@ class ActivityStats(CommonSharedElements):
                             valid_date(budget.find('value')) and
                             valid_value(budget.find('value'))
                             for budget in bools['budget']) or
-                        (len(self.element.findall('budget')) == 0))),
+                        ((len(self.element.findall('budget')) == 0) and
+                        self._budget_not_provided() is not None))),
                 'location_point_pos': all_true_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (

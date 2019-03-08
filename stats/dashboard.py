@@ -1033,9 +1033,8 @@ class ActivityStats(CommonSharedElements):
             'transaction_currency': all_true_and_not_empty(x.xpath('value/@value-date') and x.xpath('../@default-currency|./value/@currency') for x in self.element.findall('transaction')),
             'transaction_traceability': all_true_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._incoming_funds_code()))) or
                                         self._is_donor_publisher(),
-            'budget': (
-                self.element.findall('budget') or
-                self._budget_not_provided() is not None),
+            'budget': self.element.findall('budget'),
+            'budget_not_provided': self._budget_not_provided() is not None,
             'contact-info': self.element.findall('contact-info/email'),
             'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
             'location_point_pos': self.element.xpath('location/point/pos'),
@@ -1139,14 +1138,15 @@ class ActivityStats(CommonSharedElements):
                     ),
                 'budget': (
                     bools['budget'] and
-                        (all(
-                            valid_date(budget.find('period-start')) and
-                            valid_date(budget.find('period-end')) and
-                            valid_date(budget.find('value')) and
-                            valid_value(budget.find('value'))
-                            for budget in bools['budget']) or
-                        ((len(self.element.findall('budget')) == 0) and
-                        self._budget_not_provided() is not None))),
+                    all(
+                        valid_date(budget.find('period-start')) and
+                        valid_date(budget.find('period-end')) and
+                        valid_date(budget.find('value')) and
+                        valid_value(budget.find('value'))
+                        for budget in bools['budget'])),
+                'budget_not_provided': (
+                    bools['budget_not_provided'] and
+                    str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided']),
                 'location_point_pos': all_true_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (

@@ -2,8 +2,9 @@ from collections import defaultdict
 from common import decimal_default
 import decimal
 import json
-import os 
+import os
 import sys
+
 
 # Set value for the gitout directory
 GITOUT_DIR = os.environ.get('GITOUT_DIR') or 'gitout'
@@ -14,8 +15,8 @@ dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'
 git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-dated' if dated else 'gitaggregate')
 
 # Exclude some json stats files from being aggregated
-# These are typically the largest stats files that would consume large amounts of 
-# memory/disk space if aggregated over time
+# These are typically the largest stats files that would consume large amounts
+# of memory/disk space if aggregated over time
 whitelisted_stats_files = [
     'activities',
     'activity_files',
@@ -31,10 +32,10 @@ whitelisted_stats_files = [
     'unique_identifiers',
     'validation',
     'versions',
-    'teststat' # Extra 'stat' added as the test_gitaggregate.py assumes a file with this name is present
-    ]
+    'teststat'  # Extra 'stat' added as the test_gitaggregate.py assumes a file with this name is present
+]
 
-# Load the reference of commits to dates 
+# Load the reference of commits to dates
 if dated:
     gitdates = json.load(open('gitdate.json'))
 
@@ -47,45 +48,52 @@ except OSError:
 # Get a list containing the names of the entries in the directory
 git_out_files = os.listdir(git_out_dir)
 
+
+def get_json_commit_for_file(commit, fname):
+    """Get json file for the commit."""
+    print 'Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname)
+    commit_json_fname = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)
+    return commit_json_fname
+
+
+def write_output(trimmed_fname, gitaggregate_file):
+    """Write output to a temporary file, then rename."""
+    with open(os.path.join(git_out_dir, trimmed_fname + '.json.new'), 'w') as filepath:
+        print 'Writing data to {}'.format(trimmed_fname)
+        json.dump(gitaggregate_file, filepath, sort_keys=True, indent=2, default=decimal_default)
+    print 'Renaming file {} to {}'.format(trimmed_fname + '.json.new', trimmed_fname+'.json')
+    os.rename(os.path.join(git_out_dir, trimmed_fname + '.json.new'), os.path.join(git_out_dir, trimmed_fname+'.json'))
+
+
+def file_loop(commit, fname):
+    """Write through each file in the commit."""
+    if fname.endswith('.json'):
+        trimmed_fname = fname[:-5]  # remove '.json' from the filename
+    if trimmed_fname not in whitelisted_stats_files:
+        commit_json_fname = get_json_commit_for_file(commit, fname)
+    # Load the current file contents to memory, or set as an empty dictionary
+    if fname in git_out_files:
+        # FIXME: This is a possible cause of a memory issue in future, as the size of the aggregate file
+        #        increases each time there is a new commit
+        with open(os.path.join(git_out_dir, fname)) as filepath:
+            gitaggregate_file = json.load(filepath, parse_float=decimal.Decimal)
+    else:
+        gitaggregate_file = {}
+    # If the commit that we are looping over is not already in the data for this file, then add it to the output
+    if commit not in gitaggregate_file:
+        with open(commit_json_fname) as filepath:
+            commit_file = json.load(filepath, parse_float=decimal.Decimal)
+            if dated:
+                if commit in gitdates:
+                    gitaggregate_file[gitdates[commit]] = commit_file
+            else:
+                gitaggregate_file[commit] = commit_file
+        write_output(trimmed_fname, gitaggregate_file)
+    return
+
+
 # Loop over each commit in gitout/commits
 for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
     print 'Aggregating for commit: {}'.format(commit)
-
     for fname in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated')):
-        if not fname.endswith('.json'):
-            continue
-        
-        k = fname[:-5] # remove '.json' from the filename
-        # Ignore certain files
-        if k not in whitelisted_stats_files:
-           continue
-
-        print 'Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname)
-        
-        commit_json_fname = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)
-        
-        # Load the current file conents to memory, or set as an empty dictionary
-        if fname in git_out_files:
-            # FIXME: This is a possible cause of a memory issue in future, as the size of the aggregate file 
-            #        increases each time there is a new commit
-            with open(os.path.join(git_out_dir, fname)) as fp:
-                v = json.load(fp, parse_float=decimal.Decimal)
-        else:
-            v = {}
-        
-        # If the commit that we are looping over is not already in the data for this file, then add it to the output
-        if not commit in v:
-            with open(commit_json_fname) as fp2:
-                v2 = json.load(fp2, parse_float=decimal.Decimal)
-                if dated:
-                    if commit in gitdates:
-                        v[gitdates[commit]] = v2
-                else:
-                    v[commit] = v2
-
-            # Write output to a temporary file, then rename
-            with open(os.path.join(git_out_dir, k+'.json.new'), 'w') as fp:
-                print 'Writing data to {}'.format(k)
-                json.dump(v, fp, sort_keys=True, indent=2, default=decimal_default)
-            print 'Renaming file {} to {}'.format(k+'.json.new', k+'.json')
-            os.rename(os.path.join(git_out_dir, k+'.json.new'), os.path.join(git_out_dir, k+'.json'))
+        file_loop(commit, fname)

@@ -898,10 +898,12 @@ class ActivityStats(CommonSharedElements):
         """
         Number of activities with the budget_not_provided attribute for this year and the following 2 years.
 
-        Activities will be excluded if
-         i)  They end in the next 6 months
-         ii) At least 90% of the commitment transactions has been disbursed or expended
-             within or before the input year
+        Note activities excluded according if they meet the logic in _forwardlooking_exclude_in_calculations()
+
+        Input:
+          date_code_runs -- a date object for when this code is run
+        Returns:
+          dictionary containing years with binary value if this activity is current and has the budget_not_provided attribute
         """
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
         this_year = int(date_code_runs.year)

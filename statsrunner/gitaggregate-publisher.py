@@ -35,7 +35,7 @@ whitelisted_stats_files = [
 dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'
 
 
-def publisher_loop(publisher, commit):
+def publisher_loop(publisher, commit, whitelisted, dated):
     """Loop over publishers."""
     # Load the reference of commits to dates
     if dated:
@@ -46,7 +46,7 @@ def publisher_loop(publisher, commit):
     except OSError:
         pass
 
-    total = total_loop(publisher, git_out_dir, whitelisted_stats_files, commit, gitdates)
+    total = total_loop(publisher, git_out_dir, whitelisted, commit, gitdates)
 
     for statname, stat_json in total.items():
         new_json_file = '{}.json.new'.format(statname)
@@ -89,4 +89,4 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
 
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
         print "{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher)
-        publisher_loop(publisher, commit)
+        publisher_loop(publisher, commit, whitelisted_stats_files, dated)

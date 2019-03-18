@@ -36,7 +36,7 @@ dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'
 if dated:
     gitdates = json.load(open('gitdate.json'))
 
-def publisher_loop(publisher, commit, whitelisted, dated, gitdates=False, GITOUT_DIR):
+def publisher_loop(publisher, commit, whitelisted, dated, GITOUT_DIR, gitdates=False):
     """Loop over publishers."""
     # Load the reference of commits to dates
     git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)
@@ -88,4 +88,4 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
 
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
         print "{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher)
-        publisher_loop(publisher, commit, whitelisted_stats_files, dated, gitdates=gitdates, GITOUT_DIR)
+        publisher_loop(publisher, commit, whitelisted_stats_files, dated, GITOUT_DIR, gitdates=gitdates)

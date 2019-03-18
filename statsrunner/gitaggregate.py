@@ -70,9 +70,9 @@ def file_loop(commit, fname, whitelisted, dated, git_out_dir, git_out_files, GIT
     if fname.endswith('.json'):
         trimmed_fname = fname[:-5]  # remove '.json' from the filename
     else:
-        continue
+        return
     if trimmed_fname not in whitelisted:
-        continue
+        return
     commit_json_fname = get_json_commit_for_file(commit, fname, GITOUT_DIR)
     # Load the current file contents to memory, or set as an empty dictionary
     if fname in git_out_files:

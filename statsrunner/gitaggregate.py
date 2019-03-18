@@ -69,8 +69,11 @@ def file_loop(commit, fname, whitelisted, dated, git_out_dir, git_out_files, GIT
     """Write through each file in the commit."""
     if fname.endswith('.json'):
         trimmed_fname = fname[:-5]  # remove '.json' from the filename
+    else:
+        continue
     if trimmed_fname not in whitelisted:
-        commit_json_fname = get_json_commit_for_file(commit, fname, GITOUT_DIR)
+        continue
+    commit_json_fname = get_json_commit_for_file(commit, fname, GITOUT_DIR)
     # Load the current file contents to memory, or set as an empty dictionary
     if fname in git_out_files:
         # FIXME: This is a possible cause of a memory issue in future, as the size of the aggregate file

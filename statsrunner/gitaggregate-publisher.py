@@ -31,12 +31,8 @@ whitelisted_stats_files = [
     'most_recent_transaction_date'
 ]
 
-# Set bool if the 'dated' argument has been used in calling this script
-dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'
-if dated:
-    gitdates = json.load(open('gitdate.json'))
 
-def publisher_loop(publisher, commit, whitelisted, dated, GITOUT_DIR, gitdates=False):
+def publisher_loop(publisher, commit, whitelisted, dated, GITOUT_DIR, gitdates):
     """Loop over publishers."""
     # Load the reference of commits to dates
     git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)
@@ -81,6 +77,12 @@ def whitelisted_stats(total, statname, commit, GITOUT_DIR):
                 return json.load(filepath, parse_float=decimal.Decimal)
 
 
+# Set bool if the 'dated' argument has been used in calling this script
+dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'
+if dated:
+    gitdates = json.load(open('gitdate.json'))
+else:
+    gitdates = False
 # Loop over folders in the 'commits' directory
 # Variable commit will be the commit hash
 for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
@@ -88,4 +90,4 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
 
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
         print "{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher)
-        publisher_loop(publisher, commit, whitelisted_stats_files, dated, GITOUT_DIR, gitdates=gitdates)
+        publisher_loop(publisher, commit, whitelisted_stats_files, dated, GITOUT_DIR, gitdates)

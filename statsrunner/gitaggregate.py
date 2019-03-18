@@ -49,22 +49,6 @@ except OSError:
 git_out_files = os.listdir(git_out_dir)
 
 
-def get_json_commit_for_file(commit, fname, GITOUT_DIR):
-    """Get json file for the commit."""
-    commit_json_fname = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)
-    return commit_json_fname
-
-
-def write_output(trimmed_fname, gitaggregate_file, git_out_dir):
-    """Write output to a temporary file, then rename."""
-    new_json = '{}.json.new'.format(trimmed_fname)
-    with open(os.path.join(git_out_dir, new_json), 'w') as filepath:
-        print 'Writing data to {}'.format(trimmed_fname)
-        json.dump(gitaggregate_file, filepath, sort_keys=True, indent=2, default=decimal_default)
-    print 'Renaming file {} to {}'.format(new_json, trimmed_fname + '.json')
-    os.rename(os.path.join(git_out_dir, new_json), os.path.join(git_out_dir, trimmed_fname + '.json'))
-
-
 def file_loop(commit, fname, whitelisted, dated, git_out_dir, git_out_files, GITOUT_DIR):
     """Write through each file in the commit."""
     if fname.endswith('.json'):
@@ -94,6 +78,21 @@ def file_loop(commit, fname, whitelisted, dated, git_out_dir, git_out_files, GIT
         write_output(trimmed_fname, gitaggregate_file, git_out_dir)
     return
 
+
+def get_json_commit_for_file(commit, fname, GITOUT_DIR):
+    """Get json file for the commit."""
+    commit_json_fname = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)
+    return commit_json_fname
+
+
+def write_output(trimmed_fname, gitaggregate_file, git_out_dir):
+    """Write output to a temporary file, then rename."""
+    new_json = '{}.json.new'.format(trimmed_fname)
+    with open(os.path.join(git_out_dir, new_json), 'w') as filepath:
+        print 'Writing data to {}'.format(trimmed_fname)
+        json.dump(gitaggregate_file, filepath, sort_keys=True, indent=2, default=decimal_default)
+    print 'Renaming file {} to {}'.format(new_json, trimmed_fname + '.json')
+    os.rename(os.path.join(git_out_dir, new_json), os.path.join(git_out_dir, trimmed_fname + '.json'))
 
 # Loop over each commit in gitout/commits
 for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):

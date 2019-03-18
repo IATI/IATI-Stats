@@ -51,7 +51,6 @@ git_out_files = os.listdir(git_out_dir)
 
 def get_json_commit_for_file(commit, fname):
     """Get json file for the commit."""
-    print 'Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname)
     commit_json_fname = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)
     return commit_json_fname
 
@@ -96,4 +95,5 @@ def file_loop(commit, fname):
 for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
     print 'Aggregating for commit: {}'.format(commit)
     for fname in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated')):
+        print 'Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname)
         file_loop(commit, fname)

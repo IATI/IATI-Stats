@@ -49,7 +49,7 @@ except OSError:
 git_out_files = os.listdir(git_out_dir)
 
 
-def get_json_commit_for_file(commit, fname):
+def get_json_commit_for_file(commit, fname, GITOUT_DIR):
     """Get json file for the commit."""
     commit_json_fname = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)
     return commit_json_fname
@@ -65,12 +65,12 @@ def write_output(trimmed_fname, gitaggregate_file, git_out_dir):
     os.rename(os.path.join(git_out_dir, new_json), os.path.join(git_out_dir, trimmed_fname + '.json'))
 
 
-def file_loop(commit, fname, whitelisted, dated, git_out_dir):
+def file_loop(commit, fname, whitelisted, dated, git_out_dir, git_out_files, GITOUT_DIR):
     """Write through each file in the commit."""
     if fname.endswith('.json'):
         trimmed_fname = fname[:-5]  # remove '.json' from the filename
     if trimmed_fname not in whitelisted:
-        commit_json_fname = get_json_commit_for_file(commit, fname, gitoutdir)
+        commit_json_fname = get_json_commit_for_file(commit, fname, GITOUT_DIR)
     # Load the current file contents to memory, or set as an empty dictionary
     if fname in git_out_files:
         # FIXME: This is a possible cause of a memory issue in future, as the size of the aggregate file
@@ -97,4 +97,4 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
     print 'Aggregating for commit: {}'.format(commit)
     for fname in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated')):
         print 'Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname)
-        file_loop(commit, fname, whitelisted_stats_files, dated, git_out_dir)
+        file_loop(commit, fname, whitelisted_stats_files, dated, git_out_dir, git_out_files, GITOUT_DIR)

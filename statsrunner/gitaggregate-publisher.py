@@ -33,20 +33,19 @@ whitelisted_stats_files = [
 
 # Set bool if the 'dated' argument has been used in calling this script
 dated = len(sys.argv) > 1 and sys.argv[1] == 'dated'
+if dated:
+    gitdates = json.load(open('gitdate.json'))
 
-
-def publisher_loop(publisher, commit, whitelisted, dated):
+def publisher_loop(publisher, commit, whitelisted, dated, gitdates, GITOUT_DIR):
     """Loop over publishers."""
     # Load the reference of commits to dates
-    if dated:
-        gitdates = json.load(open('gitdate.json'))
     git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)
     try:
         os.makedirs(git_out_dir)
     except OSError:
         pass
 
-    total = total_loop(publisher, git_out_dir, whitelisted, commit, gitdates)
+    total = total_loop(publisher, git_out_dir, whitelisted, commit, gitdates, GITOUT_DIR)
 
     for statname, stat_json in total.items():
         new_json_file = '{}.json.new'.format(statname)
@@ -55,7 +54,7 @@ def publisher_loop(publisher, commit, whitelisted, dated):
         os.rename(os.path.join(git_out_dir, new_json_file), os.path.join(git_out_dir, new_json_file))
 
 
-def total_loop(publisher, git_out_dir, whitelisted, commit, gitdates):
+def total_loop(publisher, git_out_dir, whitelisted, commit, gitdates, GITOUT_DIR):
     """Loop over the existing files in the output directory for this publisher and load them into the 'total' dictionary."""
     total = defaultdict(dict)
     if os.path.isdir(git_out_dir):
@@ -64,7 +63,7 @@ def total_loop(publisher, git_out_dir, whitelisted, commit, gitdates):
                 with open(os.path.join(git_out_dir, fname)) as filepath:
                     total[fname[:-5]] = json.load(filepath, parse_float=decimal.Decimal)
     for statname in whitelisted:
-        stat_json = whitelisted_stats(statname, publisher, commit)
+        stat_json = whitelisted_stats(statname, publisher, commit, GITOUT_DIR)
         if dated:
             if commit in gitdates:
                 total[statname][gitdates[commit]] = stat_json
@@ -73,7 +72,7 @@ def total_loop(publisher, git_out_dir, whitelisted, commit, gitdates):
     return total
 
 
-def whitelisted_stats(total, statname, commit):
+def whitelisted_stats(total, statname, commit, GITOUT_DIR):
     """Load specified stat json file for a publisher."""
     path = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher', publisher, '{}.json'.format(statname))
     if os.path.isfile(path):
@@ -89,4 +88,4 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
 
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
         print "{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher)
-        publisher_loop(publisher, commit, whitelisted_stats_files, dated)
+        publisher_loop(publisher, commit, whitelisted_stats_files, dated, gitdates, GITOUT_DIR)

@@ -60,7 +60,7 @@ class AggregatedFile(object):
     def file_loop(self, whitelisted, dated, git_out_dir, git_out_files, GITOUT_DIR):
         """Write through each file in the commit."""
         if self.fname.endswith('.json'):
-            trimmed_fname = fname[:-5]  # remove '.json' from the filename
+            trimmed_fname = self.fname[:-5]  # remove '.json' from the filename
         else:
             return
         if trimmed_fname not in whitelisted:

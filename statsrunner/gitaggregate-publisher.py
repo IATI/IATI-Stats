@@ -50,7 +50,7 @@ class AggregatedPublisher(object):
         except OSError:
             pass
 
-        self.total = self.total_loop(git_out_dir, whitelisted, gitdates)
+        self.total = self.total_loop(git_out_dir, whitelisted, gitdates, GITOUT_DIR)
 
         for statname, stat_json in self.total.items():
             new_json_file = '{}.json.new'.format(statname)

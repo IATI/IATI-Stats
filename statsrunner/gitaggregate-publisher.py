@@ -37,9 +37,9 @@ class AggregatedPublisher(object):
 
     def __init__(self, publisher, commit, dated):
         """Initialise class."""
-        publisher = publisher
-        commit = commit
-        dated = dated
+        self.publisher = publisher
+        self.commit = commit
+        self.dated = dated
 
     def publisher_loop(self, whitelisted, gitdates, GITOUT_DIR):
         """Loop over publishers."""

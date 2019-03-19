@@ -40,8 +40,8 @@ class AggregatedFile(object):
     """File and commit for the writing loop."""
     def __init__(self, commit, fname):
         """Initialise the class."""
-        commit = commit
-        fname = fname
+        self.commit = commit
+        self.fname = fname
 
     def get_json_commit_for_file(self, GITOUT_DIR):
         """Get json file for the commit."""

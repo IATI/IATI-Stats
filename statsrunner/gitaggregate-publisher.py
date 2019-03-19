@@ -32,49 +32,56 @@ whitelisted_stats_files = [
 ]
 
 
-def publisher_loop(publisher, commit, whitelisted, dated, GITOUT_DIR, gitdates):
-    """Loop over publishers."""
-    # Load the reference of commits to dates
-    git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)
-    try:
-        os.makedirs(git_out_dir)
-    except OSError:
-        pass
+class AggregatedPublisher(object):
+    """Commit and publisher for the writing loop."""
 
-    total = total_loop(publisher, git_out_dir, whitelisted, commit, gitdates, GITOUT_DIR)
+    def __init__(self, publisher, commit, dated):
+        """Initialise class."""
+        publisher = publisher
+        commit = commit
+        dated = dated
 
-    for statname, stat_json in total.items():
-        new_json_file = '{}.json.new'.format(statname)
-        with open(os.path.join(git_out_dir, new_json_file), 'w') as filepath:
-            json.dump(stat_json, filepath, sort_keys=True, indent=2, default=decimal_default)
-        os.rename(os.path.join(git_out_dir, new_json_file), os.path.join(git_out_dir, new_json_file))
+    def publisher_loop(self, whitelisted, gitdates, GITOUT_DIR):
+        """Loop over publishers."""
+        # Load the reference of commits to dates
+        git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-publisher-dated' if self.dated else 'gitaggregate-publisher', self.publisher)
+        try:
+            os.makedirs(git_out_dir)
+        except OSError:
+            pass
 
+        self.total = self.total_loop(git_out_dir, whitelisted, gitdates)
 
-def total_loop(publisher, git_out_dir, whitelisted, commit, gitdates, GITOUT_DIR):
-    """Loop over the existing files in the output directory for this publisher and load them into the 'total' dictionary."""
-    total = defaultdict(dict)
-    if os.path.isdir(git_out_dir):
-        for fname in os.listdir(git_out_dir):
-            if fname.endswith('.json'):
-                with open(os.path.join(git_out_dir, fname)) as filepath:
-                    total[fname[:-5]] = json.load(filepath, parse_float=decimal.Decimal)
-    for statname in whitelisted:
-        stat_json = whitelisted_stats(statname, publisher, commit, GITOUT_DIR)
-        if dated:
-            if commit in gitdates:
-                total[statname][gitdates[commit]] = stat_json
-            else:
-                total[statname][commit] = stat_json
-    return total
+        for statname, stat_json in self.total.items():
+            new_json_file = '{}.json.new'.format(statname)
+            with open(os.path.join(git_out_dir, new_json_file), 'w') as filepath:
+                json.dump(stat_json, filepath, sort_keys=True, indent=2, default=decimal_default)
+            os.rename(os.path.join(git_out_dir, new_json_file), os.path.join(git_out_dir, new_json_file))
 
+    def total_loop(self, git_out_dir, whitelisted, gitdates, GITOUT_DIR):
+        """Loop over the existing files in the output directory for this publisher and load them into the 'total' dictionary."""
+        total = defaultdict(dict)
+        if os.path.isdir(git_out_dir):
+            for fname in os.listdir(git_out_dir):
+                if fname.endswith('.json'):
+                    with open(os.path.join(git_out_dir, fname)) as filepath:
+                        total[fname[:-5]] = json.load(filepath, parse_float=decimal.Decimal)
+        for statname in whitelisted:
+            stat_json = self.whitelisted_stats(statname, GITOUT_DIR)
+            if self.dated:
+                if self.commit in gitdates:
+                    total[statname][gitdates[commit]] = stat_json
+                else:
+                    total[statname][commit] = stat_json
+        return total
 
-def whitelisted_stats(total, statname, commit, GITOUT_DIR):
-    """Load specified stat json file for a publisher."""
-    path = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher', publisher, '{}.json'.format(statname))
-    if os.path.isfile(path):
-        with open(path) as filepath:
-            if commit not in total[statname]:
-                return json.load(filepath, parse_float=decimal.Decimal)
+    def whitelisted_stats(self, statname, GITOUT_DIR):
+        """Load specified stat json file for a publisher."""
+        path = os.path.join(GITOUT_DIR, 'commits', self.commit, 'aggregated-publisher', self.publisher, '{}.json'.format(statname))
+        if os.path.isfile(path):
+            with open(path) as filepath:
+                if self.commit not in self.total[statname]:
+                    return json.load(filepath, parse_float=decimal.Decimal)
 
 
 # Set bool if the 'dated' argument has been used in calling this script
@@ -90,4 +97,5 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
 
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
         print "{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher)
-        publisher_loop(publisher, commit, whitelisted_stats_files, dated, GITOUT_DIR, gitdates)
+        aggregated = AggregatedPublisher(publisher, commit, dated)
+        aggregated.publisher_loop(whitelisted_stats_files, gitdates, GITOUT_DIR)

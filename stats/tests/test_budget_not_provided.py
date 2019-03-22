@@ -1,11 +1,17 @@
 from lxml import etree
 
-from collections import defaultdict, OrderedDict
-from stats.common.decorators import *
+from stats.dashboard import ActivityStats
 
+class MockActivityStats(ActivityStats):
+    def __init__(self, major_version='2'):
+        self.major_version = major_version
+        return super(MockActivityStats, self).__init__()
+
+    def _major_version(self):
+        return self.major_version
 
 def test_budget_not_provided_works():
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats()
     activity_stats.element = etree.fromstring('''
             <iati-activity budget-not-provided="1">
             </iati-activity>
@@ -14,7 +20,7 @@ def test_budget_not_provided_works():
 
 
 def test_budget_not_provided_fails():
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats()
     activity_stats.element = etree.fromstring('''
             <iati-activity>
             </iati-activity>
@@ -23,30 +29,9 @@ def test_budget_not_provided_fails():
 
 
 def test_budget_validation_bools():
-    activity_stats = ActivityStats()
+    activity_stats = MockActivityStats()
     activity_stats.element = etree.fromstring('''
             <iati-activity budget-not-provided="3">
             </iati-activity>
     ''')
     assert (len(activity_stats.element.findall('budget')) == 0)
-
-
-
-class CommonSharedElements(object):
-    blank = False
-
-
-class ActivityStats(CommonSharedElements):
-    """ Stats calculated on a single iati-activity. """
-    element = None
-    blank = False
-    strict = False # (Setting this to true will ignore values that don't follow the schema)
-    context = ''
-    comprehensiveness_current_activity_status = None
-    now = datetime.datetime.now()
-
-    def _budget_not_provided(self):
-        if self.element.attrib.get('budget-not-provided'):
-            return int(self.element.attrib.get('budget-not-provided'))
-        else:
-            return None

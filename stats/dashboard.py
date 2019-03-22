@@ -895,9 +895,19 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def forwardlooking_activities_with_budget_not_provided(self, date_code_runs=None):
+        """
+        Number of activities with the budget_not_provided attribute for this year and the following 2 years.
+
+        Note activities excluded according if they meet the logic in _forwardlooking_exclude_in_calculations()
+
+        Input:
+          date_code_runs -- a date object for when this code is run
+        Returns:
+          dictionary containing years with binary value if this activity is current and has the budget_not_provided attribute
+        """
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
         this_year = int(date_code_runs.year)
-        bnp = self._budget_not_provided() is not None 
+        bnp = self._budget_not_provided() is not None
         return {year: int(self._forwardlooking_is_current(year) and bnp > 0 and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                 for year in range(this_year, this_year+3)}
 

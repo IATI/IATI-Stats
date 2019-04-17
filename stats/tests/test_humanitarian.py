@@ -23,7 +23,7 @@ class MockActivityStats(ActivityStats):
     def _version(self):
         return self._major_version() + '.' + self._minor_version()
 
-HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010]
+HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010, 74020]
 HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])

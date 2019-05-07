@@ -57,9 +57,9 @@ class ActivityStats(object):
             try:
                 date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
                 return int(date.year)
-            except ValueError, e:
+            except ValueError as e:
                 debug(self, e)
-            except AttributeError, e:
+            except AttributeError as e:
                 debug(self, e)
 
     def __create_decimal(self, s):
@@ -89,7 +89,7 @@ class ActivityStats(object):
             return toUSD(value=self.__create_decimal(value.text),
                          currency=currency,
                          year=year)
-        except Exception, e:
+        except Exception as e:
             debug(self, e)
             return Decimal(0.0)
 

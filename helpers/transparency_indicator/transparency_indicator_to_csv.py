@@ -18,7 +18,7 @@ timelag = csv.writer(open('out-ti-csv/2-timelag.csv', 'w'))
 timelag.writerow(['endorser', 'frequency', 'timelag'])
 detail = csv.writer(open('out-ti-csv/3-detail.csv', 'w'))
 detail_top = csv.writer(open('out-ti-csv/3a-detail-top.csv', 'w'))
-detail_columns = [unicode(x).zfill(2) for x in range(1, 40)] + ['lang-denominator']
+detail_columns = [x.zfill(2) for x in range(1, 40)] + ['lang-denominator']
 detail.writerow(['endorser', 'activities'] + detail_columns)
 detail_top.writerow(['endorser', 'activities'] + detail_columns)
 forward = csv.writer(open('out-ti-csv/4-forward-looking.csv', 'w'))

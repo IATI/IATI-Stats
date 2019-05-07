@@ -5,7 +5,7 @@ import re
 
 def debug(stats, error):
     """ prints debugging information for a given stats object and error """
-    print(unicode(error) + stats.context)
+    print(error + stats.context)
 
 
 xsDateRegex = re.compile('(-?[0-9]{4,})-([0-9]{2})-([0-9]{2})')

@@ -1346,7 +1346,7 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(int))
         for transaction in self.element.findall('transaction'):
             date = transaction_date(transaction)
-            out[self._transaction_type_code(transaction)][unicode(date)] += 1
+            out[self._transaction_type_code(transaction)][date] += 1
         return out
 
     @returns_numberdictdict
@@ -1355,7 +1355,7 @@ class ActivityStats(CommonSharedElements):
         for activity_date in self.element.findall('activity-date'):
             type_code = activity_date.attrib.get('type')
             date = iso_date(activity_date)
-            out[type_code][unicode(date)] += 1
+            out[type_code][date] += 1
         return out
 
     @returns_numberdictdict
@@ -1747,16 +1747,16 @@ class PublisherStats(object):
             k: filter(notnone, map(iso_date_match, v.keys())) for k, v in self.aggregated['activity_dates'].items()}
         min_dates = {k: min(v) for k, v in activity_dates.items() if v}
         max_dates = {k: max(v) for k, v in activity_dates.items() if v}
-        overall_min = unicode(min(min_dates.values())) if min_dates else None
-        overall_max = unicode(max(max_dates.values())) if min_dates else None
+        overall_min = min(min_dates.values()) if min_dates else None
+        overall_max = max(max_dates.values()) if min_dates else None
         return {
             'min': {
                 'overall': overall_min,
-                'by_type': {k: unicode(v) for k, v in min_dates.items()}
+                'by_type': {k: v for k, v in min_dates.items()}
             },
             'max': {
                 'overall': overall_max,
-                'by_type': {k: unicode(v) for k, v in max_dates.items()}
+                'by_type': {k: v for k, v in max_dates.items()}
             },
         }
 
@@ -1771,7 +1771,7 @@ class PublisherStats(object):
             )
         )
         if nonfuture_transaction_dates:
-            return unicode(max(nonfuture_transaction_dates))
+            return max(nonfuture_transaction_dates)
 
     @no_aggregation
     def latest_transaction_date(self):
@@ -1784,7 +1784,7 @@ class PublisherStats(object):
             )
         )
         if transaction_dates:
-            return unicode(max(transaction_dates))
+            return max(transaction_dates)
 
 
 class OrganisationFileStats(GenericFileStats):

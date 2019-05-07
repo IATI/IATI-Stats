@@ -2,6 +2,7 @@ from lxml import etree
 
 from stats.dashboard import ActivityStats
 
+
 class MockActivityStats(ActivityStats):
     def __init__(self, major_version='2'):
         self.major_version = major_version
@@ -9,6 +10,7 @@ class MockActivityStats(ActivityStats):
 
     def _major_version(self):
         return self.major_version
+
 
 def test_budget_not_provided_works():
     activity_stats = MockActivityStats()

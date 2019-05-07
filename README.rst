@@ -24,8 +24,7 @@ Requirements
 ------------
 
 -  Git
--  Python 2.7
--  python-virtualenv
+-  Python 3.x
 -  pip
 -  Bash
 -  gcc
@@ -62,7 +61,7 @@ Getting started
     # (see previous section)
 
     # Create a virtual environment (recommended)
-    virtualenv pyenv
+    python3 -m venv pyenv
     source pyenv/bin/activate
     # Install python depencies
     pip install -r requirements.txt

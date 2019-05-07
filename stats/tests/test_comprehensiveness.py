@@ -6,6 +6,7 @@ import pytest
 
 from stats.dashboard import ActivityStats
 
+
 class MockActivityStats(ActivityStats):
     def __init__(self, major_version):
         self.major_version = major_version
@@ -13,6 +14,7 @@ class MockActivityStats(ActivityStats):
 
     def _major_version(self):
         return self.major_version
+
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
 def test_comprehensiveness_is_current(major_version):
@@ -42,7 +44,6 @@ def test_comprehensiveness_is_current(major_version):
         </iati-activity>
     ''')
     assert not activity_stats._comprehensiveness_is_current()
-
 
     def end_planned_date(datestring):
         """
@@ -76,7 +77,6 @@ def test_comprehensiveness_is_current(major_version):
     assert activity_stats._comprehensiveness_is_current()
     activity_stats = end_planned_date('9991-06-01')
     assert activity_stats._comprehensiveness_is_current()
-
 
     def datetype(typestring):
         """
@@ -200,7 +200,7 @@ def test_comprehensiveness_empty(major_version):
     }
 
 
-@pytest.mark.parametrize('major_version', ['1','2'])
+@pytest.mark.parametrize('major_version', ['1', '2'])
 def test_comprehensiveness_full(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
@@ -1311,9 +1311,7 @@ def test_comprehensiveness_with_validation_transaction_level_elements(key, major
     assert not_valid[key] == 0
     assert valid[key] == (0 if major_version == '1' else 1)
 
-
-
-## Denominator
+# Denominator
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
@@ -1345,7 +1343,7 @@ def test_comprehensivness_denominator_empty(major_version):
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', [
-    'transaction_spend', 'transaction_traceability' ])
+    'transaction_spend', 'transaction_traceability'])
 def test_transaction_exclusions(key, major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
@@ -1381,7 +1379,7 @@ def test_transaction_exclusions(key, major_version):
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
 @pytest.mark.parametrize('key', [
-    'transaction_spend', 'transaction_traceability' ])
+    'transaction_spend', 'transaction_traceability'])
 def test_transaction_non_exclusions(key, major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.today = datetime.date(9990, 6, 1)
@@ -1530,6 +1528,7 @@ def test_comprehensiveness_dac_sector_codes_v2(major_version):
         'result_indicator': 1,
         'aid_type': 1
     }
+
 
 @pytest.mark.parametrize('major_version', ['2'])
 def test_comprehensiveness_dac_sector_codes_v2_incomplete(major_version):

@@ -2,9 +2,8 @@ import datetime
 from lxml import etree
 import pytest
 
-from stats.common import budget_year
 from stats.dashboard import ActivityStats
-from test_comprehensiveness import MockActivityStats
+from .test_comprehensiveness import MockActivityStats
 
 
 def test_forwardlooking_is_current():
@@ -289,4 +288,4 @@ def test_get_ratio_commitments_disbursements(major_version):
             </transaction>
         </iati-activity>
     ''')
-    assert activity_stats._get_ratio_commitments_disbursements(2012) == None
+    assert activity_stats._get_ratio_commitments_disbursements(2012) is not None

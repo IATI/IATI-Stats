@@ -1,5 +1,3 @@
-import os
-import imp
 import shutil
 import sys
 from mock import patch
@@ -67,7 +65,6 @@ def test_gitaggregate_publisher(tmpdir):
         assert pubdir.listdir() == [pubdir.join('activities.json')]
         assert pubdir.join('activities.json').read() == '{\n  "AAA": 3, \n  "BBB": "test"\n}'
 
-
         # Ensure that existing values are maintained once they are missing from the commits directory
         shutil.rmtree(gitout.join('commits').strpath)
         gitout.join('commits').join('CCC').join('aggregated-publisher').join('testpublisher').join('activities.json').write('{}', ensure=True)
@@ -75,7 +72,6 @@ def test_gitaggregate_publisher(tmpdir):
         pubdir = gitout.join('gitaggregate-publisher').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
         assert pubdir.join('activities.json').read() == '{\n  "AAA": 3, \n  "BBB": "test", \n  "CCC": {}\n}'
-
 
 
 def test_gitaggregate_publisher_dated(tmpdir):
@@ -95,7 +91,6 @@ def test_gitaggregate_publisher_dated(tmpdir):
         pubdir = gitout.join('gitaggregate-publisher-dated').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
         assert pubdir.join('activities.json').read() == '{\n  "1": 3, \n  "2": "test"\n}'
-
 
         # Ensure that existing values are maintained once they are missing from the commits directory
         shutil.rmtree(gitout.join('commits').strpath)

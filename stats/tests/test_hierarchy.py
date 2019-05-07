@@ -2,6 +2,7 @@ from lxml import etree
 
 from stats.dashboard import ActivityStats, PublisherStats
 
+
 def test_hierarchies():
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
@@ -26,14 +27,14 @@ def test_by_hierarchy():
         <iati-activity>
         </iati-activity>
     ''')
-    assert activity_stats.by_hierarchy().keys() == [ '1' ]
+    assert activity_stats.by_hierarchy().keys() == ['1']
 
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
         <iati-activity hierarchy="3">
         </iati-activity>
     ''')
-    assert activity_stats.by_hierarchy().keys() == [ '3' ]
+    assert activity_stats.by_hierarchy().keys() == ['3']
 
 
 def test_bottom_hierarchy():
@@ -47,12 +48,12 @@ def test_bottom_hierarchy():
 
     publisher_stats.aggregated = {
         'by_hierarchy': {
-            '1': { 'testkey': 'v1' },
-            '2': { 'testkey': 'v2' },
-            '3': { 'testkey': 'v3' }
+            '1': {'testkey': 'v1'},
+            '2': {'testkey': 'v2'},
+            '3': {'testkey': 'v3'}
         }
     }
-    assert publisher_stats.bottom_hierarchy() == { 'testkey': 'v3' }
+    assert publisher_stats.bottom_hierarchy() == {'testkey': 'v3'}
 
 
 def test_bottom_hierarchy_non_integer():
@@ -62,17 +63,16 @@ def test_bottom_hierarchy_non_integer():
 
     publisher_stats.aggregated = {
         'by_hierarchy': {
-            'notaninteger': { 'testkey': 'v_notaninteger' },
+            'notaninteger': {'testkey': 'v_notaninteger'},
         }
     }
     assert publisher_stats.bottom_hierarchy() == {}
 
     publisher_stats.aggregated = {
         'by_hierarchy': {
-            'notaninteger': { 'testkey': 'v_notaninteger' },
-            '2': { 'testkey': 'v2' },
-            '3': { 'testkey': 'v3' }
+            'notaninteger': {'testkey': 'v_notaninteger'},
+            '2': {'testkey': 'v2'},
+            '3': {'testkey': 'v3'}
         }
     }
-    assert publisher_stats.bottom_hierarchy() == { 'testkey': 'v3' }
-
+    assert publisher_stats.bottom_hierarchy() == {'testkey': 'v3'}

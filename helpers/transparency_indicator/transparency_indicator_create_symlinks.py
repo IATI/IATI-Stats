@@ -6,15 +6,17 @@ endorsers = {
     'ausaid': ['ausaid'],
     'dfatd-maecd': ['dfatd-maecd'],
     'danida': ['danida'],
-    'eu': ['eu',
+    'eu': [
+        'eu',
         'ec-echo',
         'ec-elarg',
-        'ec-fpi'],
+        'ec-fpi'
+    ],
     'finland_mfa': ['finland_mfa'],
     'gavi': ['gavi'],
     'bmz': ['bmz'],
     'iadb': ['iadb'],
-    'irishaid': ['irishaid'], # FIXME
+    'irishaid': ['irishaid'],  # FIXME
     'minbuza_nl': ['minbuza_nl'],
     'mfat': ['mfat'],
     'maec': ['maec'],
@@ -22,12 +24,14 @@ endorsers = {
     'sdc_ch': ['sdc_ch'],
     'theglobalfund': ['theglobalfund'],
     'worldbank': ['worldbank'],
-    'uk': ['dfid',
+    'uk': [
+        'dfid',
         'fco',
         'deccadmin',
         'dwp',
         'doh',
-        'hooda'],
+        'hooda'
+    ],
     'unhabitat': ['unhabitat'],
     'unicef': ['unicef'],
     'undp': ['undp'],
@@ -40,9 +44,9 @@ endorsers = {
 
 for endorser, publishers in endorsers.items():
     try:
-        os.makedirs(os.path.join('data-ti',endorser))
+        os.makedirs(os.path.join('data-ti', endorser))
         for publisher in publishers:
-            #for f in os.listdir(os.path.join('data-full',publisher)):
-            os.symlink(os.path.join('..','..','data-full',publisher), os.path.join('data-ti',endorser,publisher))
+            # for f in os.listdir(os.path.join('data-full',publisher)):
+            os.symlink(os.path.join('..', '..', 'data-full', publisher), os.path.join('data-ti', endorser, publisher))
     except OSError:
         pass

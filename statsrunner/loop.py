@@ -27,14 +27,14 @@ def call_stats(this_stats, args):
             this_out[name] = function()
         except KeyboardInterrupt:
             exit()
-        except:
+        except Exception:
             traceback.print_exc(file=sys.stdout)
     if args.debug:
-        print this_out
+        print(this_out)
     return this_out
 
 
-def process_file((inputfile, output_dir, folder, xmlfile, args)):
+def process_file(inputfile, output_dir, folder, xmlfile, args):
     """Create output file path or write output file."""
     import importlib
     # Python module to import stats from defaults to stats.dashboard
@@ -72,7 +72,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
                 file_stats.doc = doc
                 file_stats.root = root
                 file_stats.strict = args.strict
-                file_stats.context = 'in '+inputfile
+                file_stats.context = 'in ' + inputfile
                 file_stats.fname = os.path.basename(inputfile)
                 file_stats.inputfile = inputfile
                 return call_stats(file_stats, args)
@@ -85,7 +85,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
                     element_stats = ElementStats()
                     element_stats.element = element
                     element_stats.strict = args.strict
-                    element_stats.context = 'in '+inputfile
+                    element_stats.context = 'in ' + inputfile
                     element_stats.today = args.today
                     yield call_stats(element_stats, args)
 
@@ -113,7 +113,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
 
     # If there is a ParseError print statement, then set stats_json file value according to whether the file size is zero.
     except etree.ParseError:
-        print 'Could not parse file {0}'.format(inputfile)
+        print('Could not parse file {0}'.format(inputfile))
         if os.path.getsize(inputfile) == 0:
             # Assume empty files are download errors, not invalid XML
             stats_json = {'file': {'emptyfile': 1}, 'elements': []}

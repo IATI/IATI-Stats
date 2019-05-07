@@ -9,10 +9,9 @@ for publisher in os.listdir(data_dir):
     for dataset in os.listdir(os.path.join(data_dir, publisher)):
         md5hash = hashlib.md5(open(os.path.join(data_dir, publisher, dataset)).read()).hexdigest()
         hashdir = os.path.join(md5hash[0], md5hash[1], md5hash[2], md5hash[3], md5hash)
-        if os.path.exists(os.path.join('gitout','hash',hashdir)):
+        if os.path.exists(os.path.join('gitout', 'hash', hashdir)):
             try:
                 os.makedirs(os.path.join(base, publisher))
             except OSError:
                 pass
-            os.symlink(os.path.join(os.getcwd(),'gitout','hash',hashdir), os.path.join(base, publisher, dataset))
-
+            os.symlink(os.path.join(os.getcwd(), 'gitout', 'hash', hashdir), os.path.join(base, publisher, dataset))

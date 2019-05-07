@@ -1,10 +1,10 @@
 from __future__ import print_function
 import os
 import subprocess
-import pytest
 import copy
 
 root_dir = os.getcwd()
+
 
 def populate_tmpdir(root_dir, tmpdir):
     os.chdir(str(tmpdir))
@@ -44,7 +44,7 @@ def test_default(tmpdir):
             'gitaggregate-publisher-dated.tar.gz',
             'gitdate.json',
             'ckan.json',
-            ]:
+    ]:
         assert expected_file in gitout_files
 
     gitout_current_files = os.listdir(os.path.join(str(tmpdir), 'gitout', 'current'))
@@ -55,7 +55,7 @@ def test_default(tmpdir):
             'inverted-file',
             'inverted-file-publisher',
             'inverted-publisher',
-            ]:
+    ]:
         assert expected_file in gitout_current_files
 
 
@@ -65,7 +65,7 @@ def test_custom_gitout_dir(tmpdir):
 
     subprocess.call(
         os.path.join(root_dir, 'git.sh'),
-        env=copy.copy(os.environ).update({'GITOUT_DIR':'custom_gitout'}))
+        env=copy.copy(os.environ).update({'GITOUT_DIR': 'custom_gitout'}))
 
     assert 'gitout' not in os.listdir(str(tmpdir))
 
@@ -84,7 +84,7 @@ def test_custom_gitout_dir(tmpdir):
             'gitaggregate-publisher-dated.tar.gz',
             'gitdate.json',
             'ckan.json',
-            ]:
+    ]:
         assert expected_file in gitout_files
 
     gitout_current_files = os.listdir(os.path.join(str(tmpdir), 'custom_gitout', 'current'))
@@ -95,5 +95,5 @@ def test_custom_gitout_dir(tmpdir):
             'inverted-file',
             'inverted-file-publisher',
             'inverted-publisher',
-            ]:
+    ]:
         assert expected_file in gitout_current_files

@@ -12,6 +12,7 @@ import decimal
 
 OUTPUT_DIR = 'out'
 
+
 class TestAggregatedValues(unittest.TestCase):
     def setUp(self):
         with open(os.path.join(OUTPUT_DIR, 'aggregated.json')) as fp:
@@ -31,14 +32,14 @@ class TestAggregatedValues(unittest.TestCase):
         a = self.aggregated
         for key in ['activities_per_country', 'activities_per_year']:
             for value in a[key].values():
-                self.assertLessEqual(value, a['activities'], msg='{0} {1}'.format(key,value))
+                self.assertLessEqual(value, a['activities'], msg='{0} {1}'.format(key, value))
 
     def test_publishers_upper_bound(self):
         a = self.aggregated
         for key in ['publishers_per_country']:
             for value in a[key].values():
-                self.assertLessEqual(value, a['publishers'], msg='{0} {1}'.format(key,value))
-        
+                self.assertLessEqual(value, a['publishers'], msg='{0} {1}'.format(key, value))
+
 
 if __name__ == '__main__':
     unittest.main()

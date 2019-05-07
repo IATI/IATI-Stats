@@ -29,7 +29,7 @@ def dict_sum_inplace(d1, d2):
                 dict_sum_inplace(d1[k], v)
             else:
                 d1[k] = copy.deepcopy(v)
-        elif (type(d1) != defaultdict and not k in d1):
+        elif (type(d1) != defaultdict and k not in d1):
             d1[k] = copy.deepcopy(v)
         elif d1[k] is None:
             continue
@@ -66,7 +66,7 @@ def aggregate_file(stats_module, stats_json, output_dir):
     except OSError:
         pass
     for aggregate_name, aggregate in subtotal.items():
-        with open(os.path.join(output_dir, aggregate_name+'.json'), 'w') as fp:
+        with open(os.path.join(output_dir, aggregate_name + '.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
 
     return subtotal
@@ -134,7 +134,7 @@ def aggregate(args):
             with open(os.path.join(args.output,
                                    'aggregated-publisher',
                                    folder,
-                                   aggregate_name+'.json'), 'w') as fp:
+                                   aggregate_name + '.json'), 'w') as fp:
                 json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
 
     all_stats = stats_module.AllDataStats()
@@ -147,5 +147,5 @@ def aggregate(args):
     for aggregate_name, aggregate in total.items():
         with open(os.path.join(args.output,
                                'aggregated',
-                               aggregate_name+'.json'), 'w') as fp:
+                               aggregate_name + '.json'), 'w') as fp:
             json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)

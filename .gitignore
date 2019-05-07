@@ -4,6 +4,8 @@ gitout
 .coverage
 gitdate.json
 
+pyenv*
+
 helpers/ckan/
 helpers/ckan.json
 helpers/mapping.xml

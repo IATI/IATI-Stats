@@ -16,9 +16,17 @@ mkdir -p $GITOUT_DIR/gitaggregate
 mkdir -p $GITOUT_DIR/gitaggregate-dated
 
 
+
+cd helpers
+# Update codelist mapping, codelists and schemas
+echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update codelist mapping"
+./get_codelist_mapping.sh
+echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update codelists"
+./get_codelists.sh
+echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update schemas"
+./get_schemas.sh
 # Build a JSON file of metadata for each CKAN publisher, and for each dataset published.
 # This is based on the data from the CKAN API
-cd helpers
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running ckan.py"
 python ckan.py
 cd ..

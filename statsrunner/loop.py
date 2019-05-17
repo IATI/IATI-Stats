@@ -163,4 +163,5 @@ def loop(args):
         pool = Pool(args.multi)
         pool.map(process_file, files)
     else:
-        map(process_file, files)
+        for file in files:
+            process_file(file[0], file[1], file[2], file[3], file[4])

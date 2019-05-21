@@ -11,7 +11,7 @@ from statsrunner import common
 
 def decimal_default(obj):
     if hasattr(obj, 'value'):
-        if type(obj.value) == datetime.datetime:
+        if type(obj.value) == datetime.date:
             return obj.value.strftime('%Y-%m-%d %H:%M:%S %z')
         else:
             return obj.value
@@ -69,9 +69,8 @@ def aggregate_file(stats_module, stats_json, output_dir):
         with open(os.path.join(output_dir, aggregate_name + '.json'), 'w') as fp:
             try:
                 json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
-            except TypeError:
-                pass
-
+            except TypeError as e:
+                print(e)
     return subtotal
 
 
@@ -114,6 +113,7 @@ def aggregate(args):
                                            folder,
                                            jsonfilefolder,
                                            jsonfile)) as jsonfp:
+                        import pdb; pdb.set_trace()
                         stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
                         subtotal[jsonfile[:-5]] = stats_json
 

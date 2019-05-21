@@ -34,8 +34,14 @@ def call_stats(this_stats, args):
     return this_out
 
 
-def process_file(inputfile, output_dir, folder, xmlfile, args):
+def process_file(*args):
     """Create output file path or write output file."""
+    args = args[0]
+    inputfile = args[0]
+    output_dir = args[1]
+    folder = args[2]
+    xmlfile = args[3]
+    args = args[4]
     import importlib
     # Python module to import stats from defaults to stats.dashboard
     stats_module = importlib.import_module(args.stats_module)
@@ -163,5 +169,4 @@ def loop(args):
         pool = Pool(args.multi)
         pool.map(process_file, files)
     else:
-        for file in files:
-            process_file(file[0], file[1], file[2], file[3], file[4])
+        list(map(process_file, files))

@@ -557,8 +557,8 @@ class ActivityStats(CommonSharedElements):
             activity_date = self.element.find("activity-date[@type='{}']".format(self._planned_start_code()))
         if activity_date is not None and activity_date.get('iso-date'):
             try:
-                date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
-                return int(date.year)
+                act_date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
+                return int(act_date.year)
             except ValueError as e:
                 debug(self, e)
             except AttributeError as e:
@@ -659,9 +659,9 @@ class ActivityStats(CommonSharedElements):
             self.now.date() - datetime.timedelta(days=n * 30)
         out = {30: 0, 60: 0, 90: 0, 180: 0, 360: 0}
         for transaction in self.element.findall('transaction'):
-            date = transaction_date(transaction)
-            if date:
-                days = (today - date).days
+            t_date = transaction_date(transaction)
+            if t_date:
+                days = (today - t_date).days
                 if days < -1:
                     continue
                 for k in sorted(out.keys()):
@@ -673,18 +673,18 @@ class ActivityStats(CommonSharedElements):
     def transaction_months(self):
         out = defaultdict(int)
         for transaction in self.element.findall('transaction'):
-            date = transaction_date(transaction)
-            if date:
-                out[date.month] += 1
+            t_date = transaction_date(transaction)
+            if t_date:
+                out[t_date.month] += 1
         return out
 
     @returns_numberdict
     def transaction_months_with_year(self):
         out = defaultdict(int)
         for transaction in self.element.findall('transaction'):
-            date = transaction_date(transaction)
-            if date:
-                out['{}-{}'.format(date.year, str(date.month).zfill(2))] += 1
+            t_date = transaction_date(transaction)
+            if t_date:
+                out['{}-{}'.format(t_date.year, str(t_date.month).zfill(2))] += 1
         return out
 
     @returns_numberdict
@@ -698,8 +698,8 @@ class ActivityStats(CommonSharedElements):
         return out
 
     def _transaction_year(self, transaction):
-        date = transaction_date(transaction)
-        return date.year if date else None
+        t_date = transaction_date(transaction)
+        return t_date.year if t_date else None
 
     def _spend_currency_year(self, transactions):
         out = defaultdict(lambda: defaultdict(Decimal))
@@ -849,7 +849,7 @@ class ActivityStats(CommonSharedElements):
             if (date_code_runs + relativedelta(months=+6)) > self._get_end_date():
                 return 1
 
-        if self._get_ratio_commitments_disbursements(year) >= 0.9 and self._get_ratio_commitments_disbursements(year) is not None:
+        if self._get_ratio_commitments_disbursements(year) is not None and self._get_ratio_commitments_disbursements(year) >= 0.9:
             return 2
         else:
             return 0
@@ -1345,8 +1345,8 @@ class ActivityStats(CommonSharedElements):
         """
         out = defaultdict(lambda: defaultdict(int))
         for transaction in self.element.findall('transaction'):
-            date = transaction_date(transaction)
-            out[self._transaction_type_code(transaction)][date] += 1
+            t_date = transaction_date(transaction)
+            out[self._transaction_type_code(transaction)][t_date] += 1
         return out
 
     @returns_numberdictdict
@@ -1354,8 +1354,8 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(int))
         for activity_date in self.element.findall('activity-date'):
             type_code = activity_date.attrib.get('type')
-            date = iso_date(activity_date)
-            out[type_code][date] += 1
+            act_date = iso_date(activity_date)
+            out[type_code][act_date] += 1
         return out
 
     @returns_numberdictdict

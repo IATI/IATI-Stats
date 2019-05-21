@@ -69,8 +69,14 @@ def aggregate_file(stats_module, stats_json, output_dir):
         with open(os.path.join(output_dir, aggregate_name + '.json'), 'w') as fp:
             try:
                 json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
-            except TypeError as e:
-                print(e)
+            except TypeError:
+                date_aggregate = {}
+                for key, agg in aggregate.items():
+                    dates = {}
+                    for k, ag in agg.items():
+                        dates.update({k.strftime('%Y-%m-%d'): ag})
+                    date_aggregate.update({key: dates})
+                json.dump(date_aggregate, fp, sort_keys=True, indent=2)
     return subtotal
 
 

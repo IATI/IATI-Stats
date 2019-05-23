@@ -726,8 +726,8 @@ class ActivityStats(CommonSharedElements):
           True -- Secondary-reporter flag set
           False -- Secondary-reporter flag not set, or evaulates to False
         """
-        return bool(filter(lambda x: int(x) if str(x).isdigit() else 0,
-                    self.element.xpath('reporting-org/@secondary-reporter')))
+        return bool(list((filter(lambda x: int(x) if str(x).isdigit() else 0,
+                    self.element.xpath('reporting-org/@secondary-reporter')))))
 
     @returns_dict
     def activities_secondary_reported(self):
@@ -1742,9 +1742,9 @@ class PublisherStats(object):
 
     @no_aggregation
     def date_extremes(self):
-        notnone = lambda x: x is not None
         activity_dates = {
-            k: filter(notnone, map(iso_date_match, v.keys())) for k, v in self.aggregated['activity_dates'].items()}
+            k: list(filter(lambda x: x is not None, map(iso_date_match, v.keys()))) for k, v in self.aggregated['activity_dates'].items()
+        }
         min_dates = {k: min(v) for k, v in activity_dates.items() if v}
         max_dates = {k: max(v) for k, v in activity_dates.items() if v}
         overall_min = min(min_dates.values()) if min_dates else None
@@ -1767,7 +1767,7 @@ class PublisherStats(object):
         nonfuture_transaction_dates = filter(
             lambda x: x is not None and x <= self.today, map(
                 iso_date_match,
-                sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])
+                sum([list(x) for x in self.aggregated['transaction_dates'].values()], [])
             )
         )
         if nonfuture_transaction_dates:
@@ -1780,7 +1780,7 @@ class PublisherStats(object):
         transaction_dates = filter(
             lambda x: x is not None, map(
                 iso_date_match,
-                sum((x.keys() for x in self.aggregated['transaction_dates'].values()), [])
+                sum([list(x) for x in self.aggregated['transaction_dates'].values()], [])
             )
         )
         if transaction_dates:

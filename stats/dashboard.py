@@ -99,7 +99,7 @@ codelist_mappings = { major_version: get_codelist_mapping(major_version) for maj
 
 CODELISTS = {'1':{}, '2':{}}
 for major_version in ['1', '2']:
-    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType']:
+    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType', 'BudgetNotProvided']:
         CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data'])
 
 
@@ -363,13 +363,7 @@ class CommonSharedElements(object):
     @returns_numberdict
     @memoize
     def _major_version(self):
-        # TODO: Refactor to use _version
-        parent = self.element.getparent()
-        if parent is None:
-            print('No parent of iati-activity, is this a test? Assuming version 1.xx')
-            return '1'
-        version = self.element.getparent().attrib.get('version')
-        if version and version.startswith('2.'):
+        if self._version().startswith('2.'):
             return '2'
         else:
             return '1'
@@ -382,14 +376,14 @@ class CommonSharedElements(object):
         if parent is None:
             print('No parent of iati-activity, is this a test? Assuming version 1.01')
             return '1.01'
-        version = self.element.getparent().attrib.get('version')
+        version = parent.attrib.get('version')
         if version and version in allowed_versions:
             return version
         else:
             return '1.01'
 
     @returns_numberdict
-    def ruleset_passes(self):
+    def _ruleset_passes(self):
         out = {}
         for ruleset_name in ['standard']:
             ruleset = json.load(open('helpers/rulesets/{0}.json'.format(ruleset_name)), object_pairs_hook=OrderedDict)
@@ -418,10 +412,16 @@ class ActivityStats(CommonSharedElements):
     def hierarchies(self):
         return {self.element.attrib.get('hierarchy'):1}
 
+    def _budget_not_provided(self):
+        if self.element.attrib.get('budget-not-provided') is not None:
+            return int(self.element.attrib.get('budget-not-provided'))
+        else:
+            return None
+
     def by_hierarchy(self):
         out = {}
         for stat in ['activities', 'elements', 'elements_total',
-                     'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets',
+                     'forwardlooking_currency_year', 'forwardlooking_activities_current', 'forwardlooking_activities_with_budgets', 'forwardlooking_activities_with_budget_not_provided',
                      'comprehensiveness', 'comprehensiveness_with_validation', 'comprehensiveness_denominators', 'comprehensiveness_denominator_default'
                      ]:
             out[stat] = copy.deepcopy(getattr(self, stat)())
@@ -893,6 +893,24 @@ class ActivityStats(CommonSharedElements):
         return { year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                     for year in range(this_year, this_year+3) }
 
+    @returns_numberdict
+    def forwardlooking_activities_with_budget_not_provided(self, date_code_runs=None):
+        """
+        Number of activities with the budget_not_provided attribute for this year and the following 2 years.
+
+        Note activities excluded according if they meet the logic in _forwardlooking_exclude_in_calculations()
+
+        Input:
+          date_code_runs -- a date object for when this code is run
+        Returns:
+          dictionary containing years with binary value if this activity is current and has the budget_not_provided attribute
+        """
+        date_code_runs = date_code_runs if date_code_runs else self.now.date()
+        this_year = int(date_code_runs.year)
+        bnp = self._budget_not_provided() is not None
+        return {year: int(self._forwardlooking_is_current(year) and bnp > 0 and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
+                for year in range(this_year, this_year+3)}
+
     @memoize
     def _comprehensiveness_is_current(self):
         """
@@ -998,10 +1016,10 @@ class ActivityStats(CommonSharedElements):
             return True if textFound else False
 
         return {
-            'version': (self.element.getparent() is not None
-                        and 'version' in self.element.getparent().attrib),
-            'reporting-org': (self.element.xpath('reporting-org/@ref')
-                        and is_text_in_element('reporting-org')),
+            'version': (self.element.getparent() is not None and
+                        'version' in self.element.getparent().attrib),
+            'reporting-org': (self.element.xpath('reporting-org/@ref') and
+                        is_text_in_element('reporting-org')),
             'iati-identifier': self.element.xpath('iati-identifier/text()'),
             'participating-org': self.element.find('participating-org') is not None,
             'title': is_text_in_element('title'),
@@ -1013,9 +1031,9 @@ class ActivityStats(CommonSharedElements):
                         for transaction in self.element.findall('transaction')
                 )),
             'country_or_region': (
-                self.element.find('recipient-country') is not None
-                or self.element.find('recipient-region') is not None
-                or (self._major_version() != '1' and all_true_and_not_empty(
+                self.element.find('recipient-country') is not None or
+                self.element.find('recipient-region') is not None or
+                (self._major_version() != '1' and all_true_and_not_empty(
                     (transaction.find('recipient-country') is not None or
                      transaction.find('recipient-region') is not None)
                         for transaction in self.element.findall('transaction')
@@ -1026,6 +1044,7 @@ class ActivityStats(CommonSharedElements):
             'transaction_traceability': all_true_and_not_empty(x.xpath('provider-org/@provider-activity-id') for x in self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="11" or transaction-type/@code="13"]'.format(self._incoming_funds_code())))
                                         or self._is_donor_publisher(),
             'budget': self.element.findall('budget'),
+            'budget_not_provided': self._budget_not_provided() is not None,
             'contact-info': self.element.findall('contact-info/email'),
             'location': self.element.xpath('location/point/pos|location/name|location/description|location/location-administrative'),
             'location_point_pos': self.element.xpath('location/point/pos'),
@@ -1037,8 +1056,8 @@ class ActivityStats(CommonSharedElements):
             'conditions_attached': self.element.xpath('conditions/@attached'),
             'result_indicator': self.element.xpath('result/indicator'),
             'aid_type': (
-                all_true_and_not_empty(self.element.xpath('default-aid-type/@code'))
-                or all_true_and_not_empty([transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')])
+                all_true_and_not_empty(self.element.xpath('default-aid-type/@code')) or
+                all_true_and_not_empty([transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')])
                 )
             # Alternative: all(map(all_true_and_not_empty, [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]))
         }
@@ -1058,7 +1077,7 @@ class ActivityStats(CommonSharedElements):
     def _comprehensiveness_with_validation_bools(self):
 
             def element_ref(element_obj):
-                """Get the ref attribute of a given element
+                """Get the ref attribute of a given element.
 
                 Returns:
                   Value in the 'ref' attribute or None if none found
@@ -1090,7 +1109,6 @@ class ActivityStats(CommonSharedElements):
                             for es in elements_by_vocab.values())
                     else:
                         return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
-
             bools.update({
                 'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
                 'iati-identifier': (
@@ -1136,6 +1154,9 @@ class ActivityStats(CommonSharedElements):
                         valid_date(budget.find('value')) and
                         valid_value(budget.find('value'))
                         for budget in bools['budget'])),
+                'budget_not_provided': (
+                    bools['budget_not_provided'] and
+                    str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided']),
                 'location_point_pos': all_true_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (
@@ -1205,7 +1226,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def humanitarian(self):
-        humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010']
+        humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010', '74020']
         humanitarian_sectors_dac_3_digit = ['720', '730', '740']
 
         # logic around use of the @humanitarian attribute
@@ -1234,8 +1255,17 @@ class ActivityStats(CommonSharedElements):
         return {
             'is_humanitarian': is_humanitarian,
             'is_humanitarian_by_attrib': is_humanitarian_by_attrib,
-            'contains_humanitarian_scope': 1 if (self._version() in ['2.02', '2.03']) and self.element.xpath('humanitarian-scope/@type') and self.element.xpath('humanitarian-scope/@code') else 0,
-            'uses_humanitarian_clusters_vocab': 1 if (self._version() in ['2.02', '2.03']) and self.element.xpath('sector/@vocabulary="10"') else 0
+            'contains_humanitarian_scope': 1 if (
+                is_humanitarian and
+                self._version() in ['2.02', '2.03'] and
+                all_true_and_not_empty(self.element.xpath('humanitarian-scope/@type')) and
+                all_true_and_not_empty(self.element.xpath('humanitarian-scope/@code'))
+            ) else 0,
+            'uses_humanitarian_clusters_vocab': 1 if (
+                is_humanitarian and
+                self._version() in ['2.02', '2.03'] and
+                self.element.xpath('sector/@vocabulary="10"')
+            ) else 0
         }
 
     def _transaction_type_code(self, transaction):

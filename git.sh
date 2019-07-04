@@ -145,7 +145,7 @@ cd $GITOUT_DIR || exit $?
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate"
 tar -czf gitaggregate.tar.gz gitaggregate
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-dated"
-tar -czf gitaggregate-dated.tar.gz gitaggregate-dated
+tar -czf gitaggregate.tar.gz gitaggregate-dated
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-publisher"
 tar -czf gitaggregate-publisher.tar.gz gitaggregate-publisher
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-publisher-dated"

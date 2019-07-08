@@ -696,7 +696,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def humanitarian(self):
-        humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010']
+        humanitarian_sectors_dac_5_digit = ['72010', '72040', '72050', '73010', '74010', '74020']
         humanitarian_sectors_dac_3_digit = ['720', '730', '740']
 
         # logic around use of the @humanitarian attribute

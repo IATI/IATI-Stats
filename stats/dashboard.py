@@ -418,6 +418,10 @@ class ActivityStats(CommonSharedElements):
         else:
             return None
 
+    def _budget_and_budget_not_provided(self):
+        """Test if budgets exist with the budget-not-provided attribute."""
+        return True if (self._budget_not_provided() is not None and self.element.find('budget')) else False
+
     def by_hierarchy(self):
         out = {}
         for stat in ['activities', 'elements', 'elements_total',
@@ -899,9 +903,9 @@ class ActivityStats(CommonSharedElements):
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
 
         this_year = int(date_code_runs.year)
-        budget_years = ([ budget_year(budget) for budget in self.element.findall('budget') ])
-        return { year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
-                    for year in range(this_year, this_year+3) }
+        budget_years = ([budget_year(budget) for budget in self.element.findall('budget')])
+        return {year: int(self._forwardlooking_is_current(year) and not self._budget_and_budget_not_provided() and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
+                for year in range(this_year, this_year + 3)}
 
     @returns_numberdict
     def forwardlooking_activities_with_budget_not_provided(self, date_code_runs=None):
@@ -917,9 +921,10 @@ class ActivityStats(CommonSharedElements):
         """
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
         this_year = int(date_code_runs.year)
-        bnp = self._budget_not_provided() is not None
+        bnp = self._budget_not_provided() is not None and not self._budget_and_budget_not_provided()
         return {year: int(self._forwardlooking_is_current(year) and bnp > 0 and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                 for year in range(this_year, this_year+3)}
+
 
     @memoize
     def _comprehensiveness_is_current(self):
@@ -1161,6 +1166,7 @@ class ActivityStats(CommonSharedElements):
                     ),
                 'budget': (
                     bools['budget'] and
+                    not self._budget_and_budget_not_provided() and
                     all(
                         valid_date(budget.find('period-start')) and
                         valid_date(budget.find('period-end')) and
@@ -1169,7 +1175,8 @@ class ActivityStats(CommonSharedElements):
                         for budget in bools['budget'])),
                 'budget_not_provided': (
                     bools['budget_not_provided'] and
-                    str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided']),
+                    str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided'] and
+                    not self._budget_and_budget_not_provided()),
                 'location_point_pos': all_true_and_not_empty(
                     valid_coords(x.text) for x in bools['location_point_pos']),
                 'sector_dac': (

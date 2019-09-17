@@ -27,14 +27,14 @@ def test_by_hierarchy():
         <iati-activity>
         </iati-activity>
     ''')
-    assert activity_stats.by_hierarchy().keys() == ['1']
+    assert list(activity_stats.by_hierarchy().keys()) == ['1']
 
     activity_stats = ActivityStats()
     activity_stats.element = etree.fromstring('''
         <iati-activity hierarchy="3">
         </iati-activity>
     ''')
-    assert activity_stats.by_hierarchy().keys() == ['3']
+    assert list(activity_stats.by_hierarchy().keys()) == ['3']
 
 
 def test_bottom_hierarchy():

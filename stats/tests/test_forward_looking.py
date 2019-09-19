@@ -293,6 +293,3 @@ def test_get_ratio_commitments_disbursements(major_version):
     ''')
 
     assert activity_stats._get_ratio_commitments_disbursements(2012) is None
-
-
-    

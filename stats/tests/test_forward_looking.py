@@ -10,35 +10,35 @@ def test_forwardlooking_is_current():
     activity_stats = ActivityStats()
 
     # If there are no end dates, the activity is current
-    activity_stats.element = etree.fromstring('''<iati-activity>
+    activity_stats.element = etree.XML('''<iati-activity>
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
-    activity_stats.element = etree.fromstring('''<iati-activity>
+    activity_stats.element = etree.XML('''<iati-activity>
         <activity-date iso-date="9980-01-01" type="start-planned" />
         <activity-date iso-date="9980-01-01" type="start-actual" />
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
 
     # If there is an end date before the given year, it's not current
-    activity_stats.element = etree.fromstring('''<iati-activity>
+    activity_stats.element = etree.XML('''<iati-activity>
         <activity-date iso-date="9980-01-01" type="end-planned" />
     </iati-activity>''')
     assert not activity_stats._forwardlooking_is_current(9990)
-    activity_stats.element = etree.fromstring('''<iati-activity>
+    activity_stats.element = etree.XML('''<iati-activity>
         <activity-date iso-date="9980-01-01" type="end-actual" />
     </iati-activity>''')
     assert not activity_stats._forwardlooking_is_current(9990)
 
     # If there is an end date on or after the given year, it is current
-    activity_stats.element = etree.fromstring('''<iati-activity>
+    activity_stats.element = etree.XML('''<iati-activity>
         <activity-date iso-date="9990-01-01" type="end-planned" />
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
-    activity_stats.element = etree.fromstring('''<iati-activity>
+    activity_stats.element = etree.XML('''<iati-activity>
         <activity-date iso-date="9990-01-01" type="end-actual" />
     </iati-activity>''')
     assert activity_stats._forwardlooking_is_current(9990)
-    activity_stats.element = etree.fromstring('''<iati-activity>
+    activity_stats.element = etree.XML('''<iati-activity>
         <activity-date iso-date="9980-01-01" type="end-planned" />
         <activity-date iso-date="9990-01-01" type="end-actual" />
     </iati-activity>''')
@@ -94,7 +94,7 @@ def test_forwardlooking_activities_with_budgets_true(major_version, year):
     date_code_runs = datetime.date(year, 1, 1)
     activity_stats = MockActivityStats(major_version)
     # Activity with budgets for each year of operation
-    activity_stats.element = etree.fromstring('''
+    activity_stats.element = etree.XML('''
         <iati-activity>
             <activity-date iso-date="9980-01-01" type="start-planned" />
             <activity-date iso-date="9982-12-31" type="end-planned" />
@@ -144,7 +144,7 @@ def test_forwardlooking_activities_with_budgets_false(major_version, year):
     date_code_runs = datetime.date(year, 1, 1)
     activity_stats = MockActivityStats(major_version)
     # Activity with no budgets for any year of operation
-    activity_stats.element = etree.fromstring('''
+    activity_stats.element = etree.XML('''
         <iati-activity>
             <activity-date iso-date="9980-01-01" type="start-planned" />
             <activity-date iso-date="9983-12-31" type="end-planned" />
@@ -159,7 +159,7 @@ def test_forwardlooking_activities_with_budgets_false(major_version, year):
 
     date_code_runs = datetime.date(year, 1, 1)
     # Activity ends within six months, regardless that a budget is declared for the full year
-    activity_stats.element = etree.fromstring('''
+    activity_stats.element = etree.XML('''
         <iati-activity>
             <activity-date iso-date="9980-01-01" type="start-planned" />
             <activity-date iso-date="9980-05-31" type="end-planned" />
@@ -188,7 +188,7 @@ def test_forwardlooking_activities_with_budgets_ends_in_six_months(major_version
     activity_stats = MockActivityStats(major_version)
     # Activity ends in one year and six months of 9980-01-01, regardless that a budget is declared for both full years
     date_code_runs = datetime.date(9980, 1, 1)
-    activity_stats.element = etree.fromstring('''
+    activity_stats.element = etree.XML('''
         <iati-activity>
             <activity-date iso-date="9980-01-01" type="start-planned" />
             <activity-date iso-date="9981-05-31" type="end-planned" />
@@ -228,7 +228,7 @@ def test_forwardlooking_activities_with_budgets_ends_in_six_months(major_version
 def test_get_ratio_commitments_disbursements(major_version):
     # Using expected data
     activity_stats = MockActivityStats(major_version)
-    activity_stats.element = etree.fromstring('''
+    activity_stats.element = etree.XML('''
         <iati-activity>
             <transaction>
                 <transaction-type code="C"/>
@@ -265,11 +265,14 @@ def test_get_ratio_commitments_disbursements(major_version):
             </transaction>
         </iati-activity>
     ''')
+
+    assert activity_stats._get_ratio_commitments_disbursements(2012) is not None
     assert activity_stats._get_ratio_commitments_disbursements(2012) == 0.5
 
     # Missing transaction date, value and currency
+    # should not be valid (date and currency are 1..1)
     activity_stats = MockActivityStats(major_version)
-    activity_stats.element = etree.fromstring('''
+    activity_stats.element = etree.XML('''
         <iati-activity>
             <transaction>
                 <transaction-type code="C"/>
@@ -288,4 +291,8 @@ def test_get_ratio_commitments_disbursements(major_version):
             </transaction>
         </iati-activity>
     ''')
-    assert activity_stats._get_ratio_commitments_disbursements(2012) is not None
+
+    assert activity_stats._get_ratio_commitments_disbursements(2012) is None
+
+
+    

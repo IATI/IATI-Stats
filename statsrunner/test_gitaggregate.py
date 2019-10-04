@@ -85,7 +85,7 @@ def test_gitaggregate_publisher_dated(tmpdir):
         pubdir = gitout.join('gitaggregate-publisher-dated').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
         dir_activitities = pubdir.join('activities.json').read()
-        assert  dir_activitities == '{\n  "1": 3\n}'
+        assert dir_activitities == '{\n  "1": 3\n}'
 
         gitout.join('commits').join('BBB').join('aggregated-publisher').join('testpublisher').join('activities.json').write('"test"', ensure=True)
         exec(open('statsrunner/gitaggregate-publisher.py').read())
@@ -103,4 +103,4 @@ def test_gitaggregate_publisher_dated(tmpdir):
         assert pubdir.listdir() == [pubdir.join('activities.json')]
 
         dir_activities = pubdir.join('activities.json').read()
-        assert  dir_activities == '{\n  "1": 3,\n  "2": "test",\n  "3": {}\n}'
+        assert dir_activities == '{\n  "1": 3,\n  "2": "test",\n  "3": {}\n}'

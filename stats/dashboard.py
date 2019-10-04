@@ -13,7 +13,6 @@ import decimal
 import os
 import re
 import json
-import copy
 import csv
 
 from stats.common.decorators import (
@@ -37,7 +36,6 @@ from stats.common import (
 
 import iatirulesets
 from helpers.currency_conversion import get_USD_value
-from dateutil.relativedelta import relativedelta
 
 
 def add_years(d, years):
@@ -419,7 +417,7 @@ class ActivityStats(CommonSharedElements):
     blank = False
     strict = False  # (Setting this to true will ignore values that don't follow the schema)
     context = ''
-    now = datetime.datetime.now() # TODO Add option to set this to date of git commit
+    now = datetime.datetime.now()  # TODO Add option to set this to date of git commit
 
     @returns_numberdict
     def iati_identifiers(self):
@@ -700,7 +698,6 @@ class ActivityStats(CommonSharedElements):
             )
         )
 
-
     def _is_recipient_language_used(self):
         """If there is only 1 recipient-country, test if one of the languages for that country is used
            in the title and description elements.
@@ -849,7 +846,6 @@ class ActivityStats(CommonSharedElements):
                     if None not in [currency, value, year]:
                         out[budget_type]['USD'][year] += get_USD_value(currency, value, year)
         return out
-
 
     @returns_numberdictdict
     def sum_planned_disbursements_by_year(self):
@@ -1057,6 +1053,7 @@ class PublisherStats(object):
                 'by_type': {k: v for k, v in max_dates.items()}
             },
         }
+
 
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """

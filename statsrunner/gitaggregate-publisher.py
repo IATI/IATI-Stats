@@ -5,7 +5,7 @@ import os
 import sys
 
 from collections import defaultdict
-from common import decimal_default
+from statsrunner.common import decimal_default
 
 GITOUT_DIR = os.environ.get('GITOUT_DIR') or 'gitout'
 

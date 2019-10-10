@@ -31,15 +31,13 @@ def test_default(tmpdir):
 
     gitout_files = os.listdir(os.path.join(str(tmpdir), 'gitout'))
     for expected_file in [
-            'commits',
-            'current',
+            #'commits',
+            #'current',
             'current.tar.gz',
-            'gitaggregate',
+            #'gitaggregate',
             'gitaggregate-dated',
             'gitaggregate.tar.gz',
             'gitaggregate-dated.tar.gz',
-            'gitaggregate-publisher',
-            'gitaggregate-publisher-dated',
             'gitaggregate-publisher.tar.gz',
             'gitaggregate-publisher-dated.tar.gz',
             'gitdate.json',
@@ -71,15 +69,13 @@ def test_custom_gitout_dir(tmpdir):
 
     gitout_files = os.listdir(os.path.join(str(tmpdir), 'custom_gitout'))
     for expected_file in [
-            'commits',
-            'current',
+            #'commits',
+            #'current',
             'current.tar.gz',
-            'gitaggregate',
+            #'gitaggregate',
             'gitaggregate-dated',
             'gitaggregate.tar.gz',
             'gitaggregate-dated.tar.gz',
-            'gitaggregate-publisher',
-            'gitaggregate-publisher-dated',
             'gitaggregate-publisher.tar.gz',
             'gitaggregate-publisher-dated.tar.gz',
             'gitdate.json',

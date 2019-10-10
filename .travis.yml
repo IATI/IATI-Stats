@@ -9,7 +9,7 @@ install:
 jobs:
     include:
         - stage: lint
-          script: flake8 --exclude=helpers/IATI-Rulesets,helpers/schemas --ignore=E501,W504,E731
+          script: flake8 --exclude=helpers/IATI-Rulesets,helpers/schemas --ignore=E501,W504,E731,E265
         - stage: test
           script: py.test --cov .
         - stage: coverage

@@ -15,14 +15,14 @@ def test_gitaggregate(tmpdir):
         gitout.join('commits').join('BBB').join('aggregated').join('teststat.json').write('"test"', ensure=True)
         exec(open('statsrunner/gitaggregate.py').read())
         assert gitout.join('gitaggregate').listdir() == [gitout.join('gitaggregate').join('teststat.json')]
-        assert gitout.join('gitaggregate').join('teststat.json').read() == '{\n  "AAA": 3, \n  "BBB": "test"\n}'
+        assert gitout.join('gitaggregate').join('teststat.json').read() == '{\n  "AAA": 3,\n  "BBB": "test"\n}'
 
         # Ensure that existing values are maintained once they are missing from the commits directory
         shutil.rmtree(gitout.join('commits').strpath)
         gitout.join('commits').join('CCC').join('aggregated').join('teststat.json').write('{}', ensure=True)
         exec(open('statsrunner/gitaggregate.py').read())
         assert gitout.join('gitaggregate').listdir() == [gitout.join('gitaggregate').join('teststat.json')]
-        assert gitout.join('gitaggregate').join('teststat.json').read() == '{\n  "AAA": 3, \n  "BBB": "test", \n  "CCC": {}\n}'
+        assert gitout.join('gitaggregate').join('teststat.json').read() == '{\n  "AAA": 3,\n  "BBB": "test",\n  "CCC": {}\n}'
 
 
 def test_gitaggregate_dated(tmpdir):
@@ -39,14 +39,14 @@ def test_gitaggregate_dated(tmpdir):
         gitout.join('commits').join('BBB').join('aggregated').join('teststat.json').write('"test"', ensure=True)
         exec(open('statsrunner/gitaggregate.py').read())
         assert gitout.join('gitaggregate-dated').listdir() == [gitout.join('gitaggregate-dated').join('teststat.json')]
-        assert gitout.join('gitaggregate-dated').join('teststat.json').read() == '{\n  "1": 3, \n  "2": "test"\n}'
+        assert gitout.join('gitaggregate-dated').join('teststat.json').read() == '{\n  "1": 3,\n  "2": "test"\n}'
 
         # Ensure that existing values are maintained once they are missing from the commits directory
         shutil.rmtree(gitout.join('commits').strpath)
         gitout.join('commits').join('CCC').join('aggregated').join('teststat.json').write('{}', ensure=True)
         exec(open('statsrunner/gitaggregate.py').read())
         assert gitout.join('gitaggregate-dated').listdir() == [gitout.join('gitaggregate-dated').join('teststat.json')]
-        assert gitout.join('gitaggregate-dated').join('teststat.json').read() == '{\n  "1": 3, \n  "2": "test", \n  "3": {}\n}'
+        assert gitout.join('gitaggregate-dated').join('teststat.json').read() == '{\n  "1": 3,\n  "2": "test",\n  "3": {}\n}'
 
 
 def test_gitaggregate_publisher(tmpdir):
@@ -63,7 +63,7 @@ def test_gitaggregate_publisher(tmpdir):
         exec(open('statsrunner/gitaggregate-publisher.py').read())
         pubdir = gitout.join('gitaggregate-publisher').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
-        assert pubdir.join('activities.json').read() == '{\n  "AAA": 3, \n  "BBB": "test"\n}'
+        assert pubdir.join('activities.json').read() == '{\n  "AAA": 3,\n  "BBB": "test"\n}'
 
         # Ensure that existing values are maintained once they are missing from the commits directory
         shutil.rmtree(gitout.join('commits').strpath)
@@ -71,7 +71,7 @@ def test_gitaggregate_publisher(tmpdir):
         exec(open('statsrunner/gitaggregate-publisher.py').read())
         pubdir = gitout.join('gitaggregate-publisher').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
-        assert pubdir.join('activities.json').read() == '{\n  "AAA": 3, \n  "BBB": "test", \n  "CCC": {}\n}'
+        assert pubdir.join('activities.json').read() == '{\n  "AAA": 3,\n  "BBB": "test",\n  "CCC": {}\n}'
 
 
 def test_gitaggregate_publisher_dated(tmpdir):
@@ -84,13 +84,16 @@ def test_gitaggregate_publisher_dated(tmpdir):
         exec(open('statsrunner/gitaggregate-publisher.py').read())
         pubdir = gitout.join('gitaggregate-publisher-dated').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
-        assert pubdir.join('activities.json').read() == '{\n  "1": 3\n}'
+        dir_activitities = pubdir.join('activities.json').read()
+        assert dir_activitities == '{\n  "1": 3\n}'
 
         gitout.join('commits').join('BBB').join('aggregated-publisher').join('testpublisher').join('activities.json').write('"test"', ensure=True)
         exec(open('statsrunner/gitaggregate-publisher.py').read())
         pubdir = gitout.join('gitaggregate-publisher-dated').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
-        assert pubdir.join('activities.json').read() == '{\n  "1": 3, \n  "2": "test"\n}'
+
+        dir_activities = pubdir.join('activities.json').read()
+        assert dir_activities == '{\n  "1": 3,\n  "2": "test"\n}'
 
         # Ensure that existing values are maintained once they are missing from the commits directory
         shutil.rmtree(gitout.join('commits').strpath)
@@ -98,4 +101,6 @@ def test_gitaggregate_publisher_dated(tmpdir):
         exec(open('statsrunner/gitaggregate-publisher.py').read())
         pubdir = gitout.join('gitaggregate-publisher-dated').join('testpublisher')
         assert pubdir.listdir() == [pubdir.join('activities.json')]
-        assert pubdir.join('activities.json').read() == '{\n  "1": 3, \n  "2": "test", \n  "3": {}\n}'
+
+        dir_activities = pubdir.join('activities.json').read()
+        assert dir_activities == '{\n  "1": 3,\n  "2": "test",\n  "3": {}\n}'

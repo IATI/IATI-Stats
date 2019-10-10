@@ -2,7 +2,7 @@ import decimal
 import json
 import os
 import sys
-from common import decimal_default
+from statsrunner.common import decimal_default
 
 # Set value for the gitout directory
 GITOUT_DIR = os.environ.get('GITOUT_DIR') or 'gitout'

@@ -11,7 +11,7 @@ from statsrunner import common
 
 def decimal_default(obj):
     if hasattr(obj, 'value'):
-        if type(obj.value) == datetime.datetime:
+        if type(obj.value) == datetime.date:
             return obj.value.strftime('%Y-%m-%d %H:%M:%S %z')
         else:
             return obj.value
@@ -67,8 +67,12 @@ def aggregate_file(stats_module, stats_json, output_dir):
         pass
     for aggregate_name, aggregate in subtotal.items():
         with open(os.path.join(output_dir, aggregate_name + '.json'), 'w') as fp:
-            json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
-
+            try:
+                json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+            except TypeError:
+                fp.seek(0)
+                date_aggregate = date_dict_builder(aggregate)
+                json.dump(date_aggregate, fp, sort_keys=True, indent=2)
     return subtotal
 
 
@@ -135,7 +139,12 @@ def aggregate(args):
                                    'aggregated-publisher',
                                    folder,
                                    aggregate_name + '.json'), 'w') as fp:
-                json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+                try:
+                    json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+                except TypeError:
+                    fp.seek(0)
+                    date_aggregate = date_dict_builder(aggregate)
+                    json.dump(date_aggregate, fp, sort_keys=True, indent=2)
 
     all_stats = stats_module.AllDataStats()
     all_stats.aggregated = total
@@ -148,4 +157,27 @@ def aggregate(args):
         with open(os.path.join(args.output,
                                'aggregated',
                                aggregate_name + '.json'), 'w') as fp:
-            json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+            try:
+                json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+            except TypeError:
+                fp.seek(0)
+                date_aggregate = date_dict_builder(aggregate)
+                json.dump(date_aggregate, fp, sort_keys=True, indent=2)
+
+
+def date_dict_builder(obj):
+    if type(obj) in [dict, defaultdict]:
+        date_aggregate = {}
+        for key, agg in obj.items():
+            dates = {}
+            for k, ag in agg.items():
+                if type(k) == datetime.date:
+                    dates.update({k.strftime('%Y-%m-%d'): ag})
+                elif type(ag) == datetime.date:
+                    dates.update({k: ag.strftime('%Y-%m-%d')})
+            date_aggregate.update({key: dates})
+        return date_aggregate
+    elif type(obj) == [datetime.date, datetime.datetime]:
+        return obj.strftime('%Y-%m-%d')
+    else:
+        return None

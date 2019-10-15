@@ -368,9 +368,14 @@ class CommonSharedElements(object):
         except AttributeError:
             return None
 
+
     @returns_numberdict
     def reporting_orgs(self):
-        return {self.element.find('reporting-org').attrib.get('ref'): 1}
+        try:
+            return {self.element.find('reporting-org').attrib.get('ref'): 1}
+        except AttributeError:
+            return {'null': 1}
+
 
     @returns_numberdict
     def participating_orgs(self):
@@ -419,9 +424,14 @@ class ActivityStats(CommonSharedElements):
     context = ''
     now = datetime.datetime.now()  # TODO Add option to set this to date of git commit
 
+
     @returns_numberdict
     def iati_identifiers(self):
-        return {self.element.find('iati-identifier').text: 1}
+        try:
+            return {self.element.find('iati-identifier').text: 1}
+        except AttributeError:
+            return None
+
 
     @returns_number
     def activities(self):
@@ -808,7 +818,7 @@ class ActivityStats(CommonSharedElements):
 
         # Loop over the values in computed in sum_transactions_by_type_by_year() and build a
         # dictionary of USD values for the currency and year
-        for transaction_type, data in self.sum_transactions_by_type_by_year().items():
+        for transaction_type, data in list(self.sum_transactions_by_type_by_year().items()):
             for currency, years in data.items():
                 for year, value in years.items():
                     if None not in [currency, value, year]:

@@ -73,7 +73,8 @@ def aggregate_file(stats_module, stats_json, output_dir):
                 fp.seek(0)
                 try:
                     date_aggregate = date_dict_builder(aggregate)
-                    json.dump(date_aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+                    null_aggregate = null_sorter(null_dict(date_aggregate))
+                    json.dump(null_aggregate, fp, indent=2, default=decimal_default)
                 except (AttributeError, TypeError):
                     null_aggregate = null_sorter(null_dict(aggregate))
                     json.dump(null_aggregate, fp, indent=2, default=decimal_default)

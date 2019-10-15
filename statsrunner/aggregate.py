@@ -1,4 +1,4 @@
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import inspect
 import json
 import os
@@ -71,8 +71,12 @@ def aggregate_file(stats_module, stats_json, output_dir):
                 json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
             except TypeError:
                 fp.seek(0)
-                date_aggregate = date_dict_builder(aggregate)
-                json.dump(date_aggregate, fp, sort_keys=True, indent=2)
+                try:
+                    date_aggregate = date_dict_builder(aggregate)
+                    json.dump(date_aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+                except (AttributeError, TypeError):
+                    null_aggregate = null_sorter(null_dict(aggregate))
+                    json.dump(null_aggregate, fp, indent=2, default=decimal_default)
     return subtotal
 
 
@@ -181,3 +185,21 @@ def date_dict_builder(obj):
         return obj.strftime('%Y-%m-%d')
     else:
         return None
+
+
+def null_dict(obj):
+    for key, agg in obj.items():
+        if key is None:
+            obj['null'] = obj.pop(key)
+    return obj
+
+
+def null_sorter(obj):
+    dict_to_sort = OrderedDict(obj)
+    for key in obj:
+        if key is 'null':
+            value = dict_to_sort.pop(key)
+            sorted(dict_to_sort)
+            dict_to_sort['null'] = value
+            return dict_to_sort
+    return sorted(dict_to_sort)

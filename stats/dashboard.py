@@ -807,7 +807,11 @@ class ActivityStats(CommonSharedElements):
                     transaction.find('transaction-type').attrib.get('code') in [self._incoming_funds_code(), self._commitment_code(), self._disbursement_code(), self._expenditure_code()]):
 
                 # Set transaction_value if a value exists for this transaction. Else set to 0
-                transaction_value = 0 if value is None else Decimal(value.text)
+                try:
+                    transaction_value = Decimal(value.text)
+                except (decimal.InvalidOperation, AttributeError, TypeError):
+                    transaction_value = 0
+
 
                 out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
         return out
@@ -819,8 +823,8 @@ class ActivityStats(CommonSharedElements):
         # Loop over the values in computed in sum_transactions_by_type_by_year() and build a
         # dictionary of USD values for the currency and year
         for transaction_type, data in list(self.sum_transactions_by_type_by_year().items()):
-            for currency, years in data.items():
-                for year, value in years.items():
+            for currency, years in list(data.items()):
+                for year, value in list(years.items()):
                     if None not in [currency, value, year]:
                         out[transaction_type]['USD'][year] += get_USD_value(currency, value, year)
         return out
@@ -839,7 +843,10 @@ class ActivityStats(CommonSharedElements):
             value = budget.find('value')
 
             # Set budget_value if a value exists for this budget. Else set to 0
-            budget_value = 0 if value is None else Decimal(value.text)
+            try:
+                budget_value = Decimal(value.text)
+            except (decimal.InvalidOperation, AttributeError, TypeError):
+                budget_value = 0
 
             out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
         return out

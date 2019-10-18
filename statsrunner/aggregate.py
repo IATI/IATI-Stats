@@ -34,7 +34,10 @@ def dict_sum_inplace(d1, d2):
         elif d1[k] is None:
             continue
         else:
-            d1[k] += v
+            try:
+                d1[k] += v
+            except (TypeError):
+                import pdb; pdb.set_trace()
 
 
 def make_blank(stats_module):
@@ -73,11 +76,11 @@ def aggregate_file(stats_module, stats_json, output_dir):
                 fp.seek(0)
                 try:
                     date_aggregate = date_dict_builder(aggregate)
-                    null_aggregate = null_sorter(null_dict(date_aggregate))
-                    json.dump(null_aggregate, fp, indent=2, default=decimal_default)
+                    null_aggregate = null_dict(date_aggregate)
+                    json.dump(null_sorter(null_aggregate), fp, indent=2, default=decimal_default)
                 except (AttributeError, TypeError):
-                    null_aggregate = null_sorter(null_dict(aggregate))
-                    json.dump(null_aggregate, fp, indent=2, default=decimal_default)
+                    null_aggregate = null_dict(aggregate)
+                    json.dump(null_sorter(null_aggregate), fp, indent=2, default=decimal_default)
     return subtotal
 
 
@@ -196,11 +199,11 @@ def null_dict(obj):
 
 
 def null_sorter(obj):
-    dict_to_sort = OrderedDict(obj)
     for key in obj:
         if key is 'null':
+            dict_to_sort = OrderedDict(obj)
             value = dict_to_sort.pop(key)
-            sorted(dict_to_sort)
+            sorted(dict_to_sort.items())
             dict_to_sort['null'] = value
             return dict_to_sort
-    return sorted(dict_to_sort)
+    return sorted(obj.items())

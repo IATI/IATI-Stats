@@ -843,11 +843,7 @@ class ActivityStats(CommonSharedElements):
             value = budget.find('value')
 
             # Set budget_value if a value exists for this budget. Else set to 0
-            try:
-                budget_value = Decimal(value.text)
-            except (decimal.InvalidOperation, AttributeError, TypeError):
-                budget_value = 0
-
+            budget_value = 0 if (value is None or value.text is None) else Decimal(value.text)
             out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
         return out
 

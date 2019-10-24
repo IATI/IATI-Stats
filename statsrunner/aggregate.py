@@ -34,11 +34,7 @@ def dict_sum_inplace(d1, d2):
         elif d1[k] is None:
             continue
         else:
-            try:
-                d1[k] += v
-            except (TypeError):
-                import pdb; pdb.set_trace()
-
+            d1[k] += v
 
 def make_blank(stats_module):
     """Return dictionary of stats functions for enabled stats_modules."""
@@ -77,7 +73,7 @@ def aggregate_file(stats_module, stats_json, output_dir):
                 try:
                     date_aggregate = date_dict_builder(aggregate)
                     null_aggregate = null_dict(date_aggregate)
-                    json.dump(null_sorter(null_aggregate), fp, indent=2, default=decimal_default)
+                    json.dump(null_aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
                 except (AttributeError, TypeError):
                     null_aggregate = null_dict(aggregate)
                     json.dump(null_sorter(null_aggregate), fp, indent=2, default=decimal_default)
@@ -123,7 +119,12 @@ def aggregate(args):
                                            folder,
                                            jsonfilefolder,
                                            jsonfile)) as jsonfp:
-                        stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
+                        try:
+                            stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
+                        except json.decoder.JSONDecodeError as e:
+                            print(e)
+                            import pdb; pdb.set_trace()
+
                         subtotal[jsonfile[:-5]] = stats_json
 
             dict_sum_inplace(publisher_total, subtotal)

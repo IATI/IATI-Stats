@@ -1,4 +1,4 @@
-from collections import defaultdict, OrderedDict
+from collections import defaultdict, OrderedDict, Counter
 import inspect
 import json
 import os
@@ -35,6 +35,7 @@ def dict_sum_inplace(d1, d2):
             continue
         else:
             d1[k] += v
+
 
 def make_blank(stats_module):
     """Return dictionary of stats functions for enabled stats_modules."""
@@ -123,8 +124,6 @@ def aggregate(args):
                             stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
                         except json.decoder.JSONDecodeError as e:
                             print(e)
-                            import pdb; pdb.set_trace()
-
                         subtotal[jsonfile[:-5]] = stats_json
 
             dict_sum_inplace(publisher_total, subtotal)
@@ -181,10 +180,10 @@ def date_dict_builder(obj):
             dates = {}
             for k, ag in agg.items():
                 if type(k) == datetime.date:
-                    dates.update({k.strftime('%Y-%m-%d'): ag})
+                    dict_sum_inplace(dates, {k.strftime('%Y-%m-%d'): ag})
                 elif type(ag) == datetime.date:
-                    dates.update({k: ag.strftime('%Y-%m-%d')})
-            date_aggregate.update({key: dates})
+                    dict_sum_inplace(dates, {k: ag.strftime('%Y-%m-%d')})
+            dict_sum_inplace(date_aggregate, {key: dates})
         return date_aggregate
     elif type(obj) == [datetime.date, datetime.datetime]:
         return obj.strftime('%Y-%m-%d')

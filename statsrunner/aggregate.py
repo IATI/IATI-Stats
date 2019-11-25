@@ -1,4 +1,4 @@
-from collections import defaultdict, OrderedDict, Counter
+from collections import defaultdict, OrderedDict
 import inspect
 import json
 import os
@@ -31,10 +31,15 @@ def dict_sum_inplace(d1, d2):
                 d1[k] = copy.deepcopy(v)
         elif (type(d1) != defaultdict and k not in d1):
             d1[k] = copy.deepcopy(v)
+        elif type(d1[k]) in [int, decimal.Decimal, float]:
+            d1[k] += v
         elif d1[k] is None:
             continue
-        else:
-            d1[k] += v
+        # else:
+        #     try:
+        #         d1[k] += v
+        #     except:
+        #         import pdb; pdb.set_trace()
 
 
 def make_blank(stats_module):

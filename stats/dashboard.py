@@ -808,12 +808,11 @@ class ActivityStats(CommonSharedElements):
 
                 # Set transaction_value if a value exists for this transaction. Else set to 0
                 try:
-                    transaction_value = Decimal(value.text)
-                except (decimal.InvalidOperation, AttributeError, TypeError):
+                    transaction_value = 0 if (value is None or value.text is None) else Decimal(value.text)
+                except decimal.InvalidOperation:
                     transaction_value = 0
-
-
-                out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
+                if self._transaction_year(transaction):
+                    out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
         return out
 
     @returns_numberdictdictdict
@@ -833,7 +832,8 @@ class ActivityStats(CommonSharedElements):
     def count_budgets_by_type_by_year(self):
         out = defaultdict(lambda: defaultdict(int))
         for budget in self.element.findall('budget'):
-            out[budget.attrib.get('type')][budget_year(budget)] += 1
+            if budget_year(budget):
+                out[budget.attrib.get('type')][budget_year(budget)] += 1
         return out
 
     @returns_numberdictdictdict
@@ -844,11 +844,11 @@ class ActivityStats(CommonSharedElements):
 
             # Set budget_value if a value exists for this budget. Else set to 0
             try:
-                budget_value = 0 if (value is None or value.text is None) else Decimal(value.text)
+                budget_value = 0.0 if (value is None or value.text is None) else Decimal(value.text)
             except:
-                import pdb; pdb.set_trace()
-                budget_value = 0
-            out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
+                budget_value = 0.0
+            if budget_year(budget):
+                out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
         return out
 
     @returns_numberdictdictdict

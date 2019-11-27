@@ -156,7 +156,7 @@ def aggregate(args):
                     json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
                 except TypeError:
                     fp.seek(0)
-                    date_aggregate = date_dict_builder(aggregate)
+                    date_aggregate = recursive_date_dict(aggregate)
                     json.dump(date_aggregate, fp, sort_keys=True, indent=2)
 
     all_stats = stats_module.AllDataStats()
@@ -194,6 +194,18 @@ def date_dict_builder(obj):
         return obj.strftime('%Y-%m-%d')
     else:
         return None
+
+
+def recursive_date_dict(obj):
+    if type(obj) in [dict, defaultdict]:
+        date_aggregate = {}
+        for key, agg in obj.items():
+            dict_sum_inplace(date_aggregate, {recursive_date_dict(key): recursive_date_dict(agg)})
+        return date_aggregate
+    elif type(obj) in [datetime.date, datetime.datetime]:
+        return obj.strftime('%Y-%m-%d')
+    else:
+        return obj
 
 
 def null_dict(obj):

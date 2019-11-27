@@ -217,7 +217,7 @@ def null_dict(obj):
 
 def null_sorter(obj):
     for key in obj:
-        if key is 'null':
+        if key == 'null':
             dict_to_sort = OrderedDict(obj)
             value = dict_to_sort.pop(key)
             sorted(dict_to_sort.items())

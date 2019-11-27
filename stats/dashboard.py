@@ -368,14 +368,12 @@ class CommonSharedElements(object):
         except AttributeError:
             return None
 
-
     @returns_numberdict
     def reporting_orgs(self):
         try:
             return {self.element.find('reporting-org').attrib.get('ref'): 1}
         except AttributeError:
             return {'null': 1}
-
 
     @returns_numberdict
     def participating_orgs(self):
@@ -424,14 +422,12 @@ class ActivityStats(CommonSharedElements):
     context = ''
     now = datetime.datetime.now()  # TODO Add option to set this to date of git commit
 
-
     @returns_numberdict
     def iati_identifiers(self):
         try:
             return {self.element.find('iati-identifier').text: 1}
         except AttributeError:
             return None
-
 
     @returns_number
     def activities(self):
@@ -845,7 +841,7 @@ class ActivityStats(CommonSharedElements):
             # Set budget_value if a value exists for this budget. Else set to 0
             try:
                 budget_value = Decimal(0) if (value is None or value.text is None) else Decimal(value.text)
-            except:
+            except (TypeError, AttributeError, decimal.InvalidOperation):
                 budget_value = Decimal(0)
             if budget_year(budget):
                 out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value

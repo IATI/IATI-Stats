@@ -1,9 +1,11 @@
+import os
 import shutil
-import sys, os
+import sys
 from mock import patch
 
 
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 
 def test_gitaggregate(tmpdir):
     gitout = tmpdir.join('gitout')

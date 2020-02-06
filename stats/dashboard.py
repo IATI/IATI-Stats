@@ -6,22 +6,36 @@ You can choose a different set of tests by running calculate_stats.py with the `
 from __future__ import print_function
 from lxml import etree
 import datetime
+from datetime import date
 from collections import defaultdict, OrderedDict
 from decimal import Decimal
 import decimal
 import os
 import re
 import json
-import subprocess
-import copy
 import csv
 
-from stats.common.decorators import *
-from stats.common import *
+from stats.common.decorators import (
+    memoize,
+    no_aggregation,
+    returns_dict,
+    returns_numberdict,
+    returns_numberdictdict,
+    returns_number,
+    returns_numberdictdictdict,
+)
+from stats.common import (
+    budget_year,
+    debug,
+    get_registry_id_matches,
+    iso_date,
+    iso_date_match,
+    planned_disbursement_year,
+    transaction_date,
+)
 
 import iatirulesets
 from helpers.currency_conversion import get_USD_value
-from dateutil.relativedelta import relativedelta
 
 
 def add_years(d, years):
@@ -36,7 +50,7 @@ def add_years(d, years):
 
     """
     try:
-        return d.replace(year = d.year + years)
+        return d.replace(year=d.year + years)
     except ValueError:
         return d + (date(d.year + years, 1, 1) - date(d.year, 1, 1))
 
@@ -58,6 +72,7 @@ def all_true_and_not_empty(bool_iterable):
     else:
         return False
 
+
 def is_number(v):
     """ Tests if a variable is a number.
         Input: s - a variable
@@ -71,6 +86,7 @@ def is_number(v):
         return True
     except ValueError:
         return False
+
 
 def convert_to_float(x):
     """ Converts a variable to a float value, or 0 if it cannot be converted to a float.
@@ -86,21 +102,35 @@ def convert_to_float(x):
 
 
 # Import codelists
-## In order to test whether or not correct codelist values are being used in the data
-## we need to pull in data about how codelists map to elements
+# In order to test whether or not correct codelist values are being used in the data
+# we need to pull in data about how codelists map to elements
 def get_codelist_mapping(major_version):
     codelist_mapping_xml = etree.parse('helpers/mapping-{}.xml'.format(major_version))
-    codelist_mappings = [ x.text for x in codelist_mapping_xml.xpath('mapping/path') ]
-    codelist_mappings = [ re.sub('^\/\/iati-activity', './',path) for path in codelist_mappings]
-    codelist_mappings = [ re.sub('^\/\/', './/', path) for path in codelist_mappings ]
+    codelist_mappings = [x.text for x in codelist_mapping_xml.xpath('mapping/path')]
+    codelist_mappings = [re.sub(r'^\/\/iati-activity', './', path) for path in codelist_mappings]
+    codelist_mappings = [re.sub(r'^\/\/', './/', path) for path in codelist_mappings]
     return codelist_mappings
 
-codelist_mappings = { major_version: get_codelist_mapping(major_version) for major_version in ['1', '2'] }
 
-CODELISTS = {'1':{}, '2':{}}
+codelist_mappings = {major_version: get_codelist_mapping(major_version) for major_version in ['1', '2']}
+
+CODELISTS = {'1': {}, '2': {}}
 for major_version in ['1', '2']:
-    for codelist_name in ['Version', 'ActivityStatus', 'Currency', 'Sector', 'SectorCategory', 'DocumentCategory', 'AidType', 'BudgetNotProvided']:
-        CODELISTS[major_version][codelist_name] = set(c['code'] for c in json.load(open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name)))['data'])
+    for codelist_name in [
+        'Version',
+        'ActivityStatus',
+        'Currency',
+        'Sector',
+        'SectorCategory',
+        'DocumentCategory',
+        'AidType',
+        'BudgetNotProvided'
+    ]:
+        CODELISTS[major_version][codelist_name] = set(
+            c['code'] for c in json.load(
+                open('helpers/codelists/{}/{}.json'.format(major_version, codelist_name))
+            )['data']
+        )
 
 
 # Import country language mappings, and save as a dictionary
@@ -125,13 +155,13 @@ with open('helpers/transparency_indicator/reference_spend_data.csv', 'r') as csv
         if pub_registry_id in get_registry_id_matches().keys():
             pub_registry_id = get_registry_id_matches()[pub_registry_id]
 
-        reference_spend_data[pub_registry_id] = { 'publisher_name': line[0],
-                                                  '2014_ref_spend': line[2],
-                                                  '2015_ref_spend': line[6],
-                                                  '2015_official_forecast': line[10],
-                                                  'currency': line[11],
-                                                  'spend_data_error_reported': True if line[12] == 'Y' else False,
-                                                  'DAC': True if 'DAC' in line[3] else False }
+        reference_spend_data[pub_registry_id] = {'publisher_name': line[0],
+                                                 '2014_ref_spend': line[2],
+                                                 '2015_ref_spend': line[6],
+                                                 '2015_official_forecast': line[10],
+                                                 'currency': line[11],
+                                                 'spend_data_error_reported': True if line[12] == 'Y' else False,
+                                                 'DAC': True if 'DAC' in line[3] else False}
 
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
@@ -146,12 +176,12 @@ def element_to_count_dict(element, path, count_dict, count_multiple=False):
         count_dict[path] = 1
     for child in element:
         if type(child.tag) == str:
-            element_to_count_dict(child, path+'/'+child.tag, count_dict, count_multiple)
+            element_to_count_dict(child, path + '/' + child.tag, count_dict, count_multiple)
     for attribute in element.attrib:
         if count_multiple:
-            count_dict[path+'/@'+attribute] += 1
+            count_dict[path + '/@' + attribute] += 1
         else:
-            count_dict[path+'/@'+attribute] = 1
+            count_dict[path + '/@' + attribute] = 1
     return count_dict
 
 
@@ -310,7 +340,6 @@ def get_language(major_version, iati_activity_obj, title_or_description_obj):
     if has_xml_lang(iati_activity_obj):
         default_lang = iati_activity_obj.xpath("@xml:lang", namespaces={"xml": "http://www.w3.org/XML/1998/namespace"})[0]
 
-
     if major_version == '2':
         for narrative_obj in title_or_description_obj.findall('narrative'):
             if has_xml_lang(narrative_obj):
@@ -328,8 +357,7 @@ def get_language(major_version, iati_activity_obj, title_or_description_obj):
     return list(set(langs))
 
 
-
-#Deals with elements that are in both organisation and activity files
+# Deals with elements that are in both organisation and activity files
 class CommonSharedElements(object):
     blank = False
 
@@ -342,15 +370,18 @@ class CommonSharedElements(object):
 
     @returns_numberdict
     def reporting_orgs(self):
-        return {self.element.find('reporting-org').attrib.get('ref'):1}
+        try:
+            return {self.element.find('reporting-org').attrib.get('ref'): 1}
+        except AttributeError:
+            return {'null': 1}
 
     @returns_numberdict
     def participating_orgs(self):
-        return dict([ (x.attrib.get('ref'), 1) for x in self.element.findall('participating-org')])
+        return dict([(x.attrib.get('ref'), 1) for x in self.element.findall('participating-org')])
 
     @returns_numberdict
     def element_versions(self):
-        return { self.element.attrib.get('version'): 1 }
+        return {self.element.attrib.get('version'): 1}
 
     @returns_numberdict
     @memoize
@@ -387,13 +418,16 @@ class ActivityStats(CommonSharedElements):
     """ Stats calculated on a single iati-activity. """
     element = None
     blank = False
-    strict = False # (Setting this to true will ignore values that don't follow the schema)
+    strict = False  # (Setting this to true will ignore values that don't follow the schema)
     context = ''
-    now = datetime.datetime.now() # TODO Add option to set this to date of git commit
+    now = datetime.datetime.now()  # TODO Add option to set this to date of git commit
 
     @returns_numberdict
     def iati_identifiers(self):
-        return {self.element.find('iati-identifier').text:1}
+        try:
+            return {self.element.find('iati-identifier').text: 1}
+        except AttributeError:
+            return None
 
     @returns_number
     def activities(self):
@@ -401,7 +435,7 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def hierarchies(self):
-        return {self.element.attrib.get('hierarchy'):1}
+        return {self.element.attrib.get('hierarchy'): 1}
 
     def _budget_not_provided(self):
         if self.element.attrib.get('budget-not-provided') is not None:
@@ -411,9 +445,9 @@ class ActivityStats(CommonSharedElements):
 
     @returns_numberdict
     def currencies(self):
-        currencies = [ x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None ]
-        currencies = [ c if c else self.element.get('default-currency') for c in currencies ]
-        return dict( (c,1) for c in currencies )
+        currencies = [x.find('value').get('currency') for x in self.element.findall('transaction') if x.find('value') is not None]
+        currencies = [c if c else self.element.get('default-currency') for c in currencies]
+        return dict((c, 1) for c in currencies)
 
     def _planned_start_code(self):
         if self._major_version() == '1':
@@ -499,16 +533,16 @@ class ActivityStats(CommonSharedElements):
             activity_date = self.element.find("activity-date[@type='{}']".format(self._planned_start_code()))
         if activity_date is not None and activity_date.get('iso-date'):
             try:
-                date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
-                return int(date.year)
-            except ValueError, e:
+                act_date = datetime.datetime.strptime(activity_date.get('iso-date').strip('Z'), "%Y-%m-%d")
+                return int(act_date.year)
+            except ValueError as e:
                 debug(self, e)
-            except AttributeError, e:
+            except AttributeError as e:
                 debug(self, e)
 
     @returns_numberdict
     def activities_per_year(self):
-        return {self.__get_start_year():1}
+        return {self.__get_start_year(): 1}
 
     @returns_numberdict
     @memoize
@@ -534,7 +568,7 @@ class ActivityStats(CommonSharedElements):
         for path in codelist_mappings[self._major_version()]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
-        return { self._major_version(): out  }
+        return {self._major_version(): out}
 
     @returns_numberdictdict
     def boolean_values(self):
@@ -549,7 +583,7 @@ class ActivityStats(CommonSharedElements):
                 'result/indicator/@ascending',
                 'result/@aggregation-status',
                 'transaction/@humanitarian'
-                ]:
+        ]:
             for value in self.element.xpath(path):
                 out[path][value] += 1
         return out
@@ -573,8 +607,8 @@ class ActivityStats(CommonSharedElements):
         return out
 
     def _transaction_year(self, transaction):
-        date = transaction_date(transaction)
-        return date.year if date else None
+        t_date = transaction_date(transaction)
+        return t_date.year if t_date else None
 
     def _is_secondary_reported(self):
         """Tests if this activity has been secondary reported. Test based on if the
@@ -584,13 +618,13 @@ class ActivityStats(CommonSharedElements):
           True -- Secondary-reporter flag set
           False -- Secondary-reporter flag not set, or evaulates to False
         """
-        return bool(filter(lambda x: int(x) if str(x).isdigit() else 0,
-                     self.element.xpath('reporting-org/@secondary-reporter')))
+        return bool(list((filter(lambda x: int(x) if str(x).isdigit() else 0,
+                    self.element.xpath('reporting-org/@secondary-reporter')))))
 
     @returns_dict
     def activities_secondary_reported(self):
         if self._is_secondary_reported():
-            return { self.element.find('iati-identifier').text: 0}
+            return {self.element.find('iati-identifier').text: 0}
         else:
             return {}
 
@@ -626,7 +660,7 @@ class ActivityStats(CommonSharedElements):
             get_currency(self, transaction),
             transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None,
             transaction_date(transaction)
-            ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))]
+        ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}"]'.format(self._commitment_code()))]
 
         # Convert transaction values to USD and aggregate
         commitment_transactions_usd_total = sum([get_USD_value(x[0], x[1], x[2].year)
@@ -638,7 +672,7 @@ class ActivityStats(CommonSharedElements):
             get_currency(self, transaction),
             transaction.xpath('value/text()')[0] if transaction.xpath('value/text()') else None,
             transaction_date(transaction)
-            ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code()))]
+        ) for transaction in self.element.xpath('transaction[transaction-type/@code="{}" or transaction-type/@code="{}"]'.format(self._disbursement_code(), self._expenditure_code()))]
 
         # If the transaction date this year or older, convert transaction values to USD and aggregate
         exp_disb_transactions_usd_total = sum([get_USD_value(x[0], x[1], x[2].year)
@@ -658,9 +692,17 @@ class ActivityStats(CommonSharedElements):
         if len(self.element.xpath('reporting-org/@ref')) < 1:
             return False
 
-        return ((self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(self._funding_code(), self._OrganisationRole_Extending_code())))
-            and (self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(self._OrganisationRole_Implementing_code()))))
-
+        return (
+            (
+                self.element.xpath('reporting-org/@ref')[0] in self.element.xpath("participating-org[@role='{}']/@ref|participating-org[@role='{}']/@ref".format(
+                    self._funding_code(),
+                    self._OrganisationRole_Extending_code()))
+            ) and (
+                self.element.xpath('reporting-org/@ref')[0] not in self.element.xpath("participating-org[@role='{}']/@ref".format(
+                    self._OrganisationRole_Implementing_code())
+                )
+            )
+        )
 
     def _is_recipient_language_used(self):
         """If there is only 1 recipient-country, test if one of the languages for that country is used
@@ -678,12 +720,11 @@ class ActivityStats(CommonSharedElements):
             # Get lists of the languages used in the title and descripton elements
             langs_in_title = []
             for title_elem in self.element.findall('title'):
-               langs_in_title.extend(get_language(self._major_version(), self.element, title_elem))
+                langs_in_title.extend(get_language(self._major_version(), self.element, title_elem))
 
             langs_in_description = []
             for descripton_elem in self.element.findall('description'):
-               langs_in_description.extend(get_language(self._major_version(), self.element, descripton_elem))
-
+                langs_in_description.extend(get_language(self._major_version(), self.element, descripton_elem))
 
             # Test if the languages used for the title and description are in the list of country langs
             if len(set(langs_in_title).intersection(country_langs)) > 0 and len(set(langs_in_description).intersection(country_langs)) > 0:
@@ -703,7 +744,6 @@ class ActivityStats(CommonSharedElements):
         is_humanitarian_by_attrib_activity = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['1', 'true']) else 0
         is_not_humanitarian_by_attrib_activity = 1 if ('humanitarian' in self.element.attrib) and (self.element.attrib['humanitarian'] in ['0', 'false']) else 0
         is_humanitarian_by_attrib_transaction = 1 if set(self.element.xpath('transaction/@humanitarian')).intersection(['1', 'true']) else 0
-        is_not_humanitarian_by_attrib_transaction = 1 if not is_humanitarian_by_attrib_transaction and set(self.element.xpath('transaction/@humanitarian')).intersection(['0', 'false']) else 0
         is_humanitarian_by_attrib = (self._version() in ['2.02', '2.03']) and (is_humanitarian_by_attrib_activity or (is_humanitarian_by_attrib_transaction and not is_not_humanitarian_by_attrib_activity))
 
         # logic around DAC sector codes deemed to be humanitarian
@@ -750,8 +790,8 @@ class ActivityStats(CommonSharedElements):
         out = defaultdict(lambda: defaultdict(int))
         for activity_date in self.element.findall('activity-date'):
             type_code = activity_date.attrib.get('type')
-            date = iso_date(activity_date)
-            out[type_code][unicode(date)] += 1
+            act_date = iso_date(activity_date)
+            out[type_code][act_date] += 1
         return out
 
     @returns_numberdictdictdict
@@ -763,9 +803,12 @@ class ActivityStats(CommonSharedElements):
                     transaction.find('transaction-type').attrib.get('code') in [self._incoming_funds_code(), self._commitment_code(), self._disbursement_code(), self._expenditure_code()]):
 
                 # Set transaction_value if a value exists for this transaction. Else set to 0
-                transaction_value = 0 if value is None else Decimal(value.text)
-
-                out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
+                try:
+                    transaction_value = 0 if (value is None or value.text is None) else Decimal(value.text)
+                except decimal.InvalidOperation:
+                    transaction_value = 0
+                if self._transaction_year(transaction):
+                    out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
         return out
 
     @returns_numberdictdictdict
@@ -774,9 +817,9 @@ class ActivityStats(CommonSharedElements):
 
         # Loop over the values in computed in sum_transactions_by_type_by_year() and build a
         # dictionary of USD values for the currency and year
-        for transaction_type, data in self.sum_transactions_by_type_by_year().items():
-            for currency, years in data.items():
-                for year, value in years.items():
+        for transaction_type, data in list(self.sum_transactions_by_type_by_year().items()):
+            for currency, years in list(data.items()):
+                for year, value in list(years.items()):
                     if None not in [currency, value, year]:
                         out[transaction_type]['USD'][year] += get_USD_value(currency, value, year)
         return out
@@ -785,7 +828,8 @@ class ActivityStats(CommonSharedElements):
     def count_budgets_by_type_by_year(self):
         out = defaultdict(lambda: defaultdict(int))
         for budget in self.element.findall('budget'):
-            out[budget.attrib.get('type')][budget_year(budget)] += 1
+            if budget_year(budget):
+                out[budget.attrib.get('type')][budget_year(budget)] += 1
         return out
 
     @returns_numberdictdictdict
@@ -795,9 +839,12 @@ class ActivityStats(CommonSharedElements):
             value = budget.find('value')
 
             # Set budget_value if a value exists for this budget. Else set to 0
-            budget_value = 0 if value is None else Decimal(value.text)
-
-            out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
+            try:
+                budget_value = Decimal(0) if (value is None or value.text is None) else Decimal(value.text)
+            except (TypeError, AttributeError, decimal.InvalidOperation):
+                budget_value = Decimal(0)
+            if budget_year(budget):
+                out[budget.attrib.get('type')][get_currency(self, budget)][budget_year(budget)] += budget_value
         return out
 
     @returns_numberdictdictdict
@@ -813,7 +860,6 @@ class ActivityStats(CommonSharedElements):
                         out[budget_type]['USD'][year] += get_USD_value(currency, value, year)
         return out
 
-
     @returns_numberdictdict
     def sum_planned_disbursements_by_year(self):
         out = defaultdict(lambda: defaultdict(Decimal))
@@ -828,14 +874,15 @@ class ActivityStats(CommonSharedElements):
 
 
 ckan = json.load(open('helpers/ckan.json'))
-publisher_re = re.compile('(.*)\-[^\-]')
+publisher_re = re.compile(r'(.*)\-[^\-]')
+
 
 class GenericFileStats(object):
     blank = False
 
     @returns_numberdict
     def versions(self):
-        return { self.root.attrib.get('version'): 1 }
+        return {self.root.attrib.get('version'): 1}
 
     @returns_numberdict
     def version_mismatch(self):
@@ -843,24 +890,25 @@ class GenericFileStats(object):
         element_versions = self.root.xpath('//iati-activity/@version')
         element_versions = list(set(element_versions))
         return {
-            'true' if ( file_version is not None and len(element_versions) and [file_version] != element_versions ) else 'false'
-            :1}
+            'true' if (file_version is not None and len(element_versions) and [file_version] != element_versions) else 'false': 1
+        }
 
     @returns_numberdict
     def validation(self):
         version = self.root.attrib.get('version')
-        if version in [None, '1', '1.0', '1.00']: version = '1.01'
+        if version in [None, '1', '1.0', '1.00']:
+            version = '1.01'
         try:
             with open('helpers/schemas/{0}/{1}'.format(version, self.schema_name)) as f:
                 xmlschema_doc = etree.parse(f)
                 xmlschema = etree.XMLSchema(xmlschema_doc)
                 if xmlschema.validate(self.doc):
-                    return {'pass':1}
+                    return {'pass': 1}
                 else:
-                    return {'fail':1}
+                    return {'fail': 1}
         except IOError:
             debug(self, 'Unsupported version \'{0}\' '.format(version))
-            return {'fail':1}
+            return {'fail': 1}
 
     @returns_numberdict
     def wrong_roots(self):
@@ -868,7 +916,7 @@ class GenericFileStats(object):
         try:
             ckan_type = ckan[publisher_re.match(self.fname).group(1)][self.fname]['extras']['filetype']
             if not ((tag == 'iati-organisations' and ckan_type == '"organisation"') or (tag == 'iati-activities' and ckan_type == '"activity"')):
-                return {tag:1}
+                return {tag: 1}
         except KeyError:
             pass
 
@@ -879,13 +927,13 @@ class GenericFileStats(object):
     @returns_numberdict
     def file_size_bins(self):
         file_size = os.stat(self.inputfile).st_size
-        if file_size < 1*1024*1024:
+        if file_size < 1 * 1024 * 1024:
             return {'<1MB': 1}
-        elif file_size < 5*1024*1024:
+        elif file_size < 5 * 1024 * 1024:
             return {'1-5MB': 1}
-        elif file_size < 10*1024*1024:
+        elif file_size < 10 * 1024 * 1024:
             return {'5-10MB': 1}
-        elif file_size < 20*1024*1024:
+        elif file_size < 20 * 1024 * 1024:
             return {'10-20MB': 1}
         else:
             return {'>20MB': 1}
@@ -922,9 +970,6 @@ class GenericFileStats(object):
         return 0
 
 
-
-
-
 class ActivityFileStats(GenericFileStats):
     """ Stats calculated for an IATI Activity XML file. """
     doc = None
@@ -936,18 +981,17 @@ class ActivityFileStats(GenericFileStats):
         return 1
 
 
-
 class PublisherStats(object):
     """ Stats calculated for an IATI Publisher (directory in the data directory). """
     aggregated = None
     blank = False
-    strict = False # (Setting this to true will ignore values that don't follow the schema)
+    strict = False  # (Setting this to true will ignore values that don't follow the schema)
     context = ''
 
     @returns_numberdict
     def publishers_per_version(self):
         versions = self.aggregated['versions'].keys()
-        return dict((v,1) for v in versions)
+        return dict((v, 1) for v in versions)
 
     @returns_number
     def publishers(self):
@@ -956,16 +1000,16 @@ class PublisherStats(object):
     @returns_numberdict
     def publishers_validation(self):
         if 'fail' in self.aggregated['validation']:
-            return {'fail':1}
+            return {'fail': 1}
         else:
-            return {'pass':1}
+            return {'pass': 1}
 
     @returns_numberdict
     def publisher_has_org_file(self):
         if 'organisation_files' in self.aggregated and self.aggregated['organisation_files'] > 0:
-            return {'yes':1}
+            return {'yes': 1}
         else:
-            return {'no':1}
+            return {'no': 1}
 
     # The following two functions have different names to the AllData equivalents
     # This is because the aggregation of the publisher level functions will ignore duplication between publishers
@@ -977,7 +1021,7 @@ class PublisherStats(object):
 
     @returns_numberdict
     def publisher_duplicate_identifiers(self):
-        return {k:v for k,v in self.aggregated['iati_identifiers'].items() if v>1}
+        return {k: v for k, v in self.aggregated['iati_identifiers'].items() if v > 1}
 
     def _timeliness_transactions(self):
         tt = self.aggregated['transaction_timing']
@@ -996,7 +1040,7 @@ class PublisherStats(object):
         transaction_months = self.aggregated['transaction_months'].keys()
         if len(transaction_months) == 12:
             return 'Monthly'
-        elif len(set(map(lambda x: (int(x)-1)//3, transaction_months))) == 4:
+        elif len(set(map(lambda x: (int(x) - 1) // 3, transaction_months))) == 4:
             return 'Quarterly'
         elif len(transaction_months) >= 1:
             return 'Annually'
@@ -1005,23 +1049,24 @@ class PublisherStats(object):
 
     @no_aggregation
     def date_extremes(self):
-        notnone = lambda x: x is not None
-        activity_dates = { k:filter(notnone, map(iso_date_match, v.keys()))
-                for k,v in self.aggregated['activity_dates'].items() }
-        min_dates = { k:min(v) for k,v in activity_dates.items() if v }
-        max_dates = { k:max(v) for k,v in activity_dates.items() if v }
-        overall_min = unicode(min(min_dates.values())) if min_dates else None
-        overall_max = unicode(max(max_dates.values())) if min_dates else None
+        activity_dates = {
+            k: list(filter(lambda x: x is not None, map(iso_date_match, v.keys()))) for k, v in self.aggregated['activity_dates'].items()
+        }
+        min_dates = {k: min(v) for k, v in activity_dates.items() if v}
+        max_dates = {k: max(v) for k, v in activity_dates.items() if v}
+        overall_min = min(min_dates.values()) if min_dates else None
+        overall_max = max(max_dates.values()) if min_dates else None
         return {
             'min': {
                 'overall': overall_min,
-                'by_type': { k:unicode(v) for k,v in min_dates.items() }
+                'by_type': {k: v for k, v in min_dates.items()}
             },
             'max': {
                 'overall': overall_max,
-                'by_type': { k:unicode(v) for k,v in max_dates.items() }
+                'by_type': {k: v for k, v in max_dates.items()}
             },
         }
+
 
 class OrganisationFileStats(GenericFileStats):
     """ Stats calculated for an IATI Organisation XML file. """
@@ -1052,7 +1097,8 @@ class OrganisationStats(CommonSharedElements):
 
     @returns_numberdict
     def element_versions(self):
-        return { self.element.attrib.get('version'): 1 }
+        return {self.element.attrib.get('version'): 1}
+
 
 class AllDataStats(object):
     blank = False
@@ -1063,4 +1109,4 @@ class AllDataStats(object):
 
     @returns_numberdict
     def duplicate_identifiers(self):
-        return {k:v for k,v in self.aggregated['iati_identifiers'].items() if v>1}
+        return {k: v for k, v in self.aggregated['iati_identifiers'].items() if v > 1}

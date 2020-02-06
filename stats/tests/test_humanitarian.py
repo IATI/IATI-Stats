@@ -4,6 +4,7 @@ import pytest
 
 from stats.dashboard import ActivityStats
 
+
 class MockActivityStats(ActivityStats):
     def __init__(self, version):
         if len(version) == 1 or len(version.split('.')) < 2:
@@ -23,8 +24,10 @@ class MockActivityStats(ActivityStats):
     def _version(self):
         return self._major_version() + '.' + self._minor_version()
 
+
 HUMANITARIAN_SECTOR_CODES_5_DIGITS = [72010, 72040, 72050, 73010, 74010, 74020]
 HUMANITARIAN_SECTOR_CODES_3_DIGITS = [720, 730, 740]
+
 
 @pytest.mark.parametrize('version', ['2.02', '2.03'])
 @pytest.mark.parametrize('hum_attrib_val_true', ['1', 'true'])
@@ -236,12 +239,12 @@ def test_humanitarian_attrib_invalid_no_sector(version, hum_attrib_val, sector, 
 @pytest.mark.parametrize('xml', ['''
         <!-- activity level sector, assumed vocab -->
         <iati-activity>
-        	<sector code="{0}" />
+            <sector code="{0}" />
         </iati-activity>
     ''', '''
         <!-- activity level sector, explicit vocab -->
         <iati-activity>
-        	<sector code="{0}" vocabulary="{1}" />
+            <sector code="{0}" vocabulary="{1}" />
         </iati-activity>
     ''', '''
         <!-- both activity and transaction level sector -->
@@ -291,7 +294,7 @@ def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
 
 @pytest.mark.parametrize('version', ['2.01', '2.02', '2.03'])
 @pytest.mark.parametrize('hum_sector', HUMANITARIAN_SECTOR_CODES_5_DIGITS)
-@pytest.mark.parametrize('not_hum_sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1]-1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1]-1])
+@pytest.mark.parametrize('not_hum_sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0] + 1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0] + 1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1] - 1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1] - 1])
 @pytest.mark.parametrize('xml', ['''
         <!-- transaction level sector, assumed vocab -->
         <iati-activity>
@@ -383,7 +386,7 @@ def test_humanitarian_sector_true_transaction_invalid_version(version, sector, x
 
 
 @pytest.mark.parametrize('major_version', ['1', '2'])
-@pytest.mark.parametrize('sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0]+1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1]-1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1]-1])
+@pytest.mark.parametrize('sector', [-89, 'not_a_code', HUMANITARIAN_SECTOR_CODES_5_DIGITS[0] + 1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[0] + 1, HUMANITARIAN_SECTOR_CODES_5_DIGITS[-1] - 1, HUMANITARIAN_SECTOR_CODES_3_DIGITS[-1] - 1])
 @pytest.mark.parametrize('xml', ['''
         <iati-activity>
             <sector code="{0}" />
@@ -504,7 +507,7 @@ def test_humanitarian_attrib_true_sector_anything(major_version, sector, hum_att
 
     activity_stats.element = etree.fromstring('''
         <iati-activity humanitarian="{0}">
-        	<sector code="{1}" />
+            <sector code="{1}" />
         </iati-activity>
     '''.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 1
@@ -524,7 +527,7 @@ def test_humanitarian_attrib_false_sector_false(version, sector, hum_attrib_val)
 
     activity_stats.element = etree.fromstring('''
         <iati-activity humanitarian="{0}">
-        	<sector code="{1}" />
+            <sector code="{1}" />
         </iati-activity>
     '''.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()['is_humanitarian'] == 0
@@ -552,7 +555,7 @@ def test_humanitarian_attrib_false_sector_false(version, sector, hum_attrib_val)
             <transaction humanitarian="{0}" />
         </iati-activity>
     '''])
-def test_humanitarian_attrib_false_sector_false(version, hum_attrib_val_true, hum_attrib_val_false, xml):
+def test_humanitarian_attrib_false_sector_false_second(version, hum_attrib_val_true, hum_attrib_val_false, xml):
     """
     Detect an activity not to be humanitarian at versions of the standard not expecting @humanitarian when a @humanitarian value that evaluates to true is present.
     """

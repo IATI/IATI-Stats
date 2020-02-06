@@ -1,8 +1,13 @@
+*.DS_Store*
+*.vscode*
 data
 out
 gitout
 .coverage
 gitdate.json
+
+*pyenv*
+*.pytest*
 
 helpers/ckan/
 helpers/ckan.json
@@ -14,7 +19,6 @@ helpers/mapping-*
 helpers/registry_id_relationships.csv
 helpers/rulesets
 
-pyenv
 *.pyc
 *.swp
 *.pyo

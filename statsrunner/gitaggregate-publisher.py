@@ -41,10 +41,10 @@ if dated:
 # Loop over folders in the 'commits' directory
 # Variable commit will be the commit hash
 for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
-    print "gitaggregate-publisher for commit {}".format(commit)
+    print("gitaggregate-publisher for commit {}".format(commit))
 
     for publisher in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher')):
-        print "{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher)
+        print("{0} Currently looping over publisher {1}".format(str(datetime.datetime.now()), publisher))
 
         # Set output directory for this publisher and attempt to make the directory. Pass if it already exists
         git_out_dir = os.path.join(GITOUT_DIR, 'gitaggregate-publisher-dated' if dated else 'gitaggregate-publisher', publisher)
@@ -65,7 +65,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
 
         # Loop over the whitelisted states files and add current values to the 'total' dictionary
         for statname in whitelisted_stats_files:
-            path = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher', publisher, statname+'.json')
+            path = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated-publisher', publisher, statname + '.json')
             if os.path.isfile(path):
                 with open(path) as filepath:
                     if commit not in total[statname]:
@@ -80,4 +80,4 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
         for statname, statfile in total.items():
             with open(os.path.join(git_out_dir, statname + '.json.new'), 'w') as filepath:
                 json.dump(statfile, filepath, sort_keys=True, indent=2, default=decimal_default)
-            os.rename(os.path.join(git_out_dir, statname + '.json.new'), os.path.join(git_out_dir, statname+'.json'))
+            os.rename(os.path.join(git_out_dir, statname + '.json.new'), os.path.join(git_out_dir, statname + '.json'))

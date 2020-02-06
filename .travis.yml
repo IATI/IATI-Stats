@@ -1,10 +1,21 @@
+---
+dist: xenial
 language: python
-python:
-  - "2.7"
+python: 3.7
 install:
-  - pip install -r requirements_dev.txt
-  - cd helpers; ./get_codelist_mapping.sh; ./get_codelists.sh; echo '{}' > ckan.json; touch registry_id_relationships.csv; cd ..
-  - git config --global user.name "Travis"
-script:  py.test --cov .
-after_success:  coveralls
+    - pip install -r requirements_dev.txt
+    - cd helpers; ./get_codelist_mapping.sh; ./get_codelists.sh; echo '{}' > ckan.json; touch registry_id_relationships.csv; cd ..
+    - git config --global user.name "Travis"
+jobs:
+    include:
+        - stage: lint
+          script: flake8 --exclude=helpers/IATI-Rulesets,helpers/schemas --ignore=E501,W504,E731,E265
+        - stage: test
+          script: py.test --cov .
+        - stage: coverage
+          script: coveralls
 
+stages:
+    - lint
+    - test
+    - coverage

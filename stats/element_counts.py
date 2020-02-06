@@ -1,11 +1,14 @@
 from dashboard import returns_numberdict, element_to_count_dict
 from collections import defaultdict
 
+
 class PublisherStats(object):
     pass
 
+
 class ActivityFileStats(object):
     pass
+
 
 class ActivityStats(object):
     blank = False
@@ -18,8 +21,10 @@ class ActivityStats(object):
     def elements_total(self):
         return element_to_count_dict(self.element, 'iati-activity', defaultdict(int), True)
 
+
 class OrganisationFileStats(object):
     pass
+
 
 class OrganisationStats(object):
     blank = False
@@ -32,6 +37,6 @@ class OrganisationStats(object):
     def elements_total(self):
         return element_to_count_dict(self.element, 'iati-organisation', defaultdict(int), True)
 
+
 class AllDataStats(object):
     pass
-

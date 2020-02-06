@@ -1,6 +1,7 @@
 from stats.dashboard import valid_coords, valid_date, valid_url, valid_value
 from lxml import etree
 
+
 def test_valid_coords():
     """
     Check that coordinates for a location on Earth are correctly detected as valid or not.
@@ -45,6 +46,7 @@ def test_valid_coords():
     assert valid_coords(etree.fromstring('<pos>-90 180</pos>').text)
     assert valid_coords(etree.fromstring('<pos>90 -180</pos>').text)
     assert valid_coords(etree.fromstring('<pos>90 180</pos>').text)
+
 
 def test_valid_date():
     assert not valid_date(etree.XML('<activity-date iso-date=""/>'))

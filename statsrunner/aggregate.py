@@ -73,7 +73,7 @@ def aggregate_file(stats_module, stats_json, output_dir):
     for aggregate_name, aggregate in subtotal.items():
         with open(os.path.join(output_dir, aggregate_name + '.json'), 'w') as fp:
             try:
-                json.dump(aggregate, fp, sort_keys=True, indent=2, default=decimal_default)
+                json.dump(aggregate, fp, sort_keys=False, indent=2, default=decimal_default)
             except TypeError:
                 fp.seek(0)
                 try:

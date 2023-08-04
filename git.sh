@@ -41,11 +41,7 @@ rm -r out
 # Bring the IATI raw data up-to-date
 cd data || exit $?
 # Checkout automatic, and make sure it is clean and up to date
-echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Performing git operations on the data snapshot"
-git checkout automatic
-git reset --hard
-git clean -df
-git pull --ff-only
+# This is now done outside this script/repo - the data directory should be made up to date by the server
 
 
 # Create a gitdate file in JSON format. This contains the git hash and date for each data commit

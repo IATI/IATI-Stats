@@ -511,6 +511,10 @@ class ActivityStats(CommonSharedElements):
         else:
             return None
 
+    def _budget_and_budget_not_provided(self):
+        """Test if budgets exist with the budget-not-provided attribute."""
+        return True if (self._budget_not_provided() is not None and self.element.find('budget')) else False
+
     def by_hierarchy(self):
         out = {}
         for stat in ['activities', 'elements', 'elements_total',
@@ -817,6 +821,12 @@ class ActivityStats(CommonSharedElements):
            or equal to the year passed to this function, or ii) no (actual or planned) end years at all.
            Returns: True or False
         """
+        # Get list of years for each of the planned-start and actual-start dates
+        activity_start_years = [
+            iso_date(x).year
+            for x in self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_start_code(),self._actual_start_code()))
+            if iso_date(x)
+        ]
         # Get list of years for each of the planned-end and actual-end dates
         activity_end_years = [
             iso_date(x).year
@@ -824,8 +834,9 @@ class ActivityStats(CommonSharedElements):
             if iso_date(x)
         ]
         # Return boolean. True if activity_end_years is empty, or at least one of the actual/planned
-        # end years is greater or equal to the year passed to this function
-        return (not activity_end_years) or any(activity_end_year >= year for activity_end_year in activity_end_years)
+        # end years is greater or equal to the year passed to this function, and the activity starts
+        # or has already started by that year.
+        return (not activity_end_years) or (any(activity_end_year >= year for activity_end_year in activity_end_years) and any(activity_start_year <= year for activity_start_year in activity_start_years))
 
     def _get_ratio_commitments_disbursements(self, year):
         """ Calculates the ratio of commitments vs total amount disbursed or expended in or before the
@@ -929,8 +940,11 @@ class ActivityStats(CommonSharedElements):
         this_year = date.today().year
 
         # Retreive a dictionary with the activity identifier and the result for this and the next two years
-        return {self.element.find('iati-identifier').text: {year: int(self._forwardlooking_exclude_in_calculations(year))
-                for year in range(this_year, this_year + 3)}}
+        try:
+            return {self.element.find('iati-identifier').text: {year: int(self._forwardlooking_exclude_in_calculations(year))
+                    for year in range(this_year, this_year + 3)}}
+        except AttributeError as e:
+            print("Error {}: {}".format(self.context, e))
 
     @returns_numberdict
     def forwardlooking_activities_current(self, date_code_runs=None):
@@ -977,7 +991,7 @@ class ActivityStats(CommonSharedElements):
 
         this_year = int(date_code_runs.year)
         budget_years = ([budget_year(budget) for budget in self.element.findall('budget')])
-        return {year: int(self._forwardlooking_is_current(year) and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
+        return {year: int(self._forwardlooking_is_current(year) and not self._budget_and_budget_not_provided() and year in budget_years and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                 for year in range(this_year, this_year + 3)}
 
     @returns_numberdict
@@ -994,9 +1008,10 @@ class ActivityStats(CommonSharedElements):
         """
         date_code_runs = date_code_runs if date_code_runs else self.now.date()
         this_year = int(date_code_runs.year)
-        bnp = self._budget_not_provided() is not None
+        bnp = self._budget_not_provided() is not None and not self._budget_and_budget_not_provided()
         return {year: int(self._forwardlooking_is_current(year) and bnp > 0 and not bool(self._forwardlooking_exclude_in_calculations(year=year, date_code_runs=date_code_runs)))
                 for year in range(this_year, this_year + 3)}
+
 
     @memoize
     def _comprehensiveness_is_current(self):
@@ -1038,7 +1053,10 @@ class ActivityStats(CommonSharedElements):
     @returns_dict
     def _comprehensiveness_current_activities(self):
         """Outputs whether each activity is considered current for the purposes of comprehensiveness calculations"""
-        return {self.element.find('iati-identifier').text: self.comprehensiveness_current_activity_status}
+        try:
+            return {self.element.find('iati-identifier').text: self.comprehensiveness_current_activity_status}
+        except AttributeError as e:
+            print("Error {}: {}".format(self.context, e))
 
     def _is_recipient_language_used(self):
         """If there is only 1 recipient-country, test if one of the languages for that country is used
@@ -1177,7 +1195,8 @@ class ActivityStats(CommonSharedElements):
                     for element in elements:
                         elements_by_vocab[element.attrib.get('vocabulary')].append(element)
                     return all(
-                        len(es) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in es) == 100
+                        len(es) == 1 or
+                        sum(decimal_or_zero(x.attrib.get('percentage')) for x in es) == 100
                         for es in elements_by_vocab.values())
                 else:
                     return len(elements) == 1 or sum(decimal_or_zero(x.attrib.get('percentage')) for x in elements) == 100
@@ -1189,70 +1208,73 @@ class ActivityStats(CommonSharedElements):
         bools.update({
             'version': bools['version'] and self.element.getparent().attrib['version'] in CODELISTS[self._major_version()]['Version'],
             'iati-identifier': (
-                bools['iati-identifier'] and (
+                bools['iati-identifier'] and
+                (
                     # Give v1.xx data an automatic pass on this sub condition: https://github.com/IATI/IATI-Dashboard/issues/399
-                    (reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or \
+                    (reporting_org_ref and self.element.find('iati-identifier').text.startswith(reporting_org_ref)) or
                     any([self.element.find('iati-identifier').text.startswith(x) for x in previous_reporting_org_refs])
-                    if self._major_version() != '1' else True
+                    if self._major_version() is not '1' else True
                 )),
             'participating-org': bools['participating-org'] and self._funding_code() in self.element.xpath('participating-org/@role'),
             'activity-status': bools['activity-status'] and all_true_and_not_empty(x in CODELISTS[self._major_version()]['ActivityStatus'] for x in self.element.xpath('activity-status/@code')),
             'activity-date': (
-                bools['activity-date'] and \
-                self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_start_code(), self._actual_start_code())) and \
+                bools['activity-date'] and
+                self.element.xpath('activity-date[@type="{}" or @type="{}"]'.format(self._planned_start_code(), self._actual_start_code())) and
                 all_true_and_not_empty(map(valid_date, self.element.findall('activity-date')))
-            ),
+                ),
             'sector': (
-                bools['sector'] and \
+                bools['sector'] and
                 empty_or_percentage_sum_is_100('sector', by_vocab=True)),
             'country_or_region': (
-                bools['country_or_region'] and \
+                bools['country_or_region'] and
                 empty_or_percentage_sum_is_100('recipient-country|recipient-region')),
             'transaction_commitment': (
-                bools['transaction_commitment'] and \
-                all([valid_value(x.find('value')) for x in bools['transaction_commitment']]) and \
+                bools['transaction_commitment'] and
+                all([ valid_value(x.find('value')) for x in bools['transaction_commitment'] ]) and
                 all_true_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_commitment'])
-            ),
+                ),
             'transaction_spend': (
-                bools['transaction_spend'] and \
-                all([valid_value(x.find('value')) for x in bools['transaction_spend']]) and \
+                bools['transaction_spend'] and
+                all([ valid_value(x.find('value')) for x in bools['transaction_spend'] ]) and
                 all_true_and_not_empty(any(valid_date(x) for x in t.xpath('transaction-date|value')) for t in bools['transaction_spend'])
-            ),
+                ),
             'transaction_currency': all(
-                all(map(valid_date, t.findall('value'))) and \
+                all(map(valid_date, t.findall('value'))) and
                 all(x in CODELISTS[self._major_version()]['Currency'] for x in t.xpath('../@default-currency|./value/@currency')) for t in self.element.findall('transaction')
-            ),
+                ),
             'budget': (
-                bools['budget'] and \
+                bools['budget'] and
+                not self._budget_and_budget_not_provided() and
                 all(
-                    valid_date(budget.find('period-start')) and \
-                    valid_date(budget.find('period-end')) and \
-                    valid_date(budget.find('value')) and \
+                    valid_date(budget.find('period-start')) and
+                    valid_date(budget.find('period-end')) and
+                    valid_date(budget.find('value')) and
                     valid_value(budget.find('value'))
                     for budget in bools['budget'])),
             'budget_not_provided': (
-                bools['budget_not_provided'] and \
-                str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided']),
+                bools['budget_not_provided'] and
+                str(self._budget_not_provided()) in CODELISTS[self._major_version()]['BudgetNotProvided'] and
+                not self._budget_and_budget_not_provided()),
             'location_point_pos': all_true_and_not_empty(
                 valid_coords(x.text) for x in bools['location_point_pos']),
             'sector_dac': (
-                bools['sector_dac'] and \
-                all(x.attrib.get('code') in CODELISTS[self._major_version()]['Sector'] for x in self.element.xpath('sector[@vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code()))) and \
+                bools['sector_dac'] and
+                all(x.attrib.get('code') in CODELISTS[self._major_version()]['Sector'] for x in self.element.xpath('sector[@vocabulary="{}" or not(@vocabulary)]'.format(self._dac_5_code()))) and
                 all(x.attrib.get('code') in CODELISTS[self._major_version()]['SectorCategory'] for x in self.element.xpath('sector[@vocabulary="{}"]'.format(self._dac_3_code())))
-            ),
+                ),
             'document-link': all_true_and_not_empty(
                 valid_url(x) and x.find('category') is not None and x.find('category').attrib.get('code') in CODELISTS[self._major_version()]['DocumentCategory'] for x in bools['document-link']),
             'activity-website': all_true_and_not_empty(map(valid_url, bools['activity-website'])),
             'aid_type': (
+                bools['aid_type'] and
                 # i) Value in default-aid-type/@code is found in the codelist
-                # Or ii) Each transaction has a aid-type/@code which is found in the codelist
-                bools['aid_type'] and \
-                (all_true_and_not_empty([code in CODELISTS[self._major_version()]['AidType'] for code in self.element.xpath('default-aid-type/@code')]) or \
-                 all_true_and_not_empty(
+                (all_true_and_not_empty([code in CODELISTS[self._major_version()]['AidType'] for code in self.element.xpath('default-aid-type/@code')])
+                 # Or ii) Each transaction has a aid-type/@code which is found in the codelist
+                 or all_true_and_not_empty(
                     [set(x).intersection(CODELISTS[self._major_version()]['AidType'])
-                     for x in [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]]
+                    for x in [transaction.xpath('aid-type/@code') for transaction in self.element.xpath('transaction')]]
+                    )
                 ))
-            )
         })
         return bools
 
@@ -1404,10 +1426,9 @@ class ActivityStats(CommonSharedElements):
                 # Set transaction_value if a value exists for this transaction. Else set to 0
                 try:
                     transaction_value = 0 if (value is None or value.text is None) else Decimal(value.text)
-                except InvalidOperation:
-                    transaction_value = 0
-                if self._transaction_year(transaction):
                     out[self._transaction_type_code(transaction)][get_currency(self, transaction)][self._transaction_year(transaction)] += transaction_value
+                except InvalidOperation:
+                    print("Error {}: {}".format(self.context, e))
         return out
 
     @returns_numberdictdictdict

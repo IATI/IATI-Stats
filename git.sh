@@ -25,6 +25,10 @@ echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update codelists"
 ./get_codelists.sh
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update schemas"
 ./get_schemas.sh
+
+wget -q https://raw.githubusercontent.com/codeforIATI/IATI-Dashboard/main/registry_id_relationships.csv
+wget -q https://codeforiati.org/imf-exchangerates/imf_exchangerates_A_ENDA_USD.csv -O currency_conversion/exchange_rates.csv
+
 # Build a JSON file of metadata for each CKAN publisher, and for each dataset published.
 # This is based on the data from the CKAN API
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running ckan.py"
@@ -32,6 +36,7 @@ python ckan.py
 cd ..
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Copying ckan.json"
 cp helpers/ckan.json $GITOUT_DIR
+cp helpers/licenses.json $GITOUT_DIR
 
 
 # Clear output directory

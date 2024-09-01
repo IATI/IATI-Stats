@@ -49,7 +49,7 @@ git_out_files = os.listdir(git_out_dir)
 
 # Loop over each commit in gitout/commits
 for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
-    print 'Aggregating for commit: {}'.format(commit)
+    print('Aggregating for commit: {}'.format(commit))
 
     for fname in os.listdir(os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated')):
         if not fname.endswith('.json'):
@@ -60,7 +60,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
         if k not in whitelisted_stats_files:
            continue
 
-        print 'Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname)
+        print('Adding to {} for file: {}'.format('gitaggregate-dated' if dated else 'gitaggregate', fname))
         
         commit_json_fname = os.path.join(GITOUT_DIR, 'commits', commit, 'aggregated', fname)
         
@@ -85,7 +85,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, 'commits')):
 
             # Write output to a temporary file, then rename
             with open(os.path.join(git_out_dir, k+'.json.new'), 'w') as fp:
-                print 'Writing data to {}'.format(k)
+                print('Writing data to {}'.format(k))
                 json.dump(v, fp, sort_keys=True, indent=2, default=decimal_default)
-            print 'Renaming file {} to {}'.format(k+'.json.new', k+'.json')
+            print('Renaming file {} to {}'.format(k+'.json.new', k+'.json'))
             os.rename(os.path.join(git_out_dir, k+'.json.new'), os.path.join(git_out_dir, k+'.json'))

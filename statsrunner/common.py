@@ -44,7 +44,7 @@ def sort_keys(o):
 
 def get_git_file_contents(repo, path, commit):
     out = repo.git.ls_tree(commit, path)
-    if out == '':
+    if out == "":
         return None
     blob = out.split()[2]
-    return repo.git.cat_file('blob', blob)
+    return repo.git.cat_file("blob", blob)

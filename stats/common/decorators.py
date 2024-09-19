@@ -7,11 +7,12 @@ import dateutil.tz
 # Memoize decorator caches the result of the wrapped function
 def memoize(f):
     def wrapper(self):
-        if not hasattr(self, 'cache'):
+        if not hasattr(self, "cache"):
             self.cache = {}
         if f.__name__ not in self.cache:
             self.cache[f.__name__] = f(self)
         return self.cache[f.__name__]
+
     return wrapper
 
 
@@ -26,6 +27,7 @@ def returns_numberdictdictdict(f):
                 return {}
             else:
                 return out
+
     return wrapper
 
 
@@ -39,11 +41,13 @@ def returns_numberdictdict(f):
                 return {}
             else:
                 return out
+
     return wrapper
 
 
 def returns_numberdict(f):
     """Dectorator for dictionaries of integers."""
+
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return defaultdict(int)
@@ -53,11 +57,13 @@ def returns_numberdict(f):
                 return {}
             else:
                 return out
+
     return wrapper
 
 
 def returns_dict(f):
     """Dectorator for dictionaries."""
+
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return {}
@@ -67,11 +73,13 @@ def returns_dict(f):
                 return {}
             else:
                 return out
+
     return wrapper
 
 
 def returns_number(f):
     """Decorator for integers."""
+
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return 0
@@ -81,16 +89,19 @@ def returns_number(f):
                 return 0
             else:
                 return out
+
     return wrapper
 
 
 def no_aggregation(f):
     """Decorator that prevents aggregation."""
+
     def wrapper(self, *args, **kwargs):
         if self.blank:
             return None
         else:
             return f(self, *args, **kwargs)
+
     return wrapper
 
 
@@ -117,4 +128,5 @@ def returns_date(f):
             return LargestDateAggregator()
         else:
             return f(self, *args, **kwargs)
+
     return wrapper

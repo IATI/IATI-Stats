@@ -18,7 +18,9 @@ def invert_dir(basedirname, out_filename, output_dir):
         for f in files:
             with open(os.path.join(dirname, f)) as fp:
                 stats_name = f[:-5]
-                if stats_name in ["iati_identifiers", "by_hierarchy", "bottom_hierarchy"] or stats_name.startswith("traceable_"):
+                if stats_name in ["iati_identifiers", "by_hierarchy", "bottom_hierarchy"] or stats_name.startswith(
+                    "traceable_"
+                ):
                     continue
                 stats_values = json.load(fp)
                 if type(stats_values) == dict:
@@ -45,21 +47,23 @@ def invert_dir(basedirname, out_filename, output_dir):
             os.mkdir(os.path.join(output_dir, out_filename))
         except OSError:
             pass
-        with open(os.path.join(output_dir, out_filename, statname + '.json'), 'w') as fp:
+        with open(os.path.join(output_dir, out_filename, statname + ".json"), "w") as fp:
             json.dump(sort_keys(inverted), fp, indent=2)
 
 
 def invert(args):
-    for dirname in ['inverted-publisher', 'inverted-file', 'inverted-file-publisher']:
+    for dirname in ["inverted-publisher", "inverted-file", "inverted-file-publisher"]:
         try:
             os.mkdir(os.path.join(args.output, dirname))
         except OSError:
             pass
-    invert_dir('aggregated-publisher', 'inverted-publisher', args.output)
-    invert_dir('aggregated-file', 'inverted-file', args.output)
-    for folder in os.listdir(os.path.join(args.output, 'aggregated-file')):
+    invert_dir("aggregated-publisher", "inverted-publisher", args.output)
+    invert_dir("aggregated-file", "inverted-file", args.output)
+    for folder in os.listdir(os.path.join(args.output, "aggregated-file")):
         try:
-            os.mkdir(os.path.join(args.output, 'inverted-file-publisher', folder))
+            os.mkdir(os.path.join(args.output, "inverted-file-publisher", folder))
         except OSError:
             pass
-        invert_dir(os.path.join('aggregated-file', folder), os.path.join('inverted-file-publisher', folder), args.output)
+        invert_dir(
+            os.path.join("aggregated-file", folder), os.path.join("inverted-file-publisher", folder), args.output
+        )

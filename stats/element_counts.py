@@ -15,11 +15,11 @@ class ActivityStats(object):
 
     @returns_numberdict
     def elements(self):
-        return element_to_count_dict(self.element, 'iati-activity', {})
+        return element_to_count_dict(self.element, "iati-activity", {})
 
     @returns_numberdict
     def elements_total(self):
-        return element_to_count_dict(self.element, 'iati-activity', defaultdict(int), True)
+        return element_to_count_dict(self.element, "iati-activity", defaultdict(int), True)
 
 
 class OrganisationFileStats(object):
@@ -31,11 +31,11 @@ class OrganisationStats(object):
 
     @returns_numberdict
     def elements(self):
-        return element_to_count_dict(self.element, 'iati-organisation', {})
+        return element_to_count_dict(self.element, "iati-organisation", {})
 
     @returns_numberdict
     def elements_total(self):
-        return element_to_count_dict(self.element, 'iati-organisation', defaultdict(int), True)
+        return element_to_count_dict(self.element, "iati-organisation", defaultdict(int), True)
 
 
 class AllDataStats(object):

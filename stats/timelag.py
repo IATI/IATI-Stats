@@ -2,7 +2,7 @@ import stats.dashboard
 
 
 class PublisherStats(stats.dashboard.PublisherStats):
-    enabled_stats = ['timelag']
+    enabled_stats = ["timelag"]
 
 
 class ActivityFileStats(object):
@@ -10,7 +10,7 @@ class ActivityFileStats(object):
 
 
 class ActivityStats(stats.dashboard.ActivityStats):
-    enabled_stats = ['transaction_months_with_year']
+    enabled_stats = ["transaction_months_with_year"]
 
 
 class OrganisationFileStats(object):

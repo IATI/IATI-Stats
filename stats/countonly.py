@@ -15,6 +15,7 @@ class ActivityStats(object):
     @returns_number
     def activities(self):
         return 1
+
     pass
 
 

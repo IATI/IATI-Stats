@@ -2,7 +2,7 @@ import stats.dashboard
 
 
 class PublisherStats(stats.dashboard.PublisherStats):
-    enabled_stats = ['most_recent_transaction_date', 'latest_transaction_date']
+    enabled_stats = ["most_recent_transaction_date", "latest_transaction_date"]
 
 
 class ActivityFileStats(object):
@@ -10,7 +10,7 @@ class ActivityFileStats(object):
 
 
 class ActivityStats(stats.dashboard.ActivityStats):
-    enabled_stats = ['transaction_dates']
+    enabled_stats = ["transaction_dates"]
 
 
 class OrganisationFileStats(object):

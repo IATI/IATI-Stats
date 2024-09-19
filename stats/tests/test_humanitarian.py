@@ -728,11 +728,11 @@ def test_humanitarian_elements_invalid_version(version, hum_attrib_val):
 
     activity_stats.element = etree.fromstring(
         """
-       <iati-activity humanitarian="{1}">
+       <iati-activity humanitarian="{0}">
           <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
     """.format(
-            version, hum_attrib_val
+            hum_attrib_val
         )
     )
 

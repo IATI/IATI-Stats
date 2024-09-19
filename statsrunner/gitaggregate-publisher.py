@@ -71,7 +71,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, "commits")):
             if os.path.isfile(path):
                 with open(path) as fp:
                     k = statname
-                    if not commit in total[k]:
+                    if commit not in total[k]:
                         v = json.load(fp, parse_float=decimal.Decimal)
                         if dated:
                             if commit in gitdates:

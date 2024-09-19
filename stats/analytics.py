@@ -1369,7 +1369,7 @@ class ActivityStats(CommonSharedElements):
                                 for x in previous_reporting_org_refs
                             ]
                         )
-                        if self._major_version() is not "1"
+                        if self._major_version() != "1"
                         else True
                     )
                 ),
@@ -1775,7 +1775,7 @@ class ActivityStats(CommonSharedElements):
                     out[self._transaction_type_code(transaction)][get_currency(self, transaction)][
                         self._transaction_year(transaction)
                     ] += transaction_value
-                except InvalidOperation:
+                except InvalidOperation as e:
                     print("Error {}: {}".format(self.context, e))
         return out
 

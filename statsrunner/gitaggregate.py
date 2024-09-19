@@ -2,7 +2,6 @@ import decimal
 import json
 import os
 import sys
-from collections import defaultdict
 
 from common import decimal_default
 
@@ -75,7 +74,7 @@ for commit in os.listdir(os.path.join(GITOUT_DIR, "commits")):
             v = {}
 
         # If the commit that we are looping over is not already in the data for this file, then add it to the output
-        if not commit in v:
+        if commit not in v:
             with open(commit_json_fname) as fp2:
                 v2 = json.load(fp2, parse_float=decimal.Decimal)
                 if dated:

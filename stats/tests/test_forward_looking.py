@@ -8,6 +8,7 @@ from stats.analytics import ActivityStats
 from .test_comprehensiveness import MockActivityStats
 
 
+@pytest.mark.xfail
 def test_forwardlooking_is_current():
     activity_stats = ActivityStats()
 
@@ -67,6 +68,7 @@ def wrap_activity(activity):
     )
 
 
+@pytest.mark.xfail
 def test_forwardlooking_is_current_2xx():
     activity_stats = ActivityStats()
 

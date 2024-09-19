@@ -8,13 +8,12 @@ Not suitable for generic use in stats.py due to hardcoded years etc.
 """
 
 import datetime
-from helpers.old.exchange_rates import toUSD
-from stats.common.decorators import (
-    returns_number,
-    returns_numberdict,
-)
-from stats.common import debug
 from decimal import Decimal
+
+from helpers.old.exchange_rates import toUSD
+
+from stats.common import debug
+from stats.common.decorators import returns_number, returns_numberdict
 
 
 class ActivityFileStats(object):

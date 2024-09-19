@@ -4,18 +4,14 @@ python calculate_stats.py --stats-module stats.transparency_indicator loop
 
 """
 
-import datetime
-import csv
 import copy
-from stats.common.decorators import returns_number, returns_numberdict, returns_dict, no_aggregation, memoize
-from decimal import Decimal
+import csv
+import datetime
 from collections import defaultdict
+from decimal import Decimal
 
-from common import (
-    budget_year,
-    iso_date,
-    transaction_date,
-)
+from common import budget_year, iso_date, transaction_date
+from stats.common.decorators import memoize, no_aggregation, returns_dict, returns_number, returns_numberdict
 
 """
 Errors

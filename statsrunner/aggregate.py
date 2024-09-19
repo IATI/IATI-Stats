@@ -1,11 +1,12 @@
-from collections import defaultdict
+import copy
+import datetime
+import decimal
 import inspect
 import json
 import os
-import copy
-import decimal
+from collections import defaultdict
+
 import statsrunner
-import datetime
 from statsrunner import common
 
 

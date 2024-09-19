@@ -1,9 +1,10 @@
 import argparse
-import statsrunner.loop
-import statsrunner.aggregate
-import statsrunner.invert
 import datetime
 import re
+
+import statsrunner.aggregate
+import statsrunner.invert
+import statsrunner.loop
 
 
 def parse_date(x):

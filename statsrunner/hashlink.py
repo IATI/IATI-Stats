@@ -1,5 +1,5 @@
-import os
 import hashlib
+import os
 
 base = os.path.join("out", "aggregated-file")
 data_dir = "data"

@@ -5,10 +5,11 @@ Note: this file is not up to date, and will fail.
 
 """
 from __future__ import unicode_literals
-import unittest
-import os
-import json
+
 import decimal
+import json
+import os
+import unittest
 
 OUTPUT_DIR = 'out'
 

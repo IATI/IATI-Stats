@@ -1,8 +1,8 @@
 # Script to provide currency conversion functionality
 
-from collections import defaultdict
 import csv
 import os.path
+from collections import defaultdict
 from decimal import Decimal
 
 currency_values = defaultdict(dict)

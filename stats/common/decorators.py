@@ -1,5 +1,6 @@
-from collections import defaultdict
 import datetime
+from collections import defaultdict
+
 import dateutil.parser
 import dateutil.tz
 

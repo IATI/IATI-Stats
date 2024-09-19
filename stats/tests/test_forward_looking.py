@@ -1,8 +1,10 @@
 import datetime
-from lxml import etree
+
 import pytest
+from lxml import etree
 
 from stats.analytics import ActivityStats
+
 from .test_comprehensiveness import MockActivityStats
 
 

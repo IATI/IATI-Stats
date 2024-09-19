@@ -1,9 +1,10 @@
-from collections import defaultdict
-from common import decimal_default
 import decimal
 import json
 import os
 import sys
+from collections import defaultdict
+
+from common import decimal_default
 
 # Set value for the gitout directory
 GITOUT_DIR = os.environ.get("GITOUT_DIR") or "gitout"

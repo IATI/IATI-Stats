@@ -1,8 +1,9 @@
 # coding=utf-8
 
-from lxml import etree
 import datetime
+
 import pytest
+from lxml import etree
 
 from stats.analytics import ActivityStats
 

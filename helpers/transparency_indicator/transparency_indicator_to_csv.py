@@ -1,6 +1,6 @@
 import csv
-import os
 import json
+import os
 
 coverage = csv.writer(open('out-ti-csv/1-coverage.csv', 'w'))
 coverage.writerow([

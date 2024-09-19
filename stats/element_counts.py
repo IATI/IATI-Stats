@@ -1,5 +1,6 @@
-from dashboard import returns_numberdict, element_to_count_dict
 from collections import defaultdict
+
+from dashboard import element_to_count_dict, returns_numberdict
 
 
 class PublisherStats(object):

@@ -1,6 +1,7 @@
 import json
 import os
 from collections import defaultdict
+
 from statsrunner.common import sort_keys
 
 

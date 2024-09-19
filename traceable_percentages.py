@@ -2,7 +2,6 @@ import csv
 import json
 import sys
 
-
 traceable_activities_by_publisher = json.load(open("out/current/aggregated/traceable_activities_by_publisher_id.json"))
 # This may be different from the total number of activity identifiers
 total_activities_by_publisher = json.load(open("out/current/aggregated/traceable_activities_by_publisher_id_denominator.json"))

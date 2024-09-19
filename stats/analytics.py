@@ -4,27 +4,21 @@ You can choose a different set of tests by running calculate_stats.py with the `
 """
 
 from __future__ import print_function
-from lxml import etree
-from datetime import date, datetime, timedelta
-from collections import Counter, defaultdict, OrderedDict
-from decimal import Decimal, InvalidOperation
+
+import copy
+import csv
+import json
 import os
 import re
-import json
-import csv
-import copy
+from collections import Counter, OrderedDict, defaultdict
+from datetime import date, datetime, timedelta
+from decimal import Decimal, InvalidOperation
 
+import iatirulesets
 from dateutil.relativedelta import relativedelta
+from helpers.currency_conversion import get_USD_value
+from lxml import etree
 
-from stats.common.decorators import (
-    memoize,
-    no_aggregation,
-    returns_dict,
-    returns_numberdict,
-    returns_numberdictdict,
-    returns_number,
-    returns_numberdictdictdict,
-)
 from stats.common import (
     budget_year,
     debug,
@@ -34,9 +28,15 @@ from stats.common import (
     planned_disbursement_year,
     transaction_date,
 )
-
-import iatirulesets
-from helpers.currency_conversion import get_USD_value
+from stats.common.decorators import (
+    memoize,
+    no_aggregation,
+    returns_dict,
+    returns_number,
+    returns_numberdict,
+    returns_numberdictdict,
+    returns_numberdictdictdict,
+)
 
 
 def add_years(d, years):

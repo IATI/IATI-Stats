@@ -1,11 +1,13 @@
-import os
-from lxml import etree
 import inspect
 import json
+import os
 import sys
 import traceback
-import statsrunner.shared
+
+from lxml import etree
+
 import statsrunner.aggregate
+import statsrunner.shared
 from statsrunner.common import decimal_default, sort_keys
 
 

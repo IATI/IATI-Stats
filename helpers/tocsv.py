@@ -1,6 +1,6 @@
+import csv
 import json
 import sys
-import csv
 
 writer = csv.writer(sys.stdout, lineterminator='\n')
 

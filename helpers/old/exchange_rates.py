@@ -1,6 +1,7 @@
 import csv
-from lxml import etree
 from decimal import Decimal
+
+from lxml import etree
 
 root = etree.parse('helpers/old/country-currency.xml').getroot()
 

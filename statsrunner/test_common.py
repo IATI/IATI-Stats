@@ -1,6 +1,7 @@
-from decimal import Decimal
-from .common import decimal_default
 import json
+from decimal import Decimal
+
+from .common import decimal_default
 
 
 def test_decimal_default():

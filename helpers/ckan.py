@@ -1,7 +1,7 @@
-from glob import glob
-import os
 import json
+import os
 from collections import defaultdict
+from glob import glob
 
 out = defaultdict(dict)
 licenses = {}

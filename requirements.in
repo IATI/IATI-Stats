@@ -2,3 +2,5 @@ lxml
 python-dateutil
 git+https://github.com/IATI/IATI-Rulesets.git@version-2.03#egg=iatirulesets
 GitPython
+django>=4.2,<4.3
+djangorestframework

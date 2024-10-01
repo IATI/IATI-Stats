@@ -4,6 +4,14 @@
 #
 #    pip-compile
 #
+asgiref==3.8.1
+    # via django
+django==4.2.16
+    # via
+    #   -r requirements.in
+    #   djangorestframework
+djangorestframework==3.15.2
+    # via -r requirements.in
 gitdb==4.0.11
     # via gitpython
 gitpython==3.1.43
@@ -20,3 +28,5 @@ six==1.16.0
     # via python-dateutil
 smmap==5.0.1
     # via gitdb
+sqlparse==0.5.1
+    # via django

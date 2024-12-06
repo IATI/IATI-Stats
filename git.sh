@@ -5,14 +5,13 @@ if [ "$GITOUT_DIR" = "" ]; then
     GITOUT_DIR="gitout"
 fi
 if [ "$COMMIT_SKIP_FILE" = "" ]; then
-    COMMIT_SKIP_FILE=$GITOUT_DIR/gitaggregate/activities.json
+    COMMIT_SKIP_FILE=$GITOUT_DIR/commits_run.txt
 fi
 
 # Make the all the gitout directories
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Making gitout directories"
 mkdir -p $GITOUT_DIR/logs
 mkdir -p $GITOUT_DIR/commits
-mkdir -p $GITOUT_DIR/gitaggregate
 mkdir -p $GITOUT_DIR/gitaggregate-dated
 
 
@@ -112,14 +111,11 @@ for commit in $commits; do
         rm -r $GITOUT_DIR/commits/$commit
         mv out $GITOUT_DIR/commits/$commit || exit $?
 
-        echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate.py for commit: $commit"
-        python statsrunner/gitaggregate.py
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate.py dated for commit: $commit"
         python statsrunner/gitaggregate.py dated
-        echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate-publisher.py for commit: $commit"
-        python statsrunner/gitaggregate-publisher.py
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate-publisher.py dated for commit: $commit"
         python statsrunner/gitaggregate-publisher.py dated
+        echo "$commit" >> $COMMIT_SKIP_FILE
         # If the commit is the latest commit then, move the resulting stats to the 'current' directory
         if [ ! $commit = $current_hash ]; then
             echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Removing commit dir (based on latest commit logic) for commit: $commit"
@@ -142,11 +138,7 @@ for commit in $commits; do
 done
 
 cd $GITOUT_DIR || exit $?
-echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate"
-tar -czf gitaggregate.tar.gz gitaggregate
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-dated"
 tar -czf gitaggregate-dated.tar.gz gitaggregate-dated
-echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-publisher"
-tar -czf gitaggregate-publisher.tar.gz gitaggregate-publisher
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-publisher-dated"
 tar -czf gitaggregate-publisher-dated.tar.gz gitaggregate-publisher-dated

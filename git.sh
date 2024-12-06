@@ -26,7 +26,7 @@ echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update codelists"
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update schemas"
 ./get_schemas.sh
 
-wget -q https://raw.githubusercontent.com/codeforIATI/IATI-Dashboard/main/registry_id_relationships.csv
+wget -q https://raw.githubusercontent.com/IATI/IATI-Dashboard/live/registry_id_relationships.csv
 wget -q https://codeforiati.org/imf-exchangerates/imf_exchangerates_A_ENDA_USD.csv -O currency_conversion/exchange_rates.csv
 
 # Build a JSON file of metadata for each CKAN publisher, and for each dataset published.

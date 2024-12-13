@@ -529,14 +529,16 @@ class CommonSharedElements(object):
         return out
 
 
-    @returns_numberdict
+    @returns_numberdictdict
     @memoize
     def ati_tests(self):
-        out = {}
+        out = defaultdict(dict)
+        tag = self.element.tag
         for test in ati_tests:
-            result = test(self.element, codelists=CODELISTS[self._major_version()])
-            result = int(bool(result))
-            out[f"{test.feature.name}: {test.name}"] = result
+            if tag in test.feature.tags:
+                result = test(self.element, codelists=CODELISTS[self._major_version()])
+                result = int(bool(result))
+                out[tag][f"{test.feature.name}: {test.name}"] = result
         return out
 
     @returns_number

@@ -2421,7 +2421,7 @@ class PublisherStats(object):
             return str(max(nonfuture_transaction_dates))
 
     @no_aggregation
-    def _latest_transaction_date(self):
+    def latest_transaction_date(self):
         """Computes the latest transaction data across a dataset. Can be in the future"""
         transaction_dates = list(
             filter(

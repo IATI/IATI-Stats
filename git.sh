@@ -5,14 +5,13 @@ if [ "$GITOUT_DIR" = "" ]; then
     GITOUT_DIR="gitout"
 fi
 if [ "$COMMIT_SKIP_FILE" = "" ]; then
-    COMMIT_SKIP_FILE=$GITOUT_DIR/gitaggregate/activities.json
+    COMMIT_SKIP_FILE=$GITOUT_DIR/commits_run.txt
 fi
 
 # Make the all the gitout directories
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Making gitout directories"
 mkdir -p $GITOUT_DIR/logs
 mkdir -p $GITOUT_DIR/commits
-mkdir -p $GITOUT_DIR/gitaggregate
 mkdir -p $GITOUT_DIR/gitaggregate-dated
 
 
@@ -25,6 +24,10 @@ echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update codelists"
 ./get_codelists.sh
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update schemas"
 ./get_schemas.sh
+
+wget -q https://raw.githubusercontent.com/IATI/IATI-Dashboard/live/registry_id_relationships.csv
+wget -q https://codeforiati.org/imf-exchangerates/imf_exchangerates_A_ENDA_USD.csv -O currency_conversion/exchange_rates.csv
+
 # Build a JSON file of metadata for each CKAN publisher, and for each dataset published.
 # This is based on the data from the CKAN API
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running ckan.py"
@@ -32,6 +35,7 @@ python ckan.py
 cd ..
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Copying ckan.json"
 cp helpers/ckan.json $GITOUT_DIR
+cp helpers/licenses.json $GITOUT_DIR
 
 
 # Clear output directory
@@ -107,14 +111,11 @@ for commit in $commits; do
         rm -r $GITOUT_DIR/commits/$commit
         mv out $GITOUT_DIR/commits/$commit || exit $?
 
-        echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate.py for commit: $commit"
-        python statsrunner/gitaggregate.py
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate.py dated for commit: $commit"
         python statsrunner/gitaggregate.py dated
-        echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate-publisher.py for commit: $commit"
-        python statsrunner/gitaggregate-publisher.py
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate-publisher.py dated for commit: $commit"
         python statsrunner/gitaggregate-publisher.py dated
+        echo "$commit" >> $COMMIT_SKIP_FILE
         # If the commit is the latest commit then, move the resulting stats to the 'current' directory
         if [ ! $commit = $current_hash ]; then
             echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Removing commit dir (based on latest commit logic) for commit: $commit"
@@ -137,11 +138,7 @@ for commit in $commits; do
 done
 
 cd $GITOUT_DIR || exit $?
-echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate"
-tar -czf gitaggregate.tar.gz gitaggregate
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-dated"
 tar -czf gitaggregate-dated.tar.gz gitaggregate-dated
-echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-publisher"
-tar -czf gitaggregate-publisher.tar.gz gitaggregate-publisher
 echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Creating compressed file: gitaggregate-publisher-dated"
 tar -czf gitaggregate-publisher-dated.tar.gz gitaggregate-publisher-dated

@@ -1,0 +1,60 @@
+<iati-activities version="1.05">
+    <iati-activity default-currency="USD">
+        <iati-identifier>XE-EXAMPLE-CC-01</iati-identifier>
+        <transaction>
+            <transaction-type code="D"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value>1000</value>
+        </transaction>
+    </iati-activity>
+    <iati-activity>
+        <iati-identifier>XE-EXAMPLE-CC-02</iati-identifier>
+        <transaction>
+            <transaction-type code="C"/>
+            <transaction-date iso-date="2012-01-01" />
+            <value currency="EUR">1000</value>
+        </transaction>
+        <transaction>
+            <transaction-type code="IF"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value currency="GBP">1000</value>
+            <provider-org provider-activity-id="XE-EXAMPLE-BB-01" type="10" ref="XE-EXAMPLE-BB" />
+        </transaction>
+    </iati-activity>
+    <iati-activity>
+        <iati-identifier>XE-EXAMPLE-CC-03</iati-identifier>
+        <transaction>
+            <transaction-type code="C"/>
+            <transaction-date iso-date="2012-01-01" />
+            <value currency="GBP">1000</value>
+        </transaction>
+    </iati-activity>
+    <iati-activity>
+        <iati-identifier>XE-EXAMPLE-CC-04</iati-identifier>
+        <transaction>
+            <transaction-type code="IF"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value currency="GBP">1000</value>
+            <provider-org provider-activity-id="XE-EXAMPLE-BB-01" type="10" ref="XE-EXAMPLE-BB" />
+        </transaction>
+        <transaction>
+            <transaction-type code="C"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value currency="USD">1000</value>
+        </transaction>
+    </iati-activity>
+    <iati-activity>
+        <iati-identifier>XE-EXAMPLE-CC-05</iati-identifier>
+        <transaction>
+            <transaction-type code="IF"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value currency="GBP">1000</value>
+            <provider-org provider-activity-id="XE-EXAMPLE-CC-04" type="10" ref="XE-EXAMPLE-BB" />
+        </transaction>
+        <transaction>
+            <transaction-type code="C"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value currency="USD">500</value>
+        </transaction>
+    </iati-activity>
+</iati-activities>

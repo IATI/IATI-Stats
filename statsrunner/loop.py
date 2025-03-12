@@ -1,12 +1,14 @@
-import os
-from lxml import etree
 import inspect
 import json
+import os
 import sys
 import traceback
-import statsrunner.shared
+
+from lxml import etree
+
 import statsrunner.aggregate
-from statsrunner.common import decimal_default
+import statsrunner.shared
+from statsrunner.common import decimal_default, sort_keys
 
 
 def call_stats(this_stats, args):
@@ -27,28 +29,35 @@ def call_stats(this_stats, args):
             this_out[name] = function()
         except KeyboardInterrupt:
             exit()
-        except:
+        except Exception:
             traceback.print_exc(file=sys.stdout)
     if args.debug:
-        print this_out
+        print(this_out)
     return this_out
 
 
-def process_file((inputfile, output_dir, folder, xmlfile, args)):
+def process_file(*args):
     """Create output file path or write output file."""
+    args = args[0]
+    inputfile = args[0]
+    output_dir = args[1]
+    folder = args[2]
+    xmlfile = args[3]
+    args = args[4]
     import importlib
+
     # Python module to import stats from defaults to stats.dashboard
     stats_module = importlib.import_module(args.stats_module)
     # When args.verbose_loop is true, create directory and set outputfile according to loop path.
     if args.verbose_loop:
         try:
-            os.makedirs(os.path.join(output_dir, 'loop', folder))
+            os.makedirs(os.path.join(output_dir, "loop", folder))
         except OSError:
             pass
-        outputfile = os.path.join(output_dir, 'loop', folder, xmlfile)
+        outputfile = os.path.join(output_dir, "loop", folder, xmlfile)
     # If args.verbose_loop is false, set outputfile according to aggregated-file path.
     else:
-        outputfile = os.path.join(output_dir, 'aggregated-file', folder, xmlfile)
+        outputfile = os.path.join(output_dir, "aggregated-file", folder, xmlfile)
 
     # If default args is set to only create new files, check for existing file and return early.
     if args.new:
@@ -58,9 +67,9 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
     try:
         file_size = os.stat(inputfile).st_size
         # If the file size is greater than the registry limit, set stats_json file value to 'too large'.
-        # Registry limit: https://github.com/okfn/ckanext-iati/blob/606e0919baf97552a14b7c608529192eb7a04b19/ckanext/iati/archiver.py#L23
+        # Registry limit: https://github.com/IATI/ckanext-iati/blob/6ec9109826aec42e4fc9297db198753f83a48f80/ckanext/iati/archiver.py#L34-L36
         if file_size > 60000000:
-            stats_json = {'file': {'toolarge': 1, 'file_size': file_size}, 'elements': []}
+            stats_json = {"file": {"toolarge": 1, "file_size": file_size}, "elements": []}
         # If file size is within limit, set doc to the value of the complete inputfile document, and set root to the root of element tree for doc.
         else:
             doc = etree.parse(inputfile)
@@ -72,7 +81,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
                 file_stats.doc = doc
                 file_stats.root = root
                 file_stats.strict = args.strict
-                file_stats.context = 'in '+inputfile
+                file_stats.context = "in " + inputfile
                 file_stats.fname = os.path.basename(inputfile)
                 file_stats.inputfile = inputfile
                 return call_stats(file_stats, args)
@@ -85,7 +94,7 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
                     element_stats = ElementStats()
                     element_stats.element = element
                     element_stats.strict = args.strict
-                    element_stats.context = 'in '+inputfile
+                    element_stats.context = "in " + inputfile
                     element_stats.today = args.today
                     yield call_stats(element_stats, args)
 
@@ -102,43 +111,46 @@ def process_file((inputfile, output_dir, folder, xmlfile, args)):
                 """
                 file_out = process_stats_file(FileStats)
                 out = process_stats_element(ElementStats, tagname)
-                return {'file': file_out, 'elements': out}
+                return {"file": file_out, "elements": out}
 
-            if root.tag == 'iati-activities':
-                stats_json = process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, 'iati-activity')
-            elif root.tag == 'iati-organisations':
-                stats_json = process_stats(stats_module.OrganisationFileStats, stats_module.OrganisationStats, 'iati-organisation')
+            if root.tag == "iati-activities":
+                stats_json = process_stats(stats_module.ActivityFileStats, stats_module.ActivityStats, "iati-activity")
+            elif root.tag == "iati-organisations":
+                stats_json = process_stats(
+                    stats_module.OrganisationFileStats, stats_module.OrganisationStats, "iati-organisation"
+                )
             else:
-                stats_json = {'file': {'nonstandardroots': 1}, 'elements': []}
+                stats_json = {"file": {"nonstandardroots": 1}, "elements": []}
 
     # If there is a ParseError print statement, then set stats_json file value according to whether the file size is zero.
     except etree.ParseError:
-        print 'Could not parse file {0}'.format(inputfile)
+        print("Could not parse file {0}".format(inputfile))
         if os.path.getsize(inputfile) == 0:
             # Assume empty files are download errors, not invalid XML
-            stats_json = {'file': {'emptyfile': 1}, 'elements': []}
+            stats_json = {"file": {"emptyfile": 1}, "elements": []}
         else:
-            stats_json = {'file': {'invalidxml': 1}, 'elements': []}
+            stats_json = {"file": {"invalidxml": 1}, "elements": []}
 
     # If args.verbose_loop is true, assign value of list of stats_json element keys to stats_json elements key and write to json file.
     if args.verbose_loop:
-        with open(outputfile, 'w') as outfp:
-            stats_json['elements'] = list(stats_json['elements'])
-            json.dump(stats_json, outfp, sort_keys=True, indent=2, default=decimal_default)
+        with open(outputfile, "w") as outfp:
+            stats_json["elements"] = list(stats_json["elements"])
+            json.dump(sort_keys(stats_json), outfp, indent=2, default=decimal_default)
     # If args.verbose_loop is not true, create aggregated-file json and return the subtotal dictionary of statsrunner.aggregate.aggregate_file().
     else:
-        statsrunner.aggregate.aggregate_file(stats_module, stats_json, os.path.join(output_dir, 'aggregated-file', folder, xmlfile))
+        statsrunner.aggregate.aggregate_file(
+            stats_module, stats_json, os.path.join(output_dir, "aggregated-file", folder, xmlfile)
+        )
 
 
 def loop_folder(folder, args, data_dir, output_dir):
     """Given a folder, returns a list of XML files in folder."""
-    if not os.path.isdir(os.path.join(data_dir, folder)) or folder == '.git':
+    if not os.path.isdir(os.path.join(data_dir, folder)) or folder == ".git":
         return []
     files = []
     for xmlfile in os.listdir(os.path.join(data_dir, folder)):
         try:
-            files.append((os.path.join(data_dir, folder, xmlfile),
-                         output_dir, folder, xmlfile, args))
+            files.append((os.path.join(data_dir, folder, xmlfile), output_dir, folder, xmlfile, args))
         except UnicodeDecodeError:
             traceback.print_exc(file=sys.stdout)
             continue
@@ -160,7 +172,8 @@ def loop(args):
 
     if args.multi > 1:
         from multiprocessing import Pool
+
         pool = Pool(args.multi)
         pool.map(process_file, files)
     else:
-        map(process_file, files)
+        list(map(process_file, files))

@@ -1,0 +1,23 @@
+<iati-activities version="2.03" default-currency="USD">
+    <iati-activity>
+        <iati-identifier>XE-EXAMPLE-AA-01</iati-identifier>
+        <transaction>
+            <transaction-type code="1"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value>1000</value>
+            <provider-org provider-activity-id="XE-EXAMPLE-BB-01" type="10" ref="XE-EXAMPLE-BB" />
+        </transaction>
+        <transaction>
+            <transaction-type code="1"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value>1000</value>
+            <provider-org provider-activity-id="XE-EXAMPLE-CC-01" type="10" ref="XE-EXAMPLE-CC" />
+        </transaction>
+        <transaction>
+            <transaction-type code="1"/>
+            <transaction-date iso-date="2022-01-01" />
+            <value>1000</value>
+            <provider-org provider-activity-id="XE-EXAMPLE-CC-02" type="10" ref="XE-EXAMPLE-CC" />
+        </transaction>
+    </iati-activity>
+</iati-activities>

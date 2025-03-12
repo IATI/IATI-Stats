@@ -1,6 +1,7 @@
 import csv
-from lxml import etree
 from decimal import Decimal
+
+from lxml import etree
 
 root = etree.parse('helpers/old/country-currency.xml').getroot()
 
@@ -11,9 +12,10 @@ with open('helpers/old/exchange_rates.csv') as fp:
     for line in reader:
         exchange_dict[line['Country']] = line
 
-#class UnsupportedCurrency(Exception):
+
+# class UnsupportedCurrency(Exception):
 #    pass
+
 
 def toUSD(value, currency, year):
     return value * Decimal(exchange_dict[root.find("*[@ISO='{0}']".format(currency)).get('name')][str(year)])
-

@@ -2047,6 +2047,14 @@ class GenericFileStats(object):
         return {self.root.attrib.get("version"): 1}
 
     @returns_numberdict
+    def versions_activities(self):
+        return {self.root.attrib.get("version"): len(self.root.xpath("/iati-activities/iati-activity"))}
+
+    @returns_numberdict
+    def versions_organisations(self):
+        return {self.root.attrib.get("version"): len(self.root.xpath("/iati-organisations/iati-organisation"))}
+
+    @returns_numberdict
     def version_mismatch(self):
         file_version = self.root.attrib.get("version")
         element_versions = self.root.xpath("//iati-activity/@version")

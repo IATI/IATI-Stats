@@ -28,12 +28,12 @@ flake8-pyproject==1.2.3
     # via -r requirements_dev.in
 gitdb==4.0.11
     # via
-    #   -r /home/bee/IATI-Stats/requirements.txt
+    #   -r requirements.txt
     #   gitpython
 gitpython==3.1.43
-    # via -r /home/bee/IATI-Stats/requirements.txt
+    # via -r requirements.txt
 iatirulesets @ git+https://github.com/IATI/IATI-Rulesets.git@version-2.03
-    # via -r /home/bee/IATI-Stats/requirements.txt
+    # via -r requirements.txt
 idna==3.10
     # via requests
 iniconfig==2.0.0
@@ -42,7 +42,7 @@ isort==5.13.2
     # via -r requirements_dev.in
 lxml==5.3.0
     # via
-    #   -r /home/bee/IATI-Stats/requirements.txt
+    #   -r requirements.txt
     #   iatirulesets
 mccabe==0.7.0
     # via flake8
@@ -71,16 +71,16 @@ pytest==8.3.3
 pytest-cov==6.0.0
     # via -r requirements_dev.in
 python-dateutil==2.9.0.post0
-    # via -r /home/bee/IATI-Stats/requirements.txt
-requests==2.32.3
+    # via -r requirements.txt
+requests==2.32.4
     # via coveralls
 six==1.16.0
     # via
-    #   -r /home/bee/IATI-Stats/requirements.txt
+    #   -r requirements.txt
     #   python-dateutil
 smmap==5.0.1
     # via
-    #   -r /home/bee/IATI-Stats/requirements.txt
+    #   -r requirements.txt
     #   gitdb
 urllib3==2.2.3
     # via requests

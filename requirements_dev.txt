@@ -82,5 +82,5 @@ smmap==5.0.1
     # via
     #   -r requirements.txt
     #   gitdb
-urllib3==2.2.3
+urllib3==2.5.0
     # via requests

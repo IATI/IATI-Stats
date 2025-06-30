@@ -26,6 +26,8 @@ for publisher in os.listdir('ckan'):
                         }
         except ValueError:
             print('{0} is not valid JSON'.format(publisher))
+        except KeyError:
+            print('{0} does not have the expected structure'.format(publisher))
 
 with open('ckan.json', 'w') as fp:
     json.dump(out, fp, indent=2, sort_keys=True)

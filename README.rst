@@ -1,19 +1,19 @@
 IATI Stats
 ==========
 
-.. image:: https://github.com/codeforIATI/IATI-Stats/actions/workflows/ci.yml/badge.svg?branch=main
-    :target: https://github.com/codeforIATI/IATI-Stats/actions/workflows/ci.yml
-.. image:: https://coveralls.io/repos/github/codeforIATI/IATI-Stats/badge.svg?branch=main
-    :target: https://coveralls.io/github/codeforIATI/IATI-Stats?branch=main
+.. image:: https://github.com/IATI/IATI-Stats/actions/workflows/ci.yml/badge.svg?branch=main
+    :target: https://github.com/IATI/IATI-Stats/actions/workflows/ci.yml
+.. image:: https://coveralls.io/repos/github/IATI/IATI-Stats/badge.svg?branch=main
+    :target: https://coveralls.io/github/IATI/IATI-Stats?branch=main
 .. image:: https://img.shields.io/badge/license-GPLv3-blue.svg
-    :target: https://github.com/codeforIATI/IATI-Stats/blob/main/LICENSE.md
+    :target: https://github.com/IATI/IATI-Stats/blob/main/LICENSE.md
 
 Introduction
 ------------
 
-IATI-Stats is a python application for generating JSON stats files from IATI data. An example of the outputted JSON can be found at https://github.com/codeforIATI/IATI-Stats-public
+IATI-Stats is a python application for generating JSON stats files from IATI data. An example of the outputted JSON can be found at https://dashboard.iatistandard.org/stats/
 
-These stats are used to build `Code for IATI Analytics <https://analytics.codeforiati.org/>`_.
+These stats are used to build the `Dashboard frontend <https://dashboard.iatistandard.org/stats/>`_.
 
 Requirements
 ------------
@@ -22,19 +22,6 @@ Requirements
 -  Python 3.x
 -  pip
 -  Bash
--  gcc
--  Development files for libxml, libxslt and libz e.g. ``libxml2-dev``,
-   ``libxslt-dev``, ``lib32z1-dev`` (alternatively, you can install the python  dependencies in
-   requirements.txt using your package manager, and skip the pip install step
-   below)
-
-For example, on Ubuntu these requirements can be installed by running:
-
-.. code-block:: bash
-
-    sudo apt-get install git python-dev python-virtualenv python-pip
-    sudo apt-get install libxml2-dev libxslt-dev
-
 
 Getting some data to run stats on
 ---------------------------------
@@ -44,7 +31,7 @@ This stats code expects a ``data/`` directory, containing a subdirectory for eac
 Getting started
 ---------------
 
-Take a look at `this Github Action <https://github.com/codeforIATI/IATI-Stats/blob/main/.github/workflows/build.yml>`__ to see how this code is used.
+Take a look at ``git.sh`` to see how this code is used.
 
 You can run ``python calculate_stats.py --help`` for a full list of command line options.
 

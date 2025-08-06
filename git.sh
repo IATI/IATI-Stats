@@ -96,11 +96,6 @@ for commit in $commits; do
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Set commit date as $commit_date"
         cd ..
 
-        # Disable this because it doesn't work for date dependent stuff.........
-        #mkdir -p $GITOUT_DIR/hash
-        #python statsrunner/hashlink.py
-        # (and also this on the next line: --new)
-
         if [ -d "$GIT_DATA_DIR/datasets" ]; then
             # If the data in this commit has come from the bulk data service (mid 2025 and later)
             git_dataset_dir="$GIT_DATA_DIR/datasets"
@@ -118,7 +113,6 @@ for commit in $commits; do
             echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Calculating stats (invert) for commit $commit"
             python calculate_stats.py $@ --today "$commit_date" invert > $GITOUT_DIR/logs/${commit}_invert.log
         fi
-        #python statsrunner/hashcopy.py
 
         mkdir out/bulk-data-service-metadata/
         cp -r iati-data/*.json out/bulk-data-service-metadata/

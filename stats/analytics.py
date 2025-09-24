@@ -2035,7 +2035,6 @@ class ActivityStats(CommonSharedElements):
         return out
 
 
-ckan = json.load(open("helpers/ckan.json"))
 publisher_re = re.compile(r"(.*)\-[^\-]")
 
 
@@ -2080,11 +2079,7 @@ class GenericFileStats(object):
     def wrong_roots(self):
         tag = self.root.tag
         try:
-            ckan_type = ckan[publisher_re.match(self.fname).group(1)][self.fname]["extras"]["filetype"]
-            if not (
-                (tag == "iati-organisations" and ckan_type == '"organisation"')
-                or (tag == "iati-activities" and ckan_type == '"activity"')
-            ):
+            if tag not in {"iati-organisations", "iati-activities"}:
                 return {tag: 1}
         except KeyError:
             pass

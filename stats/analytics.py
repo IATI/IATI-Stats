@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import copy
 import csv
+import glob
 import json
 import os
 import re
@@ -15,6 +16,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 import iatirulesets
+from bdd_tester import BDDTester
 from dateutil.relativedelta import relativedelta
 from helpers.currency_conversion import get_USD_value
 from lxml import etree
@@ -37,6 +39,37 @@ from stats.common.decorators import (
     returns_numberdictdict,
     returns_numberdictdictdict,
 )
+
+INDEX_INDICATOR_DEFINTIONS_PATH = "./2024-Index-indicator-definitions"
+
+
+def load_ati_tests():
+    """Load the index tests."""
+    base_path = os.path.join(INDEX_INDICATOR_DEFINTIONS_PATH, "test_definitions")
+    step_definitions = os.path.join(base_path, "step_definitions.py")
+    feature_filepaths = glob.glob(os.path.join(base_path, "*", "*.feature"))
+    tester = BDDTester(step_definitions)
+    all_tests = [t for feature_filepath in feature_filepaths for t in tester.load_feature(feature_filepath).tests]
+
+    # Remove the current data condition from tests.
+    for test in all_tests:
+        test.steps = [x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")]
+
+    return all_tests
+
+
+ati_tests = load_ati_tests()
+
+
+def load_ati_current_data_test():
+    """Load the current data test."""
+    base_path = os.path.join(INDEX_INDICATOR_DEFINTIONS_PATH, "test_definitions")
+    step_definitions = os.path.join(base_path, "step_definitions.py")
+    tester = BDDTester(step_definitions)
+    return tester.load_feature(os.path.join(base_path, "current_data.feature")).tests[0]
+
+
+ati_current_data_test = load_ati_current_data_test()
 
 
 def add_years(d, years):
@@ -130,21 +163,11 @@ codelist_mappings = {major_version: get_codelist_mapping(major_version) for majo
 
 CODELISTS = {"1": {}, "2": {}}
 for major_version in ["1", "2"]:
-    for codelist_name in [
-        "Version",
-        "ActivityStatus",
-        "Currency",
-        "Sector",
-        "SectorCategory",
-        "DocumentCategory",
-        "AidType",
-        "BudgetNotProvided",
-        "OrganisationRegistrationAgency",
-        "CRSChannelCode",
-    ]:
+    for codelist_file in os.listdir(f"helpers/codelists/{major_version}"):
+        codelist_name = codelist_file.removesuffix(".json")
         CODELISTS[major_version][codelist_name] = set(
             c["code"]
-            for c in json.load(open("helpers/codelists/{}/{}.json".format(major_version, codelist_name)))["data"]
+            for c in json.load(open(f"helpers/codelists/{major_version}/{codelist_file}"))["data"]
         )
 
 
@@ -494,6 +517,33 @@ class CommonSharedElements(object):
             ruleset = json.load(open("helpers/rulesets/{0}.json".format(ruleset_name)), object_pairs_hook=OrderedDict)
             out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
         return out
+
+
+    @returns_numberdictdict
+    @memoize
+    def ati_tests(self):
+        out = defaultdict(dict)
+        tag = self.element.tag
+        for test in ati_tests:
+            if tag in test.feature.tags:
+                if "skip it" in " ".join(step.text for step in test.steps):
+                    continue
+                result = test(self.element, codelists=CODELISTS[self._major_version()])
+                result = int(bool(result))
+                out[tag][f"{test.feature.name}: {test.name}"] = result
+        return out
+
+    @returns_number
+    @memoize
+    def ati_current(self):
+        return int(bool(ati_current_data_test(self.element)))
+
+    @returns_numberdict
+    def ati_tests_current(self):
+        if self.ati_current():
+            return self.ati_tests()
+        else:
+            return {}
 
 
 class ActivityStats(CommonSharedElements):

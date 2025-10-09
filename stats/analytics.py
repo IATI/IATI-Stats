@@ -1194,12 +1194,9 @@ class ActivityStats(CommonSharedElements):
         return False
 
     @returns_dict
-    def _comprehensiveness_current_activities(self):
+    def comprehensiveness_current_activities(self):
         """Outputs whether each activity is considered current for the purposes of comprehensiveness calculations"""
-        try:
-            return {self.element.find("iati-identifier").text: self.comprehensiveness_current_activity_status}
-        except AttributeError as e:
-            print("Error {}: {}".format(self.context, e))
+        return {self.iati_identifier(): self.comprehensiveness_current_activity_status}
 
     def _is_recipient_language_used(self):
         """If there is only 1 recipient-country, test if one of the languages for that country is used

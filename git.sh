@@ -99,16 +99,18 @@ for commit in $commits; do
         if [ -d "$GIT_DATA_DIR/datasets" ]; then
             # If the data in this commit has come from the bulk data service (mid 2025 and later)
             git_dataset_dir="$GIT_DATA_DIR/datasets"
+            reporting_orgs_metadata="$GIT_DATA_DIR/reporting-orgs.json"
         else
             # If the data in this commit has come from IATI-Registry-Refresher (mid 2025 and earlier)
             git_dataset_dir="$GIT_DATA_DIR"
+            reporting_orgs_metadata=""
         fi
 
         # Run the stats commands and save output to log files
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Calculating stats (loop) for commit $commit"
         python calculate_stats.py $@ --today "$commit_date" loop --data "$git_dataset_dir" > $GITOUT_DIR/logs/${commit}_loop.log
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Calculating stats (aggregate) for commit $commit"
-        python calculate_stats.py $@ --today "$commit_date" aggregate > $GITOUT_DIR/logs/${commit}_aggregate.log
+        python calculate_stats.py $@ --today "$commit_date" aggregate --reporting-orgs-metadata "$reporting_orgs_metadata" > $GITOUT_DIR/logs/${commit}_aggregate.log
         if [ $commit = $current_hash ]; then
             echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Calculating stats (invert) for commit $commit"
             python calculate_stats.py $@ --today "$commit_date" invert > $GITOUT_DIR/logs/${commit}_invert.log

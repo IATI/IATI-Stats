@@ -42,6 +42,7 @@ def calculate_stats():
     parser_aggregate = subparsers.add_parser(
         "aggregate", help="Aggregate the per activity JSON into per file and per publisher JSON."
     )
+    parser_aggregate.add_argument("--reporting-orgs-metadata", help="reporting orgs metadata", default=None)
     parser_aggregate.set_defaults(func=statsrunner.aggregate.aggregate)
 
     parser_invert = subparsers.add_parser(

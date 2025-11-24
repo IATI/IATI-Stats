@@ -96,10 +96,22 @@ def aggregate(args):
     else:
         base_folder = os.path.join(args.output, "aggregated-file")
     total = copy.deepcopy(blank)
-    for folder in os.listdir(base_folder):
+    folders = os.listdir(base_folder)
+    if args.reporting_orgs_metadata:
+        with open(args.reporting_orgs_metadata) as fp:
+            # Add missing reporting orgs by looking the metadata file
+            # This happens if the bulk data service has excluded all datasets for this reporting org
+            reporting_org_short_names = {ro["short_name"] for ro in json.load(fp).get("reporting_orgs")}
+            folders = sorted(list(set(folders) | reporting_org_short_names))
+    for folder in folders:
         publisher_total = copy.deepcopy(blank)
 
-        for jsonfilefolder in os.listdir(os.path.join(base_folder, folder)):
+        try:
+            jsonfilefolders = os.listdir(os.path.join(base_folder, folder))
+        except FileNotFoundError:
+            jsonfilefolders = []
+
+        for jsonfilefolder in jsonfilefolders:
             if args.verbose_loop:
                 with open(os.path.join(base_folder, folder, jsonfilefolder)) as jsonfp:
                     stats_json = json.load(jsonfp, parse_float=decimal.Decimal)

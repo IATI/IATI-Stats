@@ -54,10 +54,10 @@ def process_file(*args):
             os.makedirs(os.path.join(output_dir, "loop", folder))
         except OSError:
             pass
-        outputfile = os.path.join(output_dir, "loop", folder, xmlfile)
+        outputfile = os.path.join(output_dir, "loop", folder, xmlfile.removesuffix(".xml"))
     # If args.verbose_loop is false, set outputfile according to aggregated-file path.
     else:
-        outputfile = os.path.join(output_dir, "aggregated-file", folder, xmlfile)
+        outputfile = os.path.join(output_dir, "aggregated-file", folder, xmlfile.removesuffix(".xml"))
 
     # If default args is set to only create new files, check for existing file and return early.
     if args.new:
@@ -139,7 +139,7 @@ def process_file(*args):
     # If args.verbose_loop is not true, create aggregated-file json and return the subtotal dictionary of statsrunner.aggregate.aggregate_file().
     else:
         statsrunner.aggregate.aggregate_file(
-            stats_module, stats_json, os.path.join(output_dir, "aggregated-file", folder, xmlfile)
+            stats_module, stats_json, os.path.join(output_dir, "aggregated-file", folder, xmlfile.removesuffix(".xml"))
         )
 
 

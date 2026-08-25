@@ -1,0 +1,3 @@
+[submodule "2024-Index-indicator-definitions"]
+	path = gherkin-tests
+	url = https://github.com/pwyf/2024-Index-indicator-definitions.git

@@ -518,6 +518,8 @@ class CommonSharedElements(object):
         tag = self.element.tag
         for test in gherkin_tests:
             if tag in test.feature.tags:
+                if "skip it" in " ".join(step.text for step in test.steps):
+                    continue
                 result = test(self.element, codelists=CODELISTS[self._major_version()])
                 result = int(bool(result))
                 out[tag][f"{test.feature.name}: {test.name}"] = result

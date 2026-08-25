@@ -6,6 +6,8 @@
 #
 annotated-doc==0.0.5
     # via typer
+bdd-tester @ git+https://github.com/IATI/bdd-tester.git@support-newer-gherkin
+    # via -r requirements.txt
 black==26.5.1
     # via -r requirements_dev.in
 certifi==2026.7.22
@@ -26,6 +28,10 @@ flake8==7.3.0
     #   flake8-pyproject
 flake8-pyproject==1.2.4
     # via -r requirements_dev.in
+gherkin-official==42.0.1
+    # via
+    #   -r requirements.txt
+    #   bdd-tester
 gitdb==4.0.12
     # via
     #   -r requirements.txt
@@ -93,6 +99,7 @@ shellingham==1.5.4
 six==1.17.0
     # via
     #   -r requirements.txt
+    #   bdd-tester
     #   python-dateutil
 smmap==5.0.3
     # via
@@ -100,5 +107,9 @@ smmap==5.0.3
     #   gitdb
 typer==0.27.1
     # via coveralls
+typing-extensions==4.16.0
+    # via
+    #   -r requirements.txt
+    #   gherkin-official
 urllib3==2.7.0
     # via requests

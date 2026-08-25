@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import copy
 import csv
+import glob
 import json
 import os
 import re
@@ -15,6 +16,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 import iatirulesets
+from bdd_tester import BDDTester
 from dateutil.relativedelta import relativedelta
 from helpers.currency_conversion import get_USD_value
 from lxml import etree
@@ -37,6 +39,37 @@ from stats.common.decorators import (
     returns_numberdictdict,
     returns_numberdictdictdict,
 )
+
+GHERKIN_TESTS_PATH = "gherkin-tests"
+
+
+def load_gherkin_tests():
+    """Load the index tests."""
+    base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
+    step_definitions = os.path.join(base_path, "step_definitions.py")
+    feature_filepaths = glob.glob(os.path.join(base_path, "*", "*.feature"))
+    tester = BDDTester(step_definitions)
+    all_tests = [t for feature_filepath in feature_filepaths for t in tester.load_feature(feature_filepath).tests]
+
+    # Remove the current data condition from tests.
+    for test in all_tests:
+        test.steps = [x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")]
+
+    return all_tests
+
+
+gherkin_tests = load_gherkin_tests()
+
+
+def load_gherkin_current_data_test():
+    """Load the current data test."""
+    base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
+    step_definitions = os.path.join(base_path, "step_definitions.py")
+    tester = BDDTester(step_definitions)
+    return tester.load_feature(os.path.join(base_path, "current_data.feature")).tests[0]
+
+
+gherkin_current_data_test = load_gherkin_current_data_test()
 
 
 def add_years(d, years):
@@ -488,6 +521,30 @@ class CommonSharedElements(object):
             ruleset = json.load(open("helpers/rulesets/{0}.json".format(ruleset_name)), object_pairs_hook=OrderedDict)
             out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
         return out
+
+    @returns_numberdictdict
+    @memoize
+    def gherkin_tests(self):
+        out = defaultdict(dict)
+        tag = self.element.tag
+        for test in gherkin_tests:
+            if tag in test.feature.tags:
+                result = test(self.element, codelists=CODELISTS[self._major_version()])
+                result = int(bool(result))
+                out[tag][f"{test.feature.name}: {test.name}"] = result
+        return out
+
+    @returns_number
+    @memoize
+    def gherkin_current(self):
+        return int(bool(gherkin_current_data_test(self.element)))
+
+    @returns_numberdict
+    def gherkin_tests_current(self):
+        if self.gherkin_current():
+            return self.gherkin_tests()
+        else:
+            return {}
 
 
 class ActivityStats(CommonSharedElements):

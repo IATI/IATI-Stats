@@ -325,13 +325,11 @@ def test_humanitarian_sector_true(major_version, sector, xml):
 @pytest.mark.parametrize("sector", HUMANITARIAN_SECTOR_CODES_3_DIGITS)
 @pytest.mark.parametrize(
     "xml",
-    [
-        """
+    ["""
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
         </iati-activity>
-    """
-    ],
+    """],
 )
 def test_humanitarian_sector_true_3_digit(major_version, sector, xml):
     """
@@ -471,13 +469,11 @@ def test_humanitarian_sector_true_transaction_invalid_version(version, sector, x
 @pytest.mark.parametrize("sector", [-89, "not_a_code", 11110, 111, 12220, 122])
 @pytest.mark.parametrize(
     "xml",
-    [
-        """
+    ["""
         <iati-activity>
             <sector code="{0}" />
         </iati-activity>
-    """
-    ],
+    """],
 )
 def test_humanitarian_sector_false_bad_codes(major_version, sector, xml):
     """
@@ -497,13 +493,11 @@ def test_humanitarian_sector_false_bad_codes(major_version, sector, xml):
 @pytest.mark.parametrize("vocab", [2, 99, "DAC-3"])
 @pytest.mark.parametrize(
     "xml",
-    [
-        """
+    ["""
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
         </iati-activity>
-    """
-    ],
+    """],
 )
 def test_humanitarian_sector_false_bad_vocab(major_version, sector, vocab, xml):
     """
@@ -523,13 +517,11 @@ def test_humanitarian_sector_false_bad_vocab(major_version, sector, vocab, xml):
 @pytest.mark.parametrize("vocab", [1, 99, "DAC"])
 @pytest.mark.parametrize(
     "xml",
-    [
-        """
+    ["""
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
         </iati-activity>
-    """
-    ],
+    """],
 )
 def test_humanitarian_sector_false_bad_vocab_3_digit(major_version, sector, vocab, xml):
     """
@@ -548,13 +540,11 @@ def test_humanitarian_sector_false_bad_vocab_3_digit(major_version, sector, voca
 @pytest.mark.parametrize("vocab", ["1", "2", ""])
 @pytest.mark.parametrize(
     "xml",
-    [
-        """
+    ["""
         <iati-activity>
             <sector code="{0}" vocabulary="{1}" />
         </iati-activity>
-    """
-    ],
+    """],
 )
 def test_humanitarian_sector_false_bad_major_version_1(sector, vocab, xml, major_version="1"):
     """
@@ -613,15 +603,11 @@ def test_humanitarian_attrib_true_sector_anything(major_version, sector, hum_att
     """
     activity_stats = MockActivityStats(major_version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
             <sector code="{1}" />
         </iati-activity>
-    """.format(
-            hum_attrib_val, sector
-        )
-    )
+    """.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()["is_humanitarian"] == 1
     assert activity_stats.humanitarian()["is_humanitarian_by_attrib"] == 1
     assert activity_stats.humanitarian()["contains_humanitarian_scope"] == 0
@@ -637,15 +623,11 @@ def test_humanitarian_attrib_false_sector_false(version, sector, hum_attrib_val)
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
             <sector code="{1}" />
         </iati-activity>
-    """.format(
-            hum_attrib_val, sector
-        )
-    )
+    """.format(hum_attrib_val, sector))
     assert activity_stats.humanitarian()["is_humanitarian"] == 0
     assert activity_stats.humanitarian()["is_humanitarian_by_attrib"] == 0
     assert activity_stats.humanitarian()["contains_humanitarian_scope"] == 0
@@ -701,15 +683,11 @@ def test_humanitarian_elements_valid_version(version, hum_attrib_val):
 
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
        <iati-activity humanitarian="{0}">
           <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
 
     assert activity_stats.humanitarian()["is_humanitarian"] == 1
     assert activity_stats.humanitarian()["is_humanitarian_by_attrib"] == 1
@@ -726,15 +704,11 @@ def test_humanitarian_elements_invalid_version(version, hum_attrib_val):
 
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
        <iati-activity humanitarian="{0}">
           <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
 
     assert activity_stats.humanitarian()["is_humanitarian"] == 0
     assert activity_stats.humanitarian()["is_humanitarian_by_attrib"] == 0
@@ -750,15 +724,11 @@ def test_humanitarian_scope_invalid(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["is_humanitarian"] == 1
     assert activity_stats.humanitarian()["contains_humanitarian_scope"] == 0
 
@@ -771,15 +741,11 @@ def test_humanitarian_scope_invalid_empty_values(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope type="" code="" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["is_humanitarian"] == 1
     assert activity_stats.humanitarian()["contains_humanitarian_scope"] == 0
 
@@ -794,13 +760,11 @@ def test_humanitarian_scope_but_not_humanitarian_no_attrib(version):
 
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
        <iati-activity>
           <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
-    """
-    )
+    """)
 
     assert activity_stats.humanitarian()["is_humanitarian"] == 0
     assert activity_stats.humanitarian()["is_humanitarian_by_attrib"] == 0
@@ -819,15 +783,11 @@ def test_humanitarian_scope_but_humanitarian_is_false(version, hum_attrib_val_fa
 
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
        <iati-activity humanitarian="{0}">
           <humanitarian-scope type="xx" code="xx" />
        </iati-activity>
-    """.format(
-            hum_attrib_val_false
-        )
-    )
+    """.format(hum_attrib_val_false))
 
     assert activity_stats.humanitarian()["is_humanitarian"] == 0
     assert activity_stats.humanitarian()["is_humanitarian_by_attrib"] == 0
@@ -844,15 +804,11 @@ def test_humanitarian_scope_without_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope type="xx" code="xx" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["contains_humanitarian_scope"] == 0
     assert activity_stats.humanitarian()["contains_humanitarian_scope_without_humanitarian"] == 1
 
@@ -866,15 +822,11 @@ def test_humanitarian_scope_with_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope type="xx" code="xx" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["contains_humanitarian_scope"] == 1
     assert activity_stats.humanitarian()["contains_humanitarian_scope_without_humanitarian"] == 0
 
@@ -888,15 +840,11 @@ def test_glide_codes_without_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope vocabulary="1-2" type="xx" code="xx" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["uses_humanitarian_glide_codes"] == 0
     assert activity_stats.humanitarian()["uses_humanitarian_glide_codes_without_humanitarian"] == 1
 
@@ -910,15 +858,11 @@ def test_glide_codes_with_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope vocabulary="1-2" type="xx" code="xx" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["uses_humanitarian_glide_codes"] == 1
     assert activity_stats.humanitarian()["uses_humanitarian_glide_codes_without_humanitarian"] == 0
 
@@ -932,15 +876,11 @@ def test_hrp_codes_without_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope vocabulary="2-1" type="xx" code="xx" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["uses_humanitarian_hrp_codes"] == 0
     assert activity_stats.humanitarian()["uses_humanitarian_hrp_codes_without_humanitarian"] == 1
 
@@ -954,15 +894,11 @@ def test_hrp_codes_with_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <humanitarian-scope vocabulary="2-1" type="xx" code="xx" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["uses_humanitarian_hrp_codes"] == 1
     assert activity_stats.humanitarian()["uses_humanitarian_hrp_codes_without_humanitarian"] == 0
 
@@ -975,15 +911,11 @@ def test_humanitarian_clusters_valid(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <sector vocabulary="10" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["is_humanitarian"] == 1
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab"] == 1
 
@@ -995,13 +927,11 @@ def test_humanitarian_clusters_invalid_no_attrib(version):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity>
            <sector vocabulary="10" />
         </iati-activity>
-    """
-    )
+    """)
     assert activity_stats.humanitarian()["is_humanitarian"] == 0
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab"] == 0
 
@@ -1014,15 +944,11 @@ def test_humanitarian_clusters_invalid_humanitarian_is_false(version, hum_attrib
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <sector vocabulary="10" />
         </iati-activity>
-    """.format(
-            hum_attrib_val_false
-        )
-    )
+    """.format(hum_attrib_val_false))
     assert activity_stats.humanitarian()["is_humanitarian"] == 0
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab"] == 0
 
@@ -1035,15 +961,11 @@ def test_humanitarian_clusters_version_1(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <sector vocabulary="10" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["is_humanitarian"] == 0
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab"] == 0
 
@@ -1059,15 +981,11 @@ def test_humanitarian_clusters_invalid(version, hum_attrib_val, sector_vocabular
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <sector vocabulary="{1}" />
         </iati-activity>
-    """.format(
-            hum_attrib_val, sector_vocabulary_code
-        )
-    )
+    """.format(hum_attrib_val, sector_vocabulary_code))
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab"] == 0
 
 
@@ -1080,15 +998,11 @@ def test_humanitarian_clusters_without_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <sector vocabulary="10" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab"] == 0
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab_without_humanitarian"] == 1
 
@@ -1102,14 +1016,10 @@ def test_humanitarian_clusters_with_humanitarian(version, hum_attrib_val):
     """
     activity_stats = MockActivityStats(version)
 
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity humanitarian="{0}">
            <sector vocabulary="10" />
         </iati-activity>
-    """.format(
-            hum_attrib_val
-        )
-    )
+    """.format(hum_attrib_val))
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab"] == 1
     assert activity_stats.humanitarian()["uses_humanitarian_clusters_vocab_without_humanitarian"] == 0

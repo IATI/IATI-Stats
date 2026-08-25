@@ -5,21 +5,17 @@ from stats.analytics import ActivityStats, PublisherStats
 
 def test_hierarchies():
     activity_stats = ActivityStats()
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity>
         </iati-activity>
-    """
-    )
+    """)
     assert activity_stats.hierarchies() == {None: 1}
 
     activity_stats = ActivityStats()
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity hierarchy="3">
         </iati-activity>
-    """
-    )
+    """)
     assert activity_stats.hierarchies() == {"3": 1}
 
 
@@ -27,21 +23,17 @@ def test_by_hierarchy():
     # Unlike the hierarchies dict, by_hierarchy should treat activities without
     # a hierarchy attribute as hierarchy 1
     activity_stats = ActivityStats()
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity>
         </iati-activity>
-    """
-    )
+    """)
     assert list(activity_stats.by_hierarchy().keys()) == ["1"]
 
     activity_stats = ActivityStats()
-    activity_stats.element = etree.fromstring(
-        """
+    activity_stats.element = etree.fromstring("""
         <iati-activity hierarchy="3">
         </iati-activity>
-    """
-    )
+    """)
     assert list(activity_stats.by_hierarchy().keys()) == ["3"]
 
 

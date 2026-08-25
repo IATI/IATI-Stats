@@ -163,21 +163,10 @@ codelist_mappings = {major_version: get_codelist_mapping(major_version) for majo
 
 CODELISTS = {"1": {}, "2": {}}
 for major_version in ["1", "2"]:
-    for codelist_name in [
-        "Version",
-        "ActivityStatus",
-        "Currency",
-        "Sector",
-        "SectorCategory",
-        "DocumentCategory",
-        "AidType",
-        "BudgetNotProvided",
-        "OrganisationRegistrationAgency",
-        "CRSChannelCode",
-    ]:
+    for codelist_file in os.listdir(f"helpers/codelists/{major_version}"):
+        codelist_name = codelist_file.removesuffix(".json")
         CODELISTS[major_version][codelist_name] = set(
-            c["code"]
-            for c in json.load(open("helpers/codelists/{}/{}.json".format(major_version, codelist_name)))["data"]
+            c["code"] for c in json.load(open(f"helpers/codelists/{major_version}/{codelist_file}"))["data"]
         )
 
 

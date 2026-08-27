@@ -14,16 +14,12 @@ def test_version_detection_valid(version):
 
     activity = ActivityStats()
 
-    tree = etree.fromstring(
-        """
+    tree = etree.fromstring("""
         <iati-activities version="{0}">
            <iati-activity>
            </iati-activity>
         </iati-activities>
-    """.format(
-            version
-        )
-    )
+    """.format(version))
 
     activity.element = tree.getchildren()[0]
 
@@ -40,16 +36,12 @@ def test_version_detection_invalid(version):
 
     activity = ActivityStats()
 
-    tree = etree.fromstring(
-        """
+    tree = etree.fromstring("""
         <iati-activities version="{0}">
            <iati-activity>
            </iati-activity>
         </iati-activities>
-    """.format(
-            version
-        )
-    )
+    """.format(version))
 
     activity.element = tree.getchildren()[0]
 
@@ -63,12 +55,10 @@ def test_version_detection_no_parent():
 
     activity = ActivityStats()
 
-    activity.element = etree.fromstring(
-        """
+    activity.element = etree.fromstring("""
         <iati-activity>
         </iati-activity>
-    """
-    )
+    """)
 
     assert activity._version() == "1.01"
 
@@ -80,14 +70,12 @@ def test_version_detection_no_version_attrib():
 
     activity = ActivityStats()
 
-    tree = etree.fromstring(
-        """
+    tree = etree.fromstring("""
         <iati-activities>
            <iati-activity>
            </iati-activity>
         </iati-activities>
-    """
-    )
+    """)
 
     activity.element = tree.getchildren()[0]
 

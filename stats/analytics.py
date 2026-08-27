@@ -587,6 +587,9 @@ class ActivityStats(CommonSharedElements):
             "comprehensiveness_with_validation",
             "comprehensiveness_denominators",
             "comprehensiveness_denominator_default",
+            "gherkin_tests",
+            "gherkin_current",
+            "gherkin_tests_current",
         ]:
             out[stat] = copy.deepcopy(getattr(self, stat)())
         if self.blank:

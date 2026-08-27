@@ -41,4 +41,9 @@ def test_comprehensiveness_is_current(major_version):
     assert gherkin_dict["iati-activity"]["Title: Title is present"] == 1
     assert gherkin_dict["iati-activity"]["Title: Title has at least 10 characters"] == 1
 
+    assert (
+        activity_stats.by_hierarchy()["1"]["gherkin_tests"]["iati-activity"]["Title: Title has at least 10 characters"]
+        == 1
+    )
+
     assert "Traceability: Traceability" not in gherkin_dict["iati-activity"]

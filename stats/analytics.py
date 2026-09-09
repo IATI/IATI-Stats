@@ -14,6 +14,7 @@ import re
 from collections import Counter, OrderedDict, defaultdict
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from statistics import mean
 
 import iatirulesets
 from bdd_tester import BDDTester
@@ -2503,6 +2504,38 @@ class PublisherStats(object):
     def iati_identifiers_by_publisher_id(self):
         # See comment on by_publisher_id above
         return {self.folder: self.aggregated["iati_identifiers"]}
+
+    @no_aggregation
+    def assessment(self):
+        out = {"dimensions": {"comprehensiveness": {"components": {}}}}
+
+        components = {}
+        base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
+        for dirname in os.listdir(base_path):
+            if not os.path.isdir(os.path.join(base_path, dirname)):
+                continue
+            substrs = dirname.split("_")
+            if len(substrs) == 2:
+                component_number, compontent_string = substrs
+                components[component_number] = compontent_string
+
+        feature_ratios_by_compontent = defaultdict(list)
+        for gherkin_key, tests_dict in self.aggregated["gherkin_tests_current"].items():
+            if gherkin_key == "current_data":
+                continue
+            test_ratios = []
+            for test_results in tests_dict.values():
+                test_ratios.append(
+                    (test_results["None"] + test_results["True"])
+                    / (test_results["None"] + test_results["True"] + test_results["False"])
+                )
+            feature_ratios_by_compontent[gherkin_key.split(".")[0]].append(mean(test_ratios))
+
+        for component_number, feature_ratios in feature_ratios_by_compontent.items():
+            component_string = components[component_number]
+            out["dimensions"]["comprehensiveness"]["components"][component_string] = mean(feature_ratios)
+
+        return out
 
 
 class OrganisationFileStats(GenericFileStats):

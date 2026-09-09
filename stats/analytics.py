@@ -57,7 +57,8 @@ def load_gherkin_tests():
             test.steps = [
                 x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")
             ]
-            tests_by_feature[feature_filepath].append(test)
+            feature_key = os.path.basename(feature_filepath).removesuffix(".feature")
+            tests_by_feature[feature_key].append(test)
 
     return tests_by_feature
 
@@ -515,21 +516,23 @@ class CommonSharedElements(object):
             out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
         return out
 
-    @returns_numberdictdictdict
     @memoize
     def gherkin_tests(self):
-        out = defaultdict(lambda: defaultdict(dict))
-        tag = self.element.tag
-        for feature_filepath, tests in gherkin_tests.items():
-            for test in tests:
-                if tag in test.feature.tags:
-                    if "skip it" in " ".join(step.text for step in test.steps):
-                        continue
-                    result = test(self.element, codelists=CODELISTS[self._major_version()])
-                    result = int(bool(result))
-                    feature_key = os.path.basename(feature_filepath).removesuffix(".feature")
-                    out[tag][feature_key][test.name] = result
-        return out
+        result_dict_template = {"True": 0, "False": 0, "None": 0}
+        out_template = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: copy.copy(result_dict_template))))
+        if self.blank:
+            return out_template
+        else:
+            out = out_template
+            tag = self.element.tag
+            for feature_key, tests in gherkin_tests.items():
+                for test in tests:
+                    if tag in test.feature.tags:
+                        if "skip it" in " ".join(step.text for step in test.steps):
+                            continue
+                        result = test(self.element, codelists=CODELISTS[self._major_version()])
+                        out[tag][feature_key][test.name][str(result)] = 1
+            return out
 
     @returns_number
     @memoize

@@ -519,19 +519,18 @@ class CommonSharedElements(object):
     @memoize
     def gherkin_tests(self):
         result_dict_template = {"True": 0, "False": 0, "None": 0}
-        out_template = defaultdict(lambda: defaultdict(lambda: defaultdict(lambda: copy.copy(result_dict_template))))
+        out_template = defaultdict(lambda: defaultdict(lambda: copy.copy(result_dict_template)))
         if self.blank:
             return out_template
         else:
             out = out_template
-            tag = self.element.tag
             for feature_key, tests in gherkin_tests.items():
                 for test in tests:
-                    if tag in test.feature.tags:
+                    if self.element.tag in test.feature.tags:
                         if "skip it" in " ".join(step.text for step in test.steps):
                             continue
                         result = test(self.element, codelists=CODELISTS[self._major_version()])
-                        out[tag][feature_key][test.name][str(result)] = 1
+                        out[feature_key][test.name][str(result)] = 1
             return out
 
     @returns_number
@@ -541,10 +540,13 @@ class CommonSharedElements(object):
 
     @returns_numberdict
     def gherkin_tests_current(self):
-        if self.gherkin_current():
-            return self.gherkin_tests()
+        if self.element.tag == "iati-activtiy":
+            if self.gherkin_current():
+                return self.gherkin_tests()
+            else:
+                return {}
         else:
-            return {}
+            return self.gherkin_tests()
 
 
 class ActivityStats(CommonSharedElements):

@@ -163,3 +163,49 @@ def aggregate(args):
                 value = aggregate[publisher]
                 with open(filename, "w") as fp:
                     json.dump(value, fp, indent=2, default=decimal_default)
+
+
+GITOUT_DIR = os.environ.get("GITOUT_DIR") or "gitout"
+
+
+def aggregate_publisher_with_history(args):
+    import importlib
+
+    stats_module = importlib.import_module(args.stats_module)
+    blank = make_blank(stats_module)
+
+    base_folder = os.path.join(args.output, "aggregated-publisher")
+    folders = os.listdir(base_folder)
+    for folder in folders:
+        publisher_total = copy.deepcopy(blank)
+        for jsonfile in os.listdir(os.path.join(base_folder, folder)):
+            with open(os.path.join(base_folder, folder, jsonfile)) as jsonfp:
+                stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
+                publisher_total[jsonfile[:-5]] = stats_json
+
+        publisher = folder
+        gitout_publisher_total = {}
+        gitout_publisher_folder = os.path.join(GITOUT_DIR, "gitaggregate-publisher-dated", publisher)
+        for jsonfile in os.listdir(gitout_publisher_folder):
+            with open(os.path.join(gitout_publisher_folder, jsonfile)) as jsonfp:
+                stats_json = json.load(jsonfp, parse_float=decimal.Decimal)
+                gitout_publisher_total[jsonfile[:-5]] = stats_json
+
+        publisher_stats = stats_module.PublisherWithHistoryStats()
+        publisher_stats.aggregated = publisher_total
+        publisher_stats.gitaggregated = gitout_publisher_total
+        publisher_stats.folder = folder
+        publisher_stats.today = args.today
+        publisher_over_time_total = {}
+        for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
+            if not statsrunner.shared.use_stat(publisher_stats, name):
+                continue
+            publisher_over_time_total[name] = function()
+
+        for aggregate_name, aggregate in publisher_over_time_total.items():
+            try:
+                os.mkdir(os.path.join(args.output, "aggregated-publisher", folder))
+            except OSError:
+                pass
+            with open(os.path.join(args.output, "aggregated-publisher", folder, aggregate_name + ".json"), "w") as fp:
+                json.dump(common.sort_keys(aggregate), fp, indent=2, default=decimal_default)

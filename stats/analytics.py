@@ -523,13 +523,17 @@ class CommonSharedElements(object):
         if self.blank:
             return out_template
         else:
+            if self.element.tag == "iati-activity":
+                activity_value = self._sum_commitments_and_disbursements()
+            else:
+                activity_value = None
             out = out_template
             for feature_key, tests in gherkin_tests.items():
                 for test in tests:
                     if self.element.tag in test.feature.tags:
                         if "skip it" in " ".join(step.text for step in test.steps):
                             continue
-                        result = test(self.element, codelists=CODELISTS[self._major_version()])
+                        result = test(self.element, codelists=CODELISTS[self._major_version()],  activity_value=activity_value)
                         out[feature_key][test.name][str(result)] = 1
             return out
 
@@ -1925,14 +1929,18 @@ class ActivityStats(CommonSharedElements):
     def _sum_transactions(self, transaction_type):
         return sum(self.sum_transactions_by_type_by_year_usd().get(transaction_type, {}).get("USD", {}).values())
 
-    @returns_numberdict
-    def sum_commitments_and_disbursements_by_activity_id_usd(self):
-        sum_commitments_and_disbursements_usd = (
+    @memoize
+    def _sum_commitments_and_disbursements(self):
+        return (
             self._sum_transactions("C")
             + self._sum_transactions("2")
             + self._sum_transactions("D")
             + self._sum_transactions("3")
         )
+
+    @returns_numberdict
+    def sum_commitments_and_disbursements_by_activity_id_usd(self):
+        sum_commitments_and_disbursements_usd = self._sum_commitments_and_disbursements()
         if sum_commitments_and_disbursements_usd:
             return {self.iati_identifier(): sum_commitments_and_disbursements_usd}
         else:

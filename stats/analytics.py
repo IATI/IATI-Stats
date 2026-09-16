@@ -2593,3 +2593,10 @@ class AllDataStats(object):
             for iati_identifier, count in iati_identifiers_counts.items():
                 out[publisher_id] += count
         return out
+
+
+class PublisherWithHistoryStats(object):
+    blank = False
+
+    def most_recent_transaction_date_history(self):
+        return self.gitaggregated["most_recent_transaction_date"]

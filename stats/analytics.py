@@ -2599,10 +2599,17 @@ class PublisherWithHistoryStats(object):
     blank = False
     now = datetime.now()  # TODO Add option to set this to date of git commit
 
-    def most_recent_transaction_date_history(self):
-        return self.gitaggregated["most_recent_transaction_date"]
-
     def timeliness(self):
+        return self._timeliness(include_future=True)
+
+    def timeliness_old(self):
+        return self._timeliness(include_future=False)
+
+    def _timeliness(self, include_future=True):
+        if include_future:
+            transaction_date_key = "latest_transaction_date"
+        else:
+            transaction_date_key = "most_recent_transaction_date"
         agg = self.gitaggregated
         today = self.now.date()
         publisher = self.folder
@@ -2643,7 +2650,7 @@ class PublisherWithHistoryStats(object):
         this_year = self.now.year
 
         # Skip to the next publisher if there is no data for 'most_recent_transaction_date' for this publisher
-        if "most_recent_transaction_date" not in agg:
+        if transaction_date_key not in agg:
             return {}
 
         # Skip if this publisher appears in the list of publishers who have since changed their Registry ID
@@ -2654,7 +2661,7 @@ class PublisherWithHistoryStats(object):
         previous_transaction_date = date(1, 1, 1)
 
         # Find the most recent transaction date and parse into a datetime object
-        for gitdate, transaction_date_str in sorted(agg["most_recent_transaction_date"].items()):
+        for gitdate, transaction_date_str in sorted(agg[transaction_date_key].items()):
             transaction_date = parse_iso_date(transaction_date_str)
 
             # If transaction date has increased
@@ -2663,7 +2670,7 @@ class PublisherWithHistoryStats(object):
                 updates_per_month[gitdate[:7]] += 1
 
         # Find the first date that this publisher made data available, and parse into a datetime object
-        first_published_string = sorted(agg["most_recent_transaction_date"])[0]
+        first_published_string = sorted(agg[transaction_date_key])[0]
         first_published = parse_iso_date(first_published_string)
 
         # Implement the assessment logic on https://analytics.codeforiati.org/timeliness.html#h_assesment

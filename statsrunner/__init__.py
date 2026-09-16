@@ -45,6 +45,12 @@ def calculate_stats():
     parser_aggregate.add_argument("--reporting-orgs-metadata", help="reporting orgs metadata", default=None)
     parser_aggregate.set_defaults(func=statsrunner.aggregate.aggregate)
 
+    parser_aggregate_with_history = subparsers.add_parser("aggregate-with-history", help="TODO")
+    parser_aggregate_with_history.add_argument(
+        "--reporting-orgs-metadata", help="reporting orgs metadata", default=None
+    )
+    parser_aggregate_with_history.set_defaults(func=statsrunner.aggregate.aggregate_publisher_with_history)
+
     parser_invert = subparsers.add_parser(
         "invert", help="'invert' the aggregated JSON. ie. produce JSON that lists publishers and files with each value"
     )

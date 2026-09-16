@@ -34,6 +34,9 @@ whitelisted_stats_files = [
 # Set bool if the 'dated' argument has been used in calling this script
 dated = len(sys.argv) > 1 and sys.argv[1] == "dated"
 
+if len(sys.argv) > 2:
+    whitelisted_stats_files = sys.argv[2].split(",")
+
 # Load the reference of commits to dates
 if dated:
     gitdates = json.load(open("gitdate.json"))

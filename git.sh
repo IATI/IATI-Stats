@@ -127,6 +127,10 @@ for commit in $commits; do
         python statsrunner/gitaggregate.py dated
         echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Running gitaggregate-publisher.py dated for commit: $commit"
         python statsrunner/gitaggregate-publisher.py dated
+        echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Calculating publisher stats that rely on history for $commit"
+        mv $GITOUT_DIR/commits/$commit out
+        python calculate_stats.py aggregate-with-history
+        mv out $GITOUT_DIR/commits/$commit
         echo "$commit" >> $COMMIT_SKIP_FILE
         # If the commit is the latest commit then, move the resulting stats to the 'current' directory
         if [ ! $commit = $current_hash ]; then

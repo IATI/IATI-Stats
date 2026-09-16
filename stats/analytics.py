@@ -533,7 +533,9 @@ class CommonSharedElements(object):
                     if self.element.tag in test.feature.tags:
                         if "skip it" in " ".join(step.text for step in test.steps):
                             continue
-                        result = test(self.element, codelists=CODELISTS[self._major_version()],  activity_value=activity_value)
+                        result = test(
+                            self.element, codelists=CODELISTS[self._major_version()], activity_value=activity_value
+                        )
                         out[feature_key][test.name][str(result)] = 1
             return out
 
@@ -2591,3 +2593,10 @@ class AllDataStats(object):
             for iati_identifier, count in iati_identifiers_counts.items():
                 out[publisher_id] += count
         return out
+
+
+class PublisherWithHistoryStats(object):
+    blank = False
+
+    def most_recent_transaction_date_history(self):
+        return self.gitaggregated["most_recent_transaction_date"]

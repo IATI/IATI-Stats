@@ -11,3 +11,4 @@ echo "LOG: `date '+%Y-%m-%d %H:%M:%S'` - Update schemas"
 
 wget -q https://raw.githubusercontent.com/IATI/IATI-Dashboard/live/registry_id_relationships.csv -O registry_id_relationships.csv
 wget -q https://codeforiati.org/imf-exchangerates/imf_exchangerates_A_ENDA_USD.csv -O currency_conversion/exchange_rates.csv
+wget -q https://iati.github.io/dashboard-coverage/data/coverage_by_slug.json -O coverage_by_slug.json

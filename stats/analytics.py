@@ -247,6 +247,10 @@ with open("helpers/transparency_indicator/reference_spend_data.csv", "r") as csv
         }
 
 
+# Import coverage data
+coverage_by_slug = json.load(open("helpers/coverage_by_slug.json"))
+
+
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """
     Converts an element and it's children to a dictionary containing the
@@ -2514,6 +2518,9 @@ class PublisherStats(object):
         # See comment on by_publisher_id above
         return {self.folder: self.aggregated["iati_identifiers"]}
 
+    @no_aggregation
+    def coverage_dict_from_external_repo(self):
+        return coverage_by_slug["publishers"].get(self.folder)
 
 class OrganisationFileStats(GenericFileStats):
     """Stats calculated for an IATI Organisation XML file."""

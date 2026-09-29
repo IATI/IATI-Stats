@@ -2108,6 +2108,14 @@ class ActivityStats(CommonSharedElements):
             out += 1
         return out
 
+    @returns_numberdict
+    def comprehensiveness_new_countries(self):
+        return {code: 1 for code in self.element.xpath("recipient-country/@code")}
+
+    @returns_numberdict
+    def comprehensiveness_new_countries_with_strategy_or_mou(self):
+        return {code: 1 for code in self.element.xpath('document-link[category/@code="A09"]/recipient-country/@code')}
+
 
 publisher_re = re.compile(r"(.*)\-[^\-]")
 
@@ -2591,6 +2599,15 @@ class OrganisationStats(CommonSharedElements):
     @returns_numberdict
     def elements_total(self):
         return element_to_count_dict(self.element, "iati-organisation", defaultdict(int), True)
+
+    @returns_numberdict
+    def comprehensiveness_new_countries_with_strategy_or_mou(self):
+        return {
+            code: 1
+            for code in self.element.xpath(
+                'document-link[category/@code="B03" or category/@code="B13"]/recipient-country/@code'
+            )
+        }
 
 
 class AllDataStats(object):

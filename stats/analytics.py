@@ -251,6 +251,9 @@ with open("helpers/transparency_indicator/reference_spend_data.csv", "r") as csv
 # Import coverage data
 coverage_by_slug = json.load(open("helpers/coverage_by_slug.json"))
 
+# Import validator summary data
+validator_summary_precalc = json.load(open("helpers/validator_summary_precalc.json"))
+
 
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """
@@ -2554,6 +2557,10 @@ class PublisherStats(object):
             out[component_string] = mean(feature_ratios)
 
         return out
+
+    @returns_numberdict
+    def validation_summary_precalc(self):
+        return validator_summary_precalc.get(self.folder, {})
 
 
 class OrganisationFileStats(GenericFileStats):

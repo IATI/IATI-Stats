@@ -21,14 +21,7 @@ jobs:
     - name: Lint - isort
       run: isort . --check-only
     - name: Install some extras
-      run: |
-        cd helpers
-        ./get_codelist_mapping.sh
-        ./get_codelists.sh
-        echo '{}' > ckan.json
-        touch registry_id_relationships.csv
-        wget -q https://codeforiati.org/imf-exchangerates/imf_exchangerates_A_ENDA_USD.csv -O currency_conversion/exchange_rates.csv
-        cd ..
+      run: ./helpers.sh
     - name: Run tests
       run: pytest --cov .
     # - name: Coveralls

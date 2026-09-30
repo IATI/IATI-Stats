@@ -17,28 +17,11 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Install some extras
-      run: |
-        cd helpers
-        git clone --branch version-2.03 https://github.com/IATI/IATI-Rulesets.git
-        ln -s IATI-Rulesets/rulesets .
-        ./get_codelist_mapping.sh
-        ./get_codelists.sh
-        ./get_schemas.sh
-        wget -q "https://raw.githubusercontent.com/IATI/IATI-Dashboard/live/registry_id_relationships.csv"
-        wget -q https://codeforiati.org/imf-exchangerates/imf_exchangerates_A_ENDA_USD.csv -O currency_conversion/exchange_rates.csv
-        cd ..
+      run: ./helpers.sh
     - name: Symlink fixtures for IATI data
       run: ln -s tests_end_to_end/fixtures/{data,metadata,metadata.json} .
     - name: Create output dir
       run: mkdir out
-    - name: Generate ckan.json
-      run: |
-        echo '{}' > helpers/ckan.json
-#       python helpers/ckan.py
-#       cp ckan.json out
-#       mv ckan.json helpers
-#       mv metadata.json out
-#       mv licenses.json out
     - name: Run loop
       run: python calculate_stats.py --output out/current --multi 2 loop
     - name: Run aggregate

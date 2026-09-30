@@ -19,14 +19,23 @@ def test_comprehensiveness_is_current(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring("""
         <iati-activity>
+        </iati-activity>
+    """)
+    gherkin_dict = activity_stats.gherkin_tests()
+    assert gherkin_dict["2.4_title"]["Title is present"] == {"True": 0, "False": 1, "None": 0}
+    assert gherkin_dict["2.4_title"]["Title has at least 10 characters"] == {"True": 0, "False": 1, "None": 0}
+
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring("""
+        <iati-activity>
             <title>
                 <narrative>Title</narrative>
             </title>
         </iati-activity>
     """)
     gherkin_dict = activity_stats.gherkin_tests()
-    assert gherkin_dict["iati-activity"]["Title: Title is present"] == 1
-    assert gherkin_dict["iati-activity"]["Title: Title has at least 10 characters"] == 0
+    assert gherkin_dict["2.4_title"]["Title is present"] == {"True": 1, "False": 0, "None": 0}
+    assert gherkin_dict["2.4_title"]["Title has at least 10 characters"] == {"True": 0, "False": 1, "None": 0}
 
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring("""
@@ -36,14 +45,14 @@ def test_comprehensiveness_is_current(major_version):
             </title>
         </iati-activity>
     """)
-
     gherkin_dict = activity_stats.gherkin_tests()
-    assert gherkin_dict["iati-activity"]["Title: Title is present"] == 1
-    assert gherkin_dict["iati-activity"]["Title: Title has at least 10 characters"] == 1
+    assert gherkin_dict["2.4_title"]["Title is present"] == {"True": 1, "False": 0, "None": 0}
+    assert gherkin_dict["2.4_title"]["Title has at least 10 characters"] == {"True": 1, "False": 0, "None": 0}
 
-    assert (
-        activity_stats.by_hierarchy()["1"]["gherkin_tests"]["iati-activity"]["Title: Title has at least 10 characters"]
-        == 1
-    )
+    assert activity_stats.by_hierarchy()["1"]["gherkin_tests"]["2.4_title"]["Title has at least 10 characters"] == {
+        "True": 1,
+        "False": 0,
+        "None": 0,
+    }
 
-    assert "Traceability: Traceability" not in gherkin_dict["iati-activity"]
+    assert "3.3_traceability" not in gherkin_dict

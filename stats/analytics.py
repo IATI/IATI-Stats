@@ -47,15 +47,20 @@ def load_gherkin_tests():
     """Load the index tests."""
     base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
     step_definitions = os.path.join(base_path, "step_definitions.py")
-    feature_filepaths = glob.glob(os.path.join(base_path, "*", "*.feature"))
+    feature_filepaths = sorted(glob.glob(os.path.join(base_path, "**", "*.feature"), recursive=True))
     tester = BDDTester(step_definitions)
-    all_tests = [t for feature_filepath in feature_filepaths for t in tester.load_feature(feature_filepath).tests]
 
-    # Remove the current data condition from tests.
-    for test in all_tests:
-        test.steps = [x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")]
+    tests_by_feature = defaultdict(list)
+    for feature_filepath in feature_filepaths:
+        for test in tester.load_feature(feature_filepath).tests:
+            # Remove the current data condition from tests.
+            test.steps = [
+                x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")
+            ]
+            feature_key = os.path.basename(feature_filepath).removesuffix(".feature")
+            tests_by_feature[feature_key].append(test)
 
-    return all_tests
+    return tests_by_feature
 
 
 gherkin_tests = load_gherkin_tests()
@@ -511,19 +516,22 @@ class CommonSharedElements(object):
             out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
         return out
 
-    @returns_numberdictdict
     @memoize
     def gherkin_tests(self):
-        out = defaultdict(dict)
-        tag = self.element.tag
-        for test in gherkin_tests:
-            if tag in test.feature.tags:
-                if "skip it" in " ".join(step.text for step in test.steps):
-                    continue
-                result = test(self.element, codelists=CODELISTS[self._major_version()])
-                result = int(bool(result))
-                out[tag][f"{test.feature.name}: {test.name}"] = result
-        return out
+        result_dict_template = {"True": 0, "False": 0, "None": 0}
+        out_template = defaultdict(lambda: defaultdict(lambda: copy.copy(result_dict_template)))
+        if self.blank:
+            return out_template
+        else:
+            out = out_template
+            for feature_key, tests in gherkin_tests.items():
+                for test in tests:
+                    if self.element.tag in test.feature.tags:
+                        if "skip it" in " ".join(step.text for step in test.steps):
+                            continue
+                        result = test(self.element, codelists=CODELISTS[self._major_version()])
+                        out[feature_key][test.name][str(result)] = 1
+            return out
 
     @returns_number
     @memoize
@@ -532,10 +540,13 @@ class CommonSharedElements(object):
 
     @returns_numberdict
     def gherkin_tests_current(self):
-        if self.gherkin_current():
-            return self.gherkin_tests()
+        if self.element.tag == "iati-activtiy":
+            if self.gherkin_current():
+                return self.gherkin_tests()
+            else:
+                return {}
         else:
-            return {}
+            return self.gherkin_tests()
 
 
 class ActivityStats(CommonSharedElements):

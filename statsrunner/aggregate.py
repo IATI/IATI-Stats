@@ -4,6 +4,8 @@ import decimal
 import inspect
 import json
 import os
+import sys
+import traceback
 from collections import defaultdict
 
 import statsrunner
@@ -134,7 +136,12 @@ def aggregate(args):
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
             if not statsrunner.shared.use_stat(publisher_stats, name):
                 continue
-            publisher_total[name] = function()
+            try:
+                publisher_total[name] = function()
+            except KeyboardInterrupt:
+                exit()
+            except Exception:
+                traceback.print_exc(file=sys.stdout)
 
         dict_sum_inplace(total, publisher_total)
         for aggregate_name, aggregate in publisher_total.items():
@@ -200,7 +207,12 @@ def aggregate_publisher_with_history(args):
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
             if not statsrunner.shared.use_stat(publisher_stats, name):
                 continue
-            publisher_over_time_total[name] = function()
+            try:
+                publisher_over_time_total[name] = function()
+            except KeyboardInterrupt:
+                exit()
+            except Exception:
+                traceback.print_exc(file=sys.stdout)
 
         for aggregate_name, aggregate in publisher_over_time_total.items():
             try:

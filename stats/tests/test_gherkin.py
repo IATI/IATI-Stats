@@ -15,7 +15,7 @@ class MockActivityStats(ActivityStats):
 
 
 @pytest.mark.parametrize("major_version", ["1", "2"])
-def test_comprehensiveness_is_current(major_version):
+def test_gherkin_titles(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring("""
         <iati-activity>
@@ -49,10 +49,60 @@ def test_comprehensiveness_is_current(major_version):
     assert gherkin_dict["2.4_title"]["Title is present"] == {"True": 1, "False": 0, "None": 0}
     assert gherkin_dict["2.4_title"]["Title has at least 10 characters"] == {"True": 1, "False": 0, "None": 0}
 
+    # The same dict should also appear in by_hierarchy
     assert activity_stats.by_hierarchy()["1"]["gherkin_tests"]["2.4_title"]["Title has at least 10 characters"] == {
         "True": 1,
         "False": 0,
         "None": 0,
     }
+    assert activity_stats.by_hierarchy()["1"]["gherkin_tests"]["2.4_title"] == gherkin_dict["2.4_title"]
 
+
+@pytest.mark.parametrize("major_version", ["1", "2"])
+def test_gherkin_skip(major_version):
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring("""
+        <iati-activity>
+        </iati-activity>
+    """)
+    gherkin_dict = activity_stats.gherkin_tests()
     assert "3.3_traceability" not in gherkin_dict
+
+
+def test_gherkin_threshold():
+    activity_stats = MockActivityStats(major_version="2")
+    activity_stats.element = etree.fromstring("""
+        <iati-activity>
+        </iati-activity>
+    """)
+    gherkin_dict = activity_stats.gherkin_tests()
+    assert gherkin_dict["4.8.2_conditions"]["Conditions document"] == {"True": 0, "False": 0, "None": 1}
+
+    activity_stats = MockActivityStats(major_version="2")
+    activity_stats.element = etree.fromstring("""
+        <iati-activity>
+            <activity-status code="2" />
+            <default-aid-type code="A01" />
+            <transaction>
+                <transaction-type code="3" />
+                <value currency="EUR" value-date="2012-01-01">1000000</value>
+            </transaction>
+        </iati-activity>
+    """)
+    gherkin_dict = activity_stats.gherkin_tests()
+    assert gherkin_dict["4.8.2_conditions"]["Conditions document"] == {"True": 0, "False": 1, "None": 0}
+
+    activity_stats = MockActivityStats(major_version="2")
+    activity_stats.element = etree.fromstring("""
+        <iati-activity>
+            <activity-status code="2" />
+            <default-aid-type code="A01" />
+            <transaction>
+                <transaction-type code="3" />
+                <value currency="EUR" value-date="2012-01-01">1000000</value>
+            </transaction>
+            <document-link><category code="A04" /></document-link>
+        </iati-activity>
+    """)
+    gherkin_dict = activity_stats.gherkin_tests()
+    assert gherkin_dict["4.8.2_conditions"]["Conditions document"] == {"True": 1, "False": 0, "None": 0}

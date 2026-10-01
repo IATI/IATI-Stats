@@ -2535,7 +2535,7 @@ class PublisherStats(object):
         return coverage_by_slug["publishers"].get(self.folder)
 
     @no_aggregation
-    def comprehensiveness_new_dict(self):
+    def comprehensiveness_new_by_component(self):
         out = {}
 
         components = {}
@@ -2672,13 +2672,14 @@ class PublisherWithHistoryStats(object):
     blank = False
     now = datetime.now()  # TODO Add option to set this to date of git commit
 
-    def timeliness(self):
-        return self._timeliness(include_future=True)
+    @memoize
+    def frequency_new(self):
+        return self._frequency(include_future=True)
 
-    def timeliness_old(self):
-        return self._timeliness(include_future=False)
+    def frequency_old(self):
+        return self._frequency(include_future=False)
 
-    def _timeliness(self, include_future=True):
+    def _frequency(self, include_future=True):
         if include_future:
             transaction_date_key = "latest_transaction_date"
         else:
@@ -2808,4 +2809,127 @@ class PublisherWithHistoryStats(object):
             "this_month_year": this_month,
             "this_month": this_month_number,
             "this_year": this_year,
+        }
+
+    categories_by_number = {0: "needs_improvement", 1: "good", 2: "very_good", 3: "excellent"}
+
+    def _assessment_new_by_component(self, thresholds_by_component, scores_by_component):
+        """
+
+        thresholds_by_component should be a dictionary where the keys are component names, and the values are lists of
+        where the thresholds lie, from smallest to highest.
+
+        The category_number is calculated as the index of the largest threshold the value is smaller than.
+        If a value is larger than all thresholds, the score is the length of the list.
+
+        e.g. for thresholds [2, 4, 6], 5 would score 3, 7 would score 4.
+
+        The overall category number is the smallest of all the compontents, ie. the category is the worst performing of
+        the components.
+
+        """
+        out = {"components": {}}
+        category_numbers = []
+        for component, thresholds in thresholds_by_component.items():
+            score = scores_by_component.get(component)
+            for category_number, threshold in enumerate(thresholds):
+                if not score or score < threshold:
+                    break
+            else:
+                category_number += 1
+            category_numbers.append(category_number)
+            out["components"][component] = {
+                "category_number": category_number,
+                "category": self.categories_by_number[category_number],
+                "value": score,
+            }
+        dimension_category_number = min(category_numbers)
+        out["category_number"] = dimension_category_number
+        out["category"] = self.categories_by_number[dimension_category_number]
+        return out
+
+    def _assessment_new_comprehensiveness(self):
+        thresholds_by_component = {
+            "basic": [0.9, 0.95, 0.99],
+            "organisation": [0.4, 0.6, 0.75],
+            "financials": [0.6, 0.7, 0.9],
+            "advanced": [0.0, 0.6, 0.8],
+        }
+        return self._assessment_new_by_component(
+            thresholds_by_component, self.aggregated["comprehensiveness_new_by_component"]
+        )
+
+    def _assessment_new_coverage(self):
+        thresholds_by_component = {
+            "coverage": [0.4, 0.6, 0.8],
+            "disaggregation": [2.0, 3.0, 3.0],
+        }
+        scores_by_component = {
+            # Can't use get default here, because sometimes the key exists, but the value is actually None
+            "coverage": ((self.aggregated.get("coverage_dict_from_external_repo") or {}).get("coverage") or {}).get(
+                "coverage"
+            ),
+            "disaggregation": (
+                (self.aggregated.get("coverage_dict_from_external_repo") or {}).get("disaggregation") or {}
+            ).get("quarters_per_year"),
+        }
+        if scores_by_component["coverage"] is None or scores_by_component["disaggregation"] is None:
+            return None
+        return self._assessment_new_by_component(thresholds_by_component, scores_by_component)
+
+    def _assessment_new_timeliness(self):
+        def frequency_score(frequency):
+            if frequency is None:
+                frequency = "Less than Annual"
+            return list(reversed(["Monthly", "Quarterly", "Six-Monthly", "Annual", "Less than Annual"])).index(
+                frequency
+            )
+
+        def timelag_score(timelag):
+            if timelag is None:
+                timelag = "More than one year"
+            return list(reversed(["One month", "A quarter", "Six months", "One year", "More than one year"])).index(
+                timelag
+            )
+
+        thresholds_by_component = {
+            "frequency": [2, 2, 4],
+            "timelag": [2, 2, 4],
+        }
+        scores_by_component = {
+            "frequency": frequency_score(self.frequency_new()["frequency"]),
+            "timelag": timelag_score(self.aggregated["timelag"]),
+        }
+        return self._assessment_new_by_component(thresholds_by_component, scores_by_component)
+
+    def _assessment_new_availability(self):
+        thresholds_by_component = {
+            "downloadable": [True, True, True],
+            "no_critical": [True, True, True],
+            "no_error": [True, True, True],
+        }
+        scores_by_component = {
+            "downloadable": not bool(self.aggregated["download_errors_by_type"].keys() - {"null"}),
+            "no_critical": not bool(self.aggregated["validation_summary_precalc"].get("critical")),
+            "no_error": not bool(
+                self.aggregated["validation_summary_precalc"].get("critical")
+                or self.aggregated["validation_summary_precalc"].get("error")
+            ),
+        }
+        return self._assessment_new_by_component(thresholds_by_component, scores_by_component)
+
+    def assessment_new(self):
+        dimensions = {
+            "comprehensiveness": self._assessment_new_comprehensiveness(),
+            "coverage": self._assessment_new_coverage(),
+            "timeliness": self._assessment_new_timeliness(),
+            "availability": self._assessment_new_availability(),
+        }
+        overall_category_number = min(x["category_number"] for x in dimensions.values() if x is not None)
+        return {
+            "dimensions": dimensions,
+            "overall": {
+                "category_number": overall_category_number,
+                "category": self.categories_by_number[overall_category_number],
+            },
         }

@@ -15,7 +15,7 @@ mypy_path=["tests/"]
 [tool.flake8]
 max-line-length = 119
 extend_ignore = ["E203", "W503", "E275", "E501", "E721"]
-exclude = ["data", "gitout", "helpers/IATI-Rulesets", "helpers/schemas", "__pycache__", ".mypy_cache", ".pytest_cache", ".ve", ".venv", ".vagrant-ve"]
+exclude = ["data", "gitout", "helpers/IATI-Rulesets", "helpers/schemas", "__pycache__", ".mypy_cache", ".pytest_cache", ".ve", ".venv", ".vagrant-ve", "gherkin-tests"]
 
 
 [tool.black]

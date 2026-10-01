@@ -4,6 +4,12 @@
 #
 #    pip-compile --uploaded-prior-to=2026-08-18T00:00:00Z
 #
+bdd-tester @ git+https://github.com/IATI/bdd-tester.git@support-newer-gherkin
+    # via -r requirements.in
+gherkin-official==42.0.1
+    # via
+    #   -r requirements.in
+    #   bdd-tester
 gitdb==4.0.12
     # via gitpython
 gitpython==3.1.59
@@ -17,6 +23,10 @@ lxml==6.1.1
 python-dateutil==2.9.0.post0
     # via -r requirements.in
 six==1.17.0
-    # via python-dateutil
+    # via
+    #   bdd-tester
+    #   python-dateutil
 smmap==5.0.3
     # via gitdb
+typing-extensions==4.16.0
+    # via gherkin-official

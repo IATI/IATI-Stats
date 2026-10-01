@@ -99,12 +99,27 @@ def aggregate(args):
         base_folder = os.path.join(args.output, "aggregated-file")
     total = copy.deepcopy(blank)
     folders = os.listdir(base_folder)
+
+    reporting_orgs_by_short_name = {}
+    datasets_by_reporting_org = defaultdict(list)
     if args.reporting_orgs_metadata:
         with open(args.reporting_orgs_metadata) as fp:
+            reporting_orgs_metadata = json.load(fp)
             # Add missing reporting orgs by looking the metadata file
             # This happens if the bulk data service has excluded all datasets for this reporting org
-            reporting_org_short_names = {ro["short_name"] for ro in json.load(fp).get("reporting_orgs")}
+            reporting_org_short_names = {ro["short_name"] for ro in reporting_orgs_metadata.get("reporting_orgs")}
+            reporting_orgs_by_short_name = {
+                ro["short_name"]: ro for ro in reporting_orgs_metadata.get("reporting_orgs")
+            }
             folders = sorted(list(set(folders) | reporting_org_short_names))
+        dataset_metadata_path = os.path.join(os.path.dirname(args.reporting_orgs_metadata), "datasets-full.json")
+        if os.path.exists(dataset_metadata_path):
+            with open(dataset_metadata_path) as fp:
+                datasets_metadata = json.load(fp)
+                for dataset in datasets_metadata.get("datasets", []):
+                    if "reporting_org_short_name" in dataset:
+                        datasets_by_reporting_org[dataset["reporting_org_short_name"]].append(dataset)
+
     for folder in folders:
         publisher_total = copy.deepcopy(blank)
 
@@ -133,6 +148,8 @@ def aggregate(args):
         publisher_stats.aggregated = publisher_total
         publisher_stats.folder = folder
         publisher_stats.today = args.today
+        publisher_stats.metadata = reporting_orgs_by_short_name.get(folder)
+        publisher_stats.datasets = datasets_by_reporting_org.get(folder)
         for name, function in inspect.getmembers(publisher_stats, predicate=inspect.ismethod):
             if not statsrunner.shared.use_stat(publisher_stats, name):
                 continue

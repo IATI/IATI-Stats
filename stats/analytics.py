@@ -2529,6 +2529,14 @@ class PublisherStats(object):
     def validation_summary_precalc(self):
         return validator_summary_precalc.get(self.folder, {})
 
+    @returns_numberdict
+    def download_errors_by_type(self):
+        out = defaultdict(int)
+        for dataset in self.datasets:
+            error_type = dataset.get("most_recent_get_attempt", {}).get("error_details", {}).get("error_type")
+            out[error_type] += 1
+        return out
+
 
 class OrganisationFileStats(GenericFileStats):
     """Stats calculated for an IATI Organisation XML file."""

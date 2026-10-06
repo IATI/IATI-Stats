@@ -25,7 +25,7 @@ jobs:
     - name: Install some extras
       run: ./helpers.sh
     - name: Run tests
-      run: pytest --cov .
+      run: pytest --cov
     # - name: Coveralls
     #   run: coveralls --service=github-actions
     #   env:

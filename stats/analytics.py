@@ -546,7 +546,7 @@ class CommonSharedElements(object):
 
     @returns_numberdict
     def gherkin_tests_current(self):
-        if self.element.tag == "iati-activtiy":
+        if self.element.tag == "iati-activity":
             if self.gherkin_current():
                 return self.gherkin_tests()
             else:

@@ -76,7 +76,7 @@ def test_gherkin_threshold():
         </iati-activity>
     """)
     gherkin_dict = activity_stats.gherkin_tests()
-    assert gherkin_dict["4.8.2_conditions"]["Conditions document"] == {"True": 0, "False": 0, "None": 1}
+    assert gherkin_dict["4.8_documents"]["Conditions document"] == {"True": 0, "False": 0, "None": 1}
 
     activity_stats = MockActivityStats(major_version="2")
     activity_stats.element = etree.fromstring("""
@@ -90,7 +90,7 @@ def test_gherkin_threshold():
         </iati-activity>
     """)
     gherkin_dict = activity_stats.gherkin_tests()
-    assert gherkin_dict["4.8.2_conditions"]["Conditions document"] == {"True": 0, "False": 1, "None": 0}
+    assert gherkin_dict["4.8_documents"]["Conditions document"] == {"True": 0, "False": 1, "None": 0}
 
     activity_stats = MockActivityStats(major_version="2")
     activity_stats.element = etree.fromstring("""
@@ -105,4 +105,4 @@ def test_gherkin_threshold():
         </iati-activity>
     """)
     gherkin_dict = activity_stats.gherkin_tests()
-    assert gherkin_dict["4.8.2_conditions"]["Conditions document"] == {"True": 1, "False": 0, "None": 0}
+    assert gherkin_dict["4.8_documents"]["Conditions document"] == {"True": 1, "False": 0, "None": 0}

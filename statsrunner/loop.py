@@ -96,6 +96,7 @@ def process_file(*args):
                     element_stats.strict = args.strict
                     element_stats.context = "in " + inputfile
                     element_stats.today = args.today
+                    element_stats.folder = folder
                     yield call_stats(element_stats, args)
 
             def process_stats(FileStats, ElementStats, tagname=None):

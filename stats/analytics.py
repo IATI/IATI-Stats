@@ -43,7 +43,7 @@ from stats.common.decorators import (
 GHERKIN_TESTS_PATH = "gherkin-tests"
 
 
-def load_gherkin_tests():
+def load_gherkin_tests(rm_current_step=False):
     """Load the index tests."""
     base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
     step_definitions = os.path.join(base_path, "step_definitions.py")
@@ -53,17 +53,19 @@ def load_gherkin_tests():
     tests_by_feature = defaultdict(list)
     for feature_filepath in feature_filepaths:
         for test in tester.load_feature(feature_filepath).tests:
-            # Remove the current data condition from tests.
-            test.steps = [
-                x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")
-            ]
+            if rm_current_step:
+                # Remove the current data condition from tests.
+                test.steps = [
+                    x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")
+                ]
             feature_key = os.path.basename(feature_filepath).removesuffix(".feature")
             tests_by_feature[feature_key].append(test)
 
     return tests_by_feature
 
 
-gherkin_tests = load_gherkin_tests()
+gherkin_tests_unaltered = load_gherkin_tests()
+gherkin_tests_rm_current_step = load_gherkin_tests(rm_current_step=True)
 
 
 def load_gherkin_current_data_test():
@@ -530,8 +532,7 @@ class CommonSharedElements(object):
             out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
         return out
 
-    @memoize
-    def gherkin_tests(self):
+    def _gherkin_tests(self, gherkin_tests):
         result_dict_template = {"True": 0, "False": 0, "None": 0}
         out_template = defaultdict(lambda: defaultdict(lambda: copy.copy(result_dict_template)))
         if self.blank:
@@ -553,6 +554,14 @@ class CommonSharedElements(object):
                         out[feature_key][test.name][str(result)] = 1
             return out
 
+    @memoize
+    def gherkin_tests(self):
+        return self._gherkin_tests(gherkin_tests_unaltered)
+
+    def gherkin_tests_rm_current_step(self):
+        return self._gherkin_tests(gherkin_tests_rm_current_step)
+
+    @memoize
     def gherkin_tests_hierarchy_exclusions(self):
         out = copy.deepcopy(self.gherkin_tests())
         if not self.blank and self.element.tag == "iati-activity":
@@ -566,16 +575,6 @@ class CommonSharedElements(object):
     @memoize
     def gherkin_current(self):
         return int(bool(gherkin_current_data_test(self.element)))
-
-    @returns_numberdict
-    def gherkin_tests_current(self):
-        if self.element.tag == "iati-activity":
-            if self.gherkin_current():
-                return self.gherkin_tests()
-            else:
-                return {}
-        else:
-            return self.gherkin_tests()
 
 
 class ActivityStats(CommonSharedElements):
@@ -628,8 +627,8 @@ class ActivityStats(CommonSharedElements):
             "comprehensiveness_denominators",
             "comprehensiveness_denominator_default",
             "gherkin_tests",
+            "gherkin_tests_rm_current_step",
             "gherkin_current",
-            "gherkin_tests_current",
         ]:
             out[stat] = copy.deepcopy(getattr(self, stat)())
         if self.blank:

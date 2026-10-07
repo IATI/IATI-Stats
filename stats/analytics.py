@@ -254,6 +254,13 @@ coverage_by_slug = json.load(open("helpers/coverage_by_slug.json"))
 validator_summary_precalc = json.load(open("helpers/validator_summary_precalc.json"))
 
 
+hierarchy_exclusions = defaultdict(dict)
+with open("hierarchy_exclusions.csv", "r") as csv_file:
+    reader = csv.DictReader(csv_file, delimiter=",")
+    for row in reader:
+        hierarchy_exclusions[row["reporting_org_short_name"]][row["feature_key"]] = row["hierarchy_excluded"]
+
+
 def element_to_count_dict(element, path, count_dict, count_multiple=False):
     """
     Converts an element and it's children to a dictionary containing the
@@ -545,6 +552,15 @@ class CommonSharedElements(object):
                         )
                         out[feature_key][test.name][str(result)] = 1
             return out
+
+    def gherkin_tests_hierarchy_exclusions(self):
+        out = copy.deepcopy(self.gherkin_tests())
+        if not self.blank and self.element.tag == "iati-activity":
+            for feature_key, hierarchy_excluded in hierarchy_exclusions.get(self.folder, {}).items():
+                if self.element.attrib.get("hierarchy") in hierarchy_excluded.split(";"):
+                    for test_name in out[feature_key]:
+                        out[feature_key][test_name] = {"True": 0, "False": 0, "None": 1}
+        return out
 
     @returns_number
     @memoize
@@ -2536,6 +2552,10 @@ class PublisherStats(object):
             error_type = dataset.get("most_recent_get_attempt", {}).get("error_details", {}).get("error_type")
             out[error_type] += 1
         return out
+
+    @no_aggregation
+    def hierarchy_exclusions(self):
+        return hierarchy_exclusions.get(self.folder, {})
 
 
 class OrganisationFileStats(GenericFileStats):

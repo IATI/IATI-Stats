@@ -106,3 +106,22 @@ def test_gherkin_threshold():
     """)
     gherkin_dict = activity_stats.gherkin_tests()
     assert gherkin_dict["4.8_documents"]["Conditions document"] == {"True": 1, "False": 0, "None": 0}
+
+
+def test_hierarchy_exclusions():
+    activity_stats = MockActivityStats(major_version="2")
+    activity_stats.element = etree.fromstring("""
+        <iati-activity hierarchy="1">
+            <activity-status code="2" />
+            <default-aid-type code="A01" />
+        </iati-activity>
+    """)
+    activity_stats.folder = "fcdo"
+    gherkin_dict = activity_stats.gherkin_tests()
+    gherkin_dict_with_hierarchy_exclusions = activity_stats.gherkin_tests_hierarchy_exclusions()
+    assert gherkin_dict["2.10_aid_type"]["Aid type is present"] == {"True": 1, "False": 0, "None": 0}
+    assert gherkin_dict_with_hierarchy_exclusions["2.10_aid_type"]["Aid type is present"] == {
+        "True": 0,
+        "False": 0,
+        "None": 1,
+    }

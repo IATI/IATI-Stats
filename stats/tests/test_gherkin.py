@@ -19,6 +19,7 @@ def test_gherkin_titles(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring("""
         <iati-activity>
+            <activity-status code="2" />
         </iati-activity>
     """)
     gherkin_dict = activity_stats.gherkin_tests()
@@ -28,6 +29,7 @@ def test_gherkin_titles(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring("""
         <iati-activity>
+            <activity-status code="2" />
             <title>
                 <narrative>Title</narrative>
             </title>
@@ -40,6 +42,7 @@ def test_gherkin_titles(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring("""
         <iati-activity>
+            <activity-status code="2" />
             <title>
                 <narrative>Title with at least 10 characters</narrative>
             </title>
@@ -63,16 +66,40 @@ def test_gherkin_skip(major_version):
     activity_stats = MockActivityStats(major_version)
     activity_stats.element = etree.fromstring("""
         <iati-activity>
+            <activity-status code="2" />
         </iati-activity>
     """)
     gherkin_dict = activity_stats.gherkin_tests()
     assert "3.3_traceability" not in gherkin_dict
 
 
+@pytest.mark.parametrize("major_version", ["1", "2"])
+def test_gherkin_current(major_version):
+    # Current
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring("""
+        <iati-activity>
+            <activity-status code="2" />
+        </iati-activity>
+    """)
+    gherkin_dict = activity_stats.gherkin_tests()
+    assert gherkin_dict["2.4_title"]["Title is present"] == {"True": 0, "False": 1, "None": 0}
+
+    # Not current
+    activity_stats = MockActivityStats(major_version)
+    activity_stats.element = etree.fromstring("""
+        <iati-activity>
+        </iati-activity>
+    """)
+    gherkin_dict = activity_stats.gherkin_tests()
+    assert gherkin_dict["2.4_title"]["Title is present"] == {"True": 0, "False": 0, "None": 1}
+
+
 def test_gherkin_threshold():
     activity_stats = MockActivityStats(major_version="2")
     activity_stats.element = etree.fromstring("""
         <iati-activity>
+            <activity-status code="2" />
         </iati-activity>
     """)
     gherkin_dict = activity_stats.gherkin_tests()

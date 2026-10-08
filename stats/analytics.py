@@ -246,8 +246,7 @@ def element_to_count_dict(element, path, count_dict, count_multiple=False):
 def valid_date(date_element):
     if date_element is None:
         return False
-    schema_root = etree.XML(
-        """
+    schema_root = etree.XML("""
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <xsd:element name="activity-date" type="dateType"/>
             <xsd:element name="transaction-date" type="dateType"/>
@@ -270,8 +269,7 @@ def valid_date(date_element):
                 </xsd:complexType>
             </xsd:element>
         </xsd:schema>
-    """
-    )
+    """)
     schema = etree.XMLSchema(schema_root)
     return schema.validate(date_element)
 
@@ -291,8 +289,7 @@ def valid_url(element):
         # Return false if it's empty or not an absolute url
         return False
 
-    schema_root = etree.XML(
-        """
+    schema_root = etree.XML("""
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <xsd:element name="document-link">
                 <xsd:complexType mixed="true">
@@ -313,8 +310,7 @@ def valid_url(element):
                 </xsd:complexType>
             </xsd:element>
         </xsd:schema>
-    """
-    )
+    """)
     schema = etree.XMLSchema(schema_root)
     return schema.validate(element)
 
@@ -322,8 +318,7 @@ def valid_url(element):
 def valid_value(value_element):
     if value_element is None:
         return False
-    schema_root = etree.XML(
-        """
+    schema_root = etree.XML("""
         <xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema">
             <xsd:element name="value">
                 <xsd:complexType>
@@ -335,8 +330,7 @@ def valid_value(value_element):
                 </xsd:complexType>
             </xsd:element>
         </xsd:schema>
-    """
-    )
+    """)
     schema = etree.XMLSchema(schema_root)
     return schema.validate(value_element)
 

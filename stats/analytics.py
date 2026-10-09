@@ -14,6 +14,7 @@ import re
 from collections import Counter, OrderedDict, defaultdict
 from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
+from statistics import mean
 
 import iatirulesets
 from bdd_tester import BDDTester
@@ -2640,6 +2641,40 @@ class AllDataStats(object):
 class PublisherWithHistoryStats(object):
     blank = False
     now = datetime.now()  # TODO Add option to set this to date of git commit
+
+    def comprehensiveness_new_by_component(self):
+        out = {}
+
+        components = {}
+        base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
+        for dirname in os.listdir(base_path):
+            if not os.path.isdir(os.path.join(base_path, dirname)):
+                continue
+            substrs = dirname.split("_")
+            if len(substrs) == 2:
+                component_number, compontent_string = substrs
+                components[component_number] = compontent_string
+
+        feature_ratios_by_compontent = defaultdict(list)
+        for gherkin_key, tests_dict in self.aggregated["gherkin_tests_hierarchy_exclusions"].items():
+            if gherkin_key == "current_data":
+                continue
+            test_ratios = []
+            for test_results in tests_dict.values():
+                try:
+                    test_ratios.append(test_results["True"] / (test_results["True"] + test_results["False"]))
+                except ZeroDivisionError:
+                    pass
+            if test_ratios:
+                feature_ratios_by_compontent[gherkin_key.split(".")[0]].append(mean(test_ratios))
+
+        for component_number, component_string in components.items():
+            if component_number in feature_ratios_by_compontent:
+                out[component_string] = mean(feature_ratios_by_compontent[component_number])
+            else:
+                out[component_string] = 0
+
+        return out
 
     def timeliness(self):
         return self._timeliness(include_future=True)

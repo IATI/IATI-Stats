@@ -2123,6 +2123,18 @@ class ActivityStats(CommonSharedElements):
             out += 1
         return out
 
+    @returns_numberdict
+    def comprehensiveness_new_countries(self):
+        # https://github.com/IATI/IATI-Stats/issues/191#issuecomment-5978052580
+        if self._sum_commitments_and_disbursements() > 100_000:
+            return {code: 1 for code in self.element.xpath("recipient-country/@code")}
+        else:
+            return {}
+
+    @returns_numberdict
+    def comprehensiveness_new_countries_with_strategy_or_mou(self):
+        return {code: 1 for code in self.element.xpath('document-link[category/@code="A09"]/recipient-country/@code')}
+
 
 publisher_re = re.compile(r"(.*)\-[^\-]")
 
@@ -2587,6 +2599,33 @@ class OrganisationStats(CommonSharedElements):
     def elements_total(self):
         return element_to_count_dict(self.element, "iati-organisation", defaultdict(int), True)
 
+    @returns_numberdict
+    def comprehensiveness_new_countries_with_strategy_or_mou(self):
+        return {
+            code: 1
+            for code in self.element.xpath(
+                'document-link[category/@code="B03" or category/@code="B13"]/recipient-country/@code'
+            )
+        }
+
+    @returns_numberdictdict
+    def comprehensiveness_new_disaggregated_budgets(self):
+        out = defaultdict(lambda: defaultdict(int))
+        for budget in self.element.findall("recipient-country-budget"):
+            try:
+                country_code = budget.xpath("recipient-country/@code")[0]
+            except IndexError:
+                print("a")
+                continue
+            budget_end = iso_date(budget.find("period-end"))
+            for year in [1, 2, 3]:
+                future_date = self.today + timedelta(days=(365 * (year - 1)))
+                future_plus_oneyear = future_date + timedelta(days=365)
+                if budget_end >= future_date:
+                    if budget_end <= future_plus_oneyear:
+                        out[year][country_code] += 1
+        return out
+
 
 class AllDataStats(object):
     blank = False
@@ -2642,6 +2681,64 @@ class PublisherWithHistoryStats(object):
     blank = False
     now = datetime.now()  # TODO Add option to set this to date of git commit
 
+    def comprehensiveness_new_non_gherkin(self):
+        def stats_to_ratio(stats):
+            if not stats:
+                return None
+            try:
+                return stats["total_valid_refs"] / stats["total_orgs"]
+            except ZeroDivisionError:
+                return None
+
+        out = {
+            "1.5_country_strategy_or_mou": {
+                "Country Strategy or MOU": (
+                    mean(
+                        int(country in self.aggregated["comprehensiveness_new_countries_with_strategy_or_mou"])
+                        for country in self.aggregated["comprehensiveness_new_countries"]
+                    )
+                    if self.aggregated["comprehensiveness_new_countries"]
+                    else None
+                )
+            },
+            "1.8_country_budgets": {
+                f"Country budget available {year} year{"s" if year > 1 else ""} forward": (
+                    mean(
+                        int(
+                            country
+                            in self.aggregated["comprehensiveness_new_disaggregated_budgets"].get(str(year), {})
+                        )
+                        for country in self.aggregated["comprehensiveness_new_countries"]
+                    )
+                    if self.aggregated["comprehensiveness_new_countries"]
+                    else None
+                )
+                for year in [1, 2, 3]
+            },
+            "4.7_organisation_identifiers": {
+                "Implementing Org Transaction Valid Refs": stats_to_ratio(
+                    self.aggregated["implementing_org_transaction_stats"]
+                ),
+                "Receiver Org Transaction Valid Refs": stats_to_ratio(
+                    self.aggregated["receiver_org_transaction_stats"]
+                ),
+            },
+        }
+        return out
+
+    def comprehensiveness_new_test_ratios(self):
+        out = defaultdict(dict)
+        for gherkin_key, tests_dict in self.aggregated["gherkin_tests_hierarchy_exclusions"].items():
+            if gherkin_key == "current_data":
+                continue
+            for test_name, test_results in tests_dict.items():
+                try:
+                    out[gherkin_key][test_name] = test_results["True"] / (test_results["True"] + test_results["False"])
+                except ZeroDivisionError:
+                    out[gherkin_key][test_name] = None
+        out.update(self.comprehensiveness_new_non_gherkin())
+        return out
+
     def comprehensiveness_new_by_component(self):
         out = {}
 
@@ -2656,17 +2753,10 @@ class PublisherWithHistoryStats(object):
                 components[component_number] = compontent_string
 
         feature_ratios_by_compontent = defaultdict(list)
-        for gherkin_key, tests_dict in self.aggregated["gherkin_tests_hierarchy_exclusions"].items():
-            if gherkin_key == "current_data":
-                continue
-            test_ratios = []
-            for test_results in tests_dict.values():
-                try:
-                    test_ratios.append(test_results["True"] / (test_results["True"] + test_results["False"]))
-                except ZeroDivisionError:
-                    pass
+        for key, test_ratio_dict in self.comprehensiveness_new_test_ratios().items():
+            test_ratios = [ratio for ratio in test_ratio_dict.values() if ratio is not None]
             if test_ratios:
-                feature_ratios_by_compontent[gherkin_key.split(".")[0]].append(mean(test_ratios))
+                feature_ratios_by_compontent[key.split(".")[0]].append(mean(test_ratios))
 
         for component_number, component_string in components.items():
             if component_number in feature_ratios_by_compontent:
@@ -2998,9 +3088,7 @@ class PublisherWithHistoryStats(object):
             "financials": [0.6, 0.7, 0.9],
             "advanced": [0.0, 0.6, 0.8],
         }
-        return self._assessment_new_by_component(
-            thresholds_by_component, self.comprehensiveness_new_by_component()
-        )
+        return self._assessment_new_by_component(thresholds_by_component, self.comprehensiveness_new_by_component())
 
     def _assessment_new_coverage(self):
         thresholds_by_component = {

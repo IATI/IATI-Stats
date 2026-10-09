@@ -1,25 +1,75 @@
 #!/usr/bin/env bash
 
 mkdir -p codelists/1
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/Version.json" -O codelists/1/Version.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/ActivityStatus.json" -O codelists/1/ActivityStatus.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/Currency.json" -O codelists/1/Currency.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/Sector.json" -O codelists/1/Sector.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/SectorCategory.json" -O codelists/1/SectorCategory.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/DocumentCategory.json" -O codelists/1/DocumentCategory.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/AidType.json" -O codelists/1/AidType.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/BudgetNotProvided.json" -O codelists/1/BudgetNotProvided.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/OrganisationRegistrationAgency.json" -O codelists/1/OrganisationRegistrationAgency.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/CRSChannelCode.json" -O codelists/1/CRSChannelCode.json
-
 mkdir -p codelists/2
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/Version.json" -O codelists/2/Version.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/ActivityStatus.json" -O codelists/2/ActivityStatus.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/Currency.json" -O codelists/2/Currency.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/Sector.json" -O codelists/2/Sector.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/SectorCategory.json" -O codelists/2/SectorCategory.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/DocumentCategory.json" -O codelists/2/DocumentCategory.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/AidType.json" -O codelists/2/AidType.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/BudgetNotProvided.json" -O codelists/2/BudgetNotProvided.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/OrganisationRegistrationAgency.json" -O codelists/2/OrganisationRegistrationAgency.json
-wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/CRSChannelCode.json" -O codelists/2/CRSChannelCode.json
+
+for codelist in \
+    ActivityDateType \
+    ActivityScope \
+    ActivityStatus \
+    AidType \
+    AidTypeFlag \
+    AidTypeVocabulary \
+    BudgetIdentifier \
+    BudgetIdentifierVocabulary \
+    BudgetNotProvided \
+    BudgetStatus \
+    BudgetType \
+    CRSAddOtherFlags \
+    CRSChannelCode \
+    CashandVoucherModalities \
+    CollaborationType \
+    ConditionType \
+    ContactType \
+    Country \
+    Currency \
+    DescriptionType \
+    DisbursementChannel \
+    DocumentCategory \
+    EarmarkingCategory \
+    FileFormat \
+    FinanceType \
+    FlowType \
+    GazetteerAgency \
+    GeographicExactness \
+    GeographicLocationClass \
+    GeographicLocationReach \
+    GeographicVocabulary \
+    GeographicalPrecision \
+    HumanitarianScopeType \
+    HumanitarianScopeVocabulary \
+    IndicatorMeasure \
+    IndicatorVocabulary \
+    Language \
+    LoanRepaymentPeriod \
+    LoanRepaymentType \
+    LocationType \
+    OrganisationRegistrationAgency \
+    OrganisationRole \
+    OrganisationType \
+    OtherIdentifierType \
+    PolicyMarker \
+    PolicyMarkerVocabulary \
+    PolicySignificance \
+    Region \
+    RegionVocabulary \
+    RelatedActivityType \
+    ResultType \
+    ResultVocabulary \
+    Sector \
+    SectorCategory \
+    SectorVocabulary \
+    TagVocabulary \
+    TiedStatus \
+    TransactionType \
+    UNSDG-Goals \
+    UNSDG-Targets \
+    Version \
+    Vocabulary
+do
+    wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/105/codelists/downloads/clv3/json/en/$codelist.json" -O codelists/1/$codelist.json
+    wget --tries=20 --waitretry=10 --retry-connrefused "https://iatistandard.org/reference_downloads/203/codelists/downloads/clv3/json/en/$codelist.json" -O codelists/2/$codelist.json
+done
+
+# Remove codelists we couldn't download (usually because they only exist for 1 standard version)
+find codelists -type f -empty -print -delete

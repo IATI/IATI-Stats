@@ -6,6 +6,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: recursive
     - name: Set up Python 3.12
       uses: actions/setup-python@v5
       with:
@@ -21,16 +23,9 @@ jobs:
     - name: Lint - isort
       run: isort . --check-only
     - name: Install some extras
-      run: |
-        cd helpers
-        ./get_codelist_mapping.sh
-        ./get_codelists.sh
-        echo '{}' > ckan.json
-        touch registry_id_relationships.csv
-        wget -q https://codeforiati.org/imf-exchangerates/imf_exchangerates_A_ENDA_USD.csv -O currency_conversion/exchange_rates.csv
-        cd ..
+      run: ./helpers.sh
     - name: Run tests
-      run: pytest --cov .
+      run: pytest --cov
     # - name: Coveralls
     #   run: coveralls --service=github-actions
     #   env:

@@ -2,3 +2,5 @@ lxml
 python-dateutil
 git+https://github.com/IATI/IATI-Rulesets.git@version-2.03#egg=iatirulesets
 GitPython
+bdd_tester@git+https://github.com/IATI/bdd-tester.git@support-newer-gherkin
+gherkin-official

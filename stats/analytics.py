@@ -7,6 +7,7 @@ from __future__ import print_function
 
 import copy
 import csv
+import glob
 import json
 import os
 import re
@@ -15,6 +16,7 @@ from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 
 import iatirulesets
+from bdd_tester import BDDTester
 from dateutil.relativedelta import relativedelta
 from helpers.currency_conversion import get_USD_value
 from lxml import etree
@@ -37,6 +39,42 @@ from stats.common.decorators import (
     returns_numberdictdict,
     returns_numberdictdictdict,
 )
+
+GHERKIN_TESTS_PATH = "gherkin-tests"
+
+
+def load_gherkin_tests():
+    """Load the index tests."""
+    base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
+    step_definitions = os.path.join(base_path, "step_definitions.py")
+    feature_filepaths = sorted(glob.glob(os.path.join(base_path, "**", "*.feature"), recursive=True))
+    tester = BDDTester(step_definitions)
+
+    tests_by_feature = defaultdict(list)
+    for feature_filepath in feature_filepaths:
+        for test in tester.load_feature(feature_filepath).tests:
+            # Remove the current data condition from tests.
+            test.steps = [
+                x for x in test.steps if not (x.step_type == "given" and x.text == "the activity is current")
+            ]
+            feature_key = os.path.basename(feature_filepath).removesuffix(".feature")
+            tests_by_feature[feature_key].append(test)
+
+    return tests_by_feature
+
+
+gherkin_tests = load_gherkin_tests()
+
+
+def load_gherkin_current_data_test():
+    """Load the current data test."""
+    base_path = os.path.join(GHERKIN_TESTS_PATH, "test_definitions")
+    step_definitions = os.path.join(base_path, "step_definitions.py")
+    tester = BDDTester(step_definitions)
+    return tester.load_feature(os.path.join(base_path, "current_data.feature")).tests[0]
+
+
+gherkin_current_data_test = load_gherkin_current_data_test()
 
 
 def add_years(d, years):
@@ -130,21 +168,10 @@ codelist_mappings = {major_version: get_codelist_mapping(major_version) for majo
 
 CODELISTS = {"1": {}, "2": {}}
 for major_version in ["1", "2"]:
-    for codelist_name in [
-        "Version",
-        "ActivityStatus",
-        "Currency",
-        "Sector",
-        "SectorCategory",
-        "DocumentCategory",
-        "AidType",
-        "BudgetNotProvided",
-        "OrganisationRegistrationAgency",
-        "CRSChannelCode",
-    ]:
+    for codelist_file in os.listdir(f"helpers/codelists/{major_version}"):
+        codelist_name = codelist_file.removesuffix(".json")
         CODELISTS[major_version][codelist_name] = set(
-            c["code"]
-            for c in json.load(open("helpers/codelists/{}/{}.json".format(major_version, codelist_name)))["data"]
+            c["code"] for c in json.load(open(f"helpers/codelists/{major_version}/{codelist_file}"))["data"]
         )
 
 
@@ -489,6 +516,44 @@ class CommonSharedElements(object):
             out[ruleset_name] = int(iatirulesets.test_ruleset_subelement(ruleset, self.element))
         return out
 
+    @memoize
+    def gherkin_tests(self):
+        result_dict_template = {"True": 0, "False": 0, "None": 0}
+        out_template = defaultdict(lambda: defaultdict(lambda: copy.copy(result_dict_template)))
+        if self.blank:
+            return out_template
+        else:
+            if self.element.tag == "iati-activity":
+                activity_value = self._sum_commitments_and_disbursements()
+            else:
+                activity_value = None
+            out = out_template
+            for feature_key, tests in gherkin_tests.items():
+                for test in tests:
+                    if self.element.tag in test.feature.tags:
+                        if "skip it" in " ".join(step.text for step in test.steps):
+                            continue
+                        result = test(
+                            self.element, codelists=CODELISTS[self._major_version()], activity_value=activity_value
+                        )
+                        out[feature_key][test.name][str(result)] = 1
+            return out
+
+    @returns_number
+    @memoize
+    def gherkin_current(self):
+        return int(bool(gherkin_current_data_test(self.element)))
+
+    @returns_numberdict
+    def gherkin_tests_current(self):
+        if self.element.tag == "iati-activity":
+            if self.gherkin_current():
+                return self.gherkin_tests()
+            else:
+                return {}
+        else:
+            return self.gherkin_tests()
+
 
 class ActivityStats(CommonSharedElements):
     """Stats calculated on a single iati-activity."""
@@ -539,6 +604,9 @@ class ActivityStats(CommonSharedElements):
             "comprehensiveness_with_validation",
             "comprehensiveness_denominators",
             "comprehensiveness_denominator_default",
+            "gherkin_tests",
+            "gherkin_current",
+            "gherkin_tests_current",
         ]:
             out[stat] = copy.deepcopy(getattr(self, stat)())
         if self.blank:
@@ -1863,14 +1931,18 @@ class ActivityStats(CommonSharedElements):
     def _sum_transactions(self, transaction_type):
         return sum(self.sum_transactions_by_type_by_year_usd().get(transaction_type, {}).get("USD", {}).values())
 
-    @returns_numberdict
-    def sum_commitments_and_disbursements_by_activity_id_usd(self):
-        sum_commitments_and_disbursements_usd = (
+    @memoize
+    def _sum_commitments_and_disbursements(self):
+        return (
             self._sum_transactions("C")
             + self._sum_transactions("2")
             + self._sum_transactions("D")
             + self._sum_transactions("3")
         )
+
+    @returns_numberdict
+    def sum_commitments_and_disbursements_by_activity_id_usd(self):
+        sum_commitments_and_disbursements_usd = self._sum_commitments_and_disbursements()
         if sum_commitments_and_disbursements_usd:
             return {self.iati_identifier(): sum_commitments_and_disbursements_usd}
         else:

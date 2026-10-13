@@ -1,9 +1,12 @@
+from unittest.mock import MagicMock
+
 from stats.analytics import PublisherWithHistoryStats
 
 
 def test_ignore_none():
     # We calculate True/False ignoreing the Nones
     pwhs = PublisherWithHistoryStats()
+    pwhs.comprehensiveness_new_non_gherkin = MagicMock(return_value={})
     pwhs.aggregated = {
         "gherkin_tests_hierarchy_exclusions": {
             "1.1_feature": {"A": {"True": 1, "False": 3, "None": 5}},
@@ -20,6 +23,7 @@ def test_ignore_none():
 def test_average_scenarios():
     # We average scenario A and B scores
     pwhs = PublisherWithHistoryStats()
+    pwhs.comprehensiveness_new_non_gherkin = MagicMock(return_value={})
     pwhs.aggregated = {
         "gherkin_tests_hierarchy_exclusions": {
             "1.1_feature": {"A": {"True": 1, "False": 3, "None": 5}, "B": {"True": 7, "False": 9, "None": 11}},
@@ -36,6 +40,7 @@ def test_average_scenarios():
 def test_average_features():
     # We average 1.1 and 1.2 scores
     pwhs = PublisherWithHistoryStats()
+    pwhs.comprehensiveness_new_non_gherkin = MagicMock(return_value={})
     pwhs.aggregated = {
         "gherkin_tests_hierarchy_exclusions": {
             "1.1_feature": {"A": {"True": 1, "False": 3, "None": 5}, "B": {"True": 7, "False": 9, "None": 11}},
@@ -55,6 +60,7 @@ def test_average_features():
 def test_separate_components():
     # We calculate 1.X and 2.X scores separately
     pwhs = PublisherWithHistoryStats()
+    pwhs.comprehensiveness_new_non_gherkin = MagicMock(return_value={})
     pwhs.aggregated = {
         "gherkin_tests_hierarchy_exclusions": {
             "1.1_feature": {"A": {"True": 1, "False": 3, "None": 5}, "B": {"True": 7, "False": 9, "None": 11}},
@@ -77,6 +83,7 @@ def test_separate_components():
 def test_all_irrelevant():
     # Scenarios that are all irrelevant (all Nones) should be excluded from the average
     pwhs = PublisherWithHistoryStats()
+    pwhs.comprehensiveness_new_non_gherkin = MagicMock(return_value={})
     pwhs.aggregated = {
         "gherkin_tests_hierarchy_exclusions": {
             "1.1_feature": {"A": {"True": 1, "False": 3, "None": 5}, "B": {"True": 0, "False": 0, "None": 11}},
@@ -94,6 +101,7 @@ def test_all_irrelevant():
 def test_all_irrelevant_feature():
     # Scenarios that are all irrelevant (all Nones) should be excluded from the average
     pwhs = PublisherWithHistoryStats()
+    pwhs.comprehensiveness_new_non_gherkin = MagicMock(return_value={})
     pwhs.aggregated = {
         "gherkin_tests_hierarchy_exclusions": {
             "1.1_feature": {"A": {"True": 1, "False": 3, "None": 5}},
@@ -112,6 +120,7 @@ def test_all_irrelevant_feature():
 def test_all_irrelevant_component():
     # Components that are all irrelevant score 0
     pwhs = PublisherWithHistoryStats()
+    pwhs.comprehensiveness_new_non_gherkin = MagicMock(return_value={})
     pwhs.aggregated = {
         "gherkin_tests_hierarchy_exclusions": {
             "1.1_feature": {"A": {"True": 0, "False": 0, "None": 11}},

@@ -2739,8 +2739,7 @@ class PublisherWithHistoryStats(object):
                         if self.aggregated["traceable_sum_commitments_and_disbursements_by_publisher_id_denominator"]
                         else None
                     )
-                    if self._reporting_org_type()
-                    in ["21", "22", "23", "24", "30", "40", "70", "71", "72", "73", "80", "90"]
+                    if self._reporting_org_type() in ["10", "11", "15", "30", "40", "60"]
                     else None
                 ),
                 "Upward traceability": (
@@ -2748,7 +2747,8 @@ class PublisherWithHistoryStats(object):
                         self.aggregated["comprehensiveness"].get("transaction_traceability", 0),
                         self.aggregated["comprehensiveness_denominators"].get("transaction_traceability"),
                     )
-                    if self._reporting_org_type() in ["10", "11", "15", "30", "40", "60"]
+                    if self._reporting_org_type()
+                    in ["21", "22", "23", "24", "30", "40", "70", "71", "72", "73", "80", "90"]
                     else None
                 ),
             },
@@ -3165,7 +3165,7 @@ class PublisherWithHistoryStats(object):
             "timelag": [3, 4, 4],
         }
         scores_by_component = {
-            "frequency": frequency_score(self.frequency_new()["frequency"]),
+            "frequency": frequency_score(self.frequency_old()["frequency"]),
             "timelag": timelag_score(self.aggregated["timelag"]),
         }
         return self._assessment_new_by_component(thresholds_by_component, scores_by_component)

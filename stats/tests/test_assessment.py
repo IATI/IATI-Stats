@@ -98,7 +98,7 @@ def test_timeliness_frequency():
         ("Less than Annual", "needs_improvement"),
     ]:
         pwhs = PublisherWithHistoryStats()
-        pwhs.frequency_new = MagicMock(return_value={"frequency": frequency})
+        pwhs.frequency_old = MagicMock(return_value={"frequency": frequency})
         pwhs.aggregated = {"timelag": "One month"}
         ant = pwhs._assessment_new_timeliness()
         assert ant["category"] == assessment
@@ -114,7 +114,7 @@ def test_timeliness_timelag():
         ("More than one year", "needs_improvement"),
     ]:
         pwhs = PublisherWithHistoryStats()
-        pwhs.frequency_new = MagicMock(return_value={"frequency": "Monthly"})
+        pwhs.frequency_old = MagicMock(return_value={"frequency": "Monthly"})
         pwhs.aggregated = {"timelag": timelag}
         ant = pwhs._assessment_new_timeliness()
         assert ant["category"] == assessment
